@@ -1,0 +1,9 @@
+.DS_Store
+PLAN.md
+node_modules/
+dist/
+release/
+*.alfredworkflow
+*.key
+*.secret
+*.env
