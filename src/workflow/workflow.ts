@@ -7,13 +7,12 @@ class Workflow {
 
   compose(results: Result[]): this {
     this.results = results.map(r => {
-      const icon = r.arg.startsWith("~") ? 'assets/translate-say.png' : 'assets/translate.png'
       return new Item().setTitle(r.title)
       .setSubtitle(r.subtitle)
       .setArg(r.arg)
-      .setIcon(icon)
-      .setCmd('🔊 ' + r.pronounce, r.pronounce)
-      .setAlt('📣 ' + r.pronounce, r.pronounce)
+      .setIcon('assets/translate.png')
+      .setCmd('Speak locally: ' + r.pronounce, r.pronounce, true, 'assets/translate-say.png')
+      .setAlt('Play online pronunciation: ' + r.pronounce, r.pronounce, true, 'assets/translate-say.png')
       .setCopy(r.title)
       .setQuicklookurl(r.quicklookurl)
       .result();

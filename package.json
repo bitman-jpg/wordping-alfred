@@ -1,10 +1,11 @@
 {
   "name": "wordping-alfred",
-  "version": "0.1.0",
+  "version": "0.3.3",
   "description": "Fast Youdao translation and word lookup for Alfred",
   "main": "src/index.ts",
   "scripts": {
-    "build": "sh scripts/build.sh"
+    "build": "sh scripts/build.sh",
+    "test": "sh scripts/test.sh"
   },
   "author": "bitman",
   "license": "MIT"

@@ -12,8 +12,6 @@ class Youdao implements Adapter {
 
   results: Result[] = [];
 
-  phonetic: string = "";
-
   constructor(key: string, secret: string) {
     this.key = key;
     this.secret = secret;
@@ -69,11 +67,6 @@ class Youdao implements Adapter {
         this.addResult(explain, this.word, explain, pronounce);
       });
 
-      if (basic.phonetic) {
-        // 获取音标，同时确定要发音的单词
-        const phonetic: string = this.parsePhonetic(basic);
-        this.addResult( phonetic, "回车可听发音", "~" + pronounce, pronounce );
-      }
     }
   }
 
@@ -84,24 +77,6 @@ class Youdao implements Adapter {
         this.addResult( item.value.join(", "), item.key, item.value[0], pronounce);
       });
     }
-  }
-
-  private parsePhonetic(basic: any): string {
-    let phonetic: string = '';
-
-    if (!this.isEnglish && basic.phonetic) {
-      phonetic = "[" + basic.phonetic + "] ";
-    }
-
-    if (basic["us-phonetic"]) {
-      phonetic += " [美: " + basic["us-phonetic"] + "] ";
-    }
-
-    if (basic["uk-phonetic"]) {
-      phonetic += " [英: " + basic["uk-phonetic"] + "]";
-    }
-
-    return phonetic;
   }
 
   private parseError(code: number): Result[] {

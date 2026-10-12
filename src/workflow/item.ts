@@ -106,16 +106,17 @@ class Item {
     return this.setText("largetype", text);
   }
 
-  setMod(mod: any, subtitle: string, arg: string, valid: boolean = true): this {
+  setMod(mod: any, subtitle: string, arg: string, valid: boolean = true, iconPath?: string): this {
     if (!["shift", "fn", "ctrl", "alt", "cmd"].some((t) => t === mod)) {
       return this;
     }
-    this.mods[mod] =  { subtitle, arg, valid };
+    this.mods[mod] = { subtitle, arg, valid };
+    if (iconPath) this.mods[mod].icon = { path: iconPath };
     return this;
   }
 
-  setCmd(subtitle: string, arg: string, valid: boolean = true): this {
-    return this.setMod("cmd", subtitle, arg, valid);
+  setCmd(subtitle: string, arg: string, valid: boolean = true, iconPath?: string): this {
+    return this.setMod("cmd", subtitle, arg, valid, iconPath);
   }
 
   setShift(subtitle: string, arg: string, valid: boolean = true): this {
@@ -130,8 +131,8 @@ class Item {
     return this.setMod("ctrl", subtitle, arg, valid);
   }
 
-  setAlt(subtitle: string, arg: string, valid: boolean = true): this {
-    return this.setMod("alt", subtitle, arg, valid);
+  setAlt(subtitle: string, arg: string, valid: boolean = true, iconPath?: string): this {
+    return this.setMod("alt", subtitle, arg, valid, iconPath);
   }
 
   result(): any {

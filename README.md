@@ -8,12 +8,13 @@ WordPing is a fast translation and dictionary workflow for Alfred. Type a word o
 
 - Translate English into your chosen native language.
 - Translate other supported languages into English.
-- Show translations, short definitions, phonetic spelling, and alternatives when available.
+- Show translations, short definitions, and alternatives when available.
 - Copy translations with one key.
 - Hear local or online pronunciation.
 - Choose American, British, or both pronunciations.
 - Translate text selected in other Mac applications.
 - Preview the full Youdao dictionary page with Quick Look.
+- Reopen recent lookups and reuse cached translations without another API call.
 
 ## Requirements
 
@@ -45,6 +46,8 @@ wp bonjour
 
 English input is translated into your selected native language. Other supported languages are translated into English.
 
+Activate `wp` without entering a lookup to see recent history. Select **Clear recent lookups…** at the bottom and press Return to delete the local history. Repeating a lookup uses its cached result, reducing latency and Youdao API usage. The maximum number of saved lookups can be changed in the workflow configuration.
+
 ## Translate selected text
 
 You can select text in Safari, Notes, a PDF reader, or another Mac application and open its translation by double-tapping `⌥ Option`.
@@ -74,7 +77,7 @@ When **Both** pronunciation is selected, `⌥ Return` plays British followed by 
 
 ## Privacy
 
-WordPing sends lookup text to Youdao using your own API account. It does not include shared credentials and does not save your lookup history.
+WordPing sends lookup text to Youdao using your own API account. It does not include shared credentials. Recent lookup text and results are cached locally in Alfred's workflow cache directory; use the clear action at the bottom of the recent lookup list to delete them.
 
 ## Support WordPing
 

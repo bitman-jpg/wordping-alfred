@@ -6,11 +6,13 @@
 	<string>com.bitman.wordping</string>
 	<key>connections</key>
 	<dict>
-		<key>1631393E-5B53-4C8B-AF64-A04B687438DF</key>
+		<key>284F6AAD-8FE7-44A6-AAE4-62A0F8BEE779</key>
+		<array/>
+		<key>B14A8F8F-8088-45F3-A031-572990731E5B</key>
 		<array>
 			<dict>
 				<key>destinationuid</key>
-				<string>6B0F6A32-751F-4071-A1E8-76A2E9486962</string>
+				<string>D9D2ECDB-B820-4A98-9544-E71E6B7A2C86</string>
 				<key>modifiers</key>
 				<integer>0</integer>
 				<key>modifiersubtext</key>
@@ -19,13 +21,11 @@
 				<false/>
 			</dict>
 		</array>
-		<key>284F6AAD-8FE7-44A6-AAE4-62A0F8BEE779</key>
-		<array/>
-		<key>487D7A3C-11A7-416D-8F0F-21097B979E4C</key>
+		<key>D9D2ECDB-B820-4A98-9544-E71E6B7A2C86</key>
 		<array>
 			<dict>
 				<key>destinationuid</key>
-				<string>1631393E-5B53-4C8B-AF64-A04B687438DF</string>
+				<string>CDE11A7D-18E5-4E05-BBCD-A5795232CB48</string>
 				<key>modifiers</key>
 				<integer>0</integer>
 				<key>modifiersubtext</key>
@@ -48,13 +48,13 @@
 			</dict>
 			<dict>
 				<key>destinationuid</key>
-				<string>487D7A3C-11A7-416D-8F0F-21097B979E4C</string>
+				<string>B14A8F8F-8088-45F3-A031-572990731E5B</string>
 				<key>modifiers</key>
 				<integer>0</integer>
 				<key>modifiersubtext</key>
 				<string></string>
 				<key>vitoclose</key>
-				<true/>
+				<false/>
 			</dict>
 			<dict>
 				<key>destinationuid</key>
@@ -169,7 +169,7 @@
 				<key>matchmode</key>
 				<integer>2</integer>
 				<key>matchstring</key>
-				<string>^(?!~).+</string>
+				<string>^(?!~|__wordping_clear__$).+</string>
 			</dict>
 			<key>type</key>
 			<string>alfred.workflow.utility.filter</string>
@@ -188,31 +188,62 @@
 				<key>matchmode</key>
 				<integer>2</integer>
 				<key>matchstring</key>
-				<string>^~</string>
+				<string>^__wordping_clear__$</string>
 			</dict>
 			<key>type</key>
 			<string>alfred.workflow.utility.filter</string>
 			<key>uid</key>
-			<string>487D7A3C-11A7-416D-8F0F-21097B979E4C</string>
+			<string>B14A8F8F-8088-45F3-A031-572990731E5B</string>
 			<key>version</key>
 			<integer>1</integer>
 		</dict>
 		<dict>
 			<key>config</key>
 			<dict>
-				<key>matchmode</key>
-				<integer>0</integer>
-				<key>matchstring</key>
-				<string>~</string>
-				<key>replacestring</key>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>if [[ -n "${alfred_workflow_cache:-}" ]]; then
+  /bin/rm -f "$alfred_workflow_cache/translations.json"
+fi
+
+/usr/bin/osascript -e 'tell application id "com.runningwithcrayons.Alfred" to search "wp "'</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
 				<string></string>
+				<key>type</key>
+				<integer>0</integer>
 			</dict>
 			<key>type</key>
-			<string>alfred.workflow.utility.replace</string>
+			<string>alfred.workflow.action.script</string>
 			<key>uid</key>
-			<string>1631393E-5B53-4C8B-AF64-A04B687438DF</string>
+			<string>D9D2ECDB-B820-4A98-9544-E71E6B7A2C86</string>
 			<key>version</key>
 			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>lastpathcomponent</key>
+				<false/>
+				<key>onlyshowifquerypopulated</key>
+				<false/>
+				<key>removeextension</key>
+				<false/>
+				<key>text</key>
+				<string>Recent lookup history was cleared.</string>
+				<key>title</key>
+				<string>WordPing</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.notification</string>
+			<key>uid</key>
+			<string>CDE11A7D-18E5-4E05-BBCD-A5795232CB48</string>
+			<key>version</key>
+			<integer>1</integer>
 		</dict>
 		<dict>
 			<key>config</key>
@@ -226,7 +257,7 @@
 				<key>argumenttrimmode</key>
 				<integer>0</integer>
 				<key>argumenttype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>escaping</key>
 				<integer>100</integer>
 				<key>keyword</key>
@@ -379,13 +410,6 @@ WordPing uses the Youdao translation API. Create or reuse a Youdao AI Cloud appl
 Existing YoudaoTranslator users can use the same app key and secret. Alfred keeps the two workflows' settings separately, so enter them in WordPing once.</string>
 	<key>uidata</key>
 	<dict>
-		<key>1631393E-5B53-4C8B-AF64-A04B687438DF</key>
-		<dict>
-			<key>xpos</key>
-			<real>750.0</real>
-			<key>ypos</key>
-			<real>160.0</real>
-		</dict>
 		<key>284F6AAD-8FE7-44A6-AAE4-62A0F8BEE779</key>
 		<dict>
 			<key>colorindex</key>
@@ -403,13 +427,6 @@ Existing YoudaoTranslator users can use the same app key and secret. Alfred keep
 			<real>1050.0</real>
 			<key>ypos</key>
 			<real>70.0</real>
-		</dict>
-		<key>487D7A3C-11A7-416D-8F0F-21097B979E4C</key>
-		<dict>
-			<key>xpos</key>
-			<real>660.0</real>
-			<key>ypos</key>
-			<real>160.0</real>
 		</dict>
 		<key>6B0F6A32-751F-4071-A1E8-76A2E9486962</key>
 		<dict>
@@ -449,6 +466,27 @@ Existing YoudaoTranslator users can use the same app key and secret. Alfred keep
 			<real>120.0</real>
 			<key>ypos</key>
 			<real>240.0</real>
+		</dict>
+		<key>B14A8F8F-8088-45F3-A031-572990731E5B</key>
+		<dict>
+			<key>xpos</key>
+			<real>660.0</real>
+			<key>ypos</key>
+			<real>490.0</real>
+		</dict>
+		<key>CDE11A7D-18E5-4E05-BBCD-A5795232CB48</key>
+		<dict>
+			<key>xpos</key>
+			<real>900.0</real>
+			<key>ypos</key>
+			<real>490.0</real>
+		</dict>
+		<key>D9D2ECDB-B820-4A98-9544-E71E6B7A2C86</key>
+		<dict>
+			<key>xpos</key>
+			<real>780.0</real>
+			<key>ypos</key>
+			<real>490.0</real>
 		</dict>
 	</dict>
 	<key>userconfigurationconfig</key>
@@ -559,13 +597,34 @@ Existing YoudaoTranslator users can use the same app key and secret. Alfred keep
 			<key>variable</key>
 			<string>onlineAccent</string>
 		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>100</string>
+				<key>placeholder</key>
+				<string>100</string>
+				<key>required</key>
+				<false/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string>Maximum number of recent translations saved locally (1–500)</string>
+			<key>label</key>
+			<string>Recent lookup limit</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>historyLimit</string>
+		</dict>
 	</array>
 	<key>variables</key>
 	<dict/>
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.1.0</string>
+	<string>0.3.3</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>
