@@ -1,4 +1,4 @@
-import Vocabulary, { isDue, nextReviewDays } from '../src/vocabulary';
+import Vocabulary, { isDue, nextReviewDays, searchSavedEntries } from '../src/vocabulary';
 
 declare var tjs: any;
 
@@ -11,6 +11,17 @@ const now = 1_700_000_000_000;
 const directory = await tjs.makeTempDir('/tmp/wordping-review-tests-XXXXXX');
 const path = `${directory}/vocabulary.json`;
 const vocabulary = new Vocabulary(path);
+
+const searchable = [
+  { query: 'Bonjour', language: 'fr|en', output: '{"items":[{"title":"Hello"},{"title":"Good morning"}]}', savedAt: now },
+  { query: 'Salut', language: 'fr|en', output: '{"items":[{"title":"Hi"}]}', savedAt: now },
+  { query: 'Broken', language: 'fr|en', output: 'not json', savedAt: now },
+];
+assert(searchSavedEntries(searchable, 'BON').map((entry) => entry.query).join() === 'Bonjour', 'search should match saved words without case sensitivity');
+assert(searchSavedEntries(searchable, 'morning').map((entry) => entry.query).join() === 'Bonjour', 'search should match every translation title');
+assert(searchSavedEntries(searchable, 'hi').map((entry) => entry.query).join() === 'Salut', 'search should match translation substrings');
+assert(searchSavedEntries(searchable, 'missing').length === 0, 'search should handle malformed saved output');
+assert(searchSavedEntries(searchable, '').length === searchable.length, 'empty search should preserve the full list');
 
 // Existing v1 files have no review fields and must remain reviewable.
 await tjs.writeFile(path, JSON.stringify({ version: 1, entries: [

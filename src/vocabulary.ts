@@ -42,6 +42,22 @@ export function nextReviewDays(entry: VocabularyEntry): number {
   return REVIEW_DAYS[Math.min(entry.reviewStep ?? 0, REVIEW_DAYS.length - 1)];
 }
 
+export function searchSavedEntries(entries: VocabularyEntry[], search: string): VocabularyEntry[] {
+  const needle = search.trim().toLocaleLowerCase();
+  if (!needle) return entries;
+  return entries.filter((entry) => {
+    if (entry.query.toLocaleLowerCase().includes(needle)) return true;
+    try {
+      const items = JSON.parse(entry.output).items;
+      return Array.isArray(items) && items.some((item: any) =>
+        typeof item.title === 'string' && item.title.toLocaleLowerCase().includes(needle)
+      );
+    } catch {
+      return false;
+    }
+  });
+}
+
 interface VocabularyFile {
   version: 1;
   entries: VocabularyEntry[];

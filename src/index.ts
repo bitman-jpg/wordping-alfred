@@ -2,7 +2,7 @@ declare var tjs: any;
 
 import Translator from './translator';
 import TranslationCache, { CacheEntry, isEchoedTranslation } from './cache';
-import Vocabulary, { VocabularyEntry, nextReviewDays } from './vocabulary';
+import Vocabulary, { VocabularyEntry, nextReviewDays, searchSavedEntries } from './vocabulary';
 import { parseLookupInput } from './query';
 
 interface WorkflowSettings {
@@ -77,9 +77,12 @@ function dataDirectory(): string {
     || `${tjs.homeDir}/Library/Application Support/Alfred/Workflow Data/com.bitman.wordping`;
 }
 
-function firstItem(output: string): any {
+function firstItem(output: string, search = ''): any {
   try {
-    return JSON.parse(output).items?.[0] || {};
+    const items = JSON.parse(output).items || [];
+    return (search && items.find((item: any) =>
+      typeof item.title === 'string' && item.title.toLocaleLowerCase().includes(search.toLocaleLowerCase())
+    )) || items[0] || {};
   } catch {
     return {};
   }
@@ -95,9 +98,9 @@ function removeModifier(query: string, returnTo: 'saved' | 'review'): any {
   };
 }
 
-function savedOutput(entries: VocabularyEntry[], review = false): string {
+function savedOutput(entries: VocabularyEntry[], review = false, search = ''): string {
   const items: any[] = entries.map((entry) => {
-    const first = firstItem(entry.output);
+    const first = firstItem(entry.output, search);
     return {
       title: entry.query,
       subtitle: review ? 'Due now · Press Return to reveal the translation' : `Saved translation: ${first.title || ''}`,
@@ -111,11 +114,11 @@ function savedOutput(entries: VocabularyEntry[], review = false): string {
     };
   });
   if (entries.length === 0) items.push({
-    title: review ? 'No words due' : 'No saved words',
-    subtitle: review ? 'Your next review will appear when a saved word is due' : 'Look up a word and press Control-Return to save it',
+    title: review ? 'No words due' : search ? `No saved words matching “${search}”` : 'No saved words',
+    subtitle: review ? 'Your next review will appear when a saved word is due' : search ? 'Search a different word or translation' : 'Look up a word and press Control-Return to save it',
     valid: false,
   });
-  if (!review && entries.length > 0) items.push(exportAction());
+  if (!review && !search && entries.length > 0) items.push(exportAction());
   return JSON.stringify({ items });
 }
 
@@ -269,6 +272,11 @@ async function main(): Promise<void> {
       }
       if (command === 'saved') {
         console.log(savedOutput(await vocabulary.list(languageScope)));
+        return;
+      }
+      if (command.startsWith('saved ')) {
+        const search = word.slice(6).trim();
+        console.log(savedOutput(searchSavedEntries(await vocabulary.list(languageScope), search), false, search));
         return;
       }
       if (command === 'review') {
