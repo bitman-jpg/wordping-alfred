@@ -18,6 +18,7 @@ For example, an English speaker learning French can look up `bonjour` in English
 - Translate text selected in other Mac applications.
 - Preview the full Youdao dictionary page with Quick Look.
 - Reopen recent lookups and reuse cached translations without another API call.
+- Save words into a personal vocabulary list and review them later.
 
 ## Requirements
 
@@ -49,7 +50,11 @@ wp bonjour
 
 Input in your learning language is translated into your native language, and native-language input goes the other way. Other detected languages go to your native language. If Youdao cannot identify the source language, WordPing may show both directions with labeled results.
 
-Activate `wp` without entering a lookup to see recent history. Select **Clear recent lookups…** at the bottom and press Return to delete the local history. Repeating a lookup uses its cached result, reducing latency and Youdao API usage. The maximum number of saved lookups can be changed in the workflow configuration.
+Activate `wp` without entering a lookup to see recent history. Type `wp :clear` and press Return on **Clear recent lookups…** to delete local history without scrolling. Repeating a lookup uses its cached result, reducing latency and Youdao API usage. The maximum number of saved lookups can be changed in the workflow configuration.
+
+Press `Control-Return` on a translation to save it. Use `wp :saved` to browse saved vocabulary and `wp :export` to export it as CSV. Use `wp :review` to quiz yourself: press Return on a word to reveal its translation. In either view, `Control-Return` marks the word as learned and removes it from the list.
+
+The colon marks a WordPing command. Without it, `wp saved`, `wp review`, `wp clear`, and `wp export` are ordinary lookups. Type `wp :` to see all commands. Unknown colon commands and review phrases that do not match a saved word fall back to normal lookup.
 
 ## Translate selected text
 
@@ -74,13 +79,14 @@ After selecting a WordPing result:
 | `Return` | Copy the selected translation. |
 | `⌘ Return` | Speak the English word or translation with the Mac voice. |
 | `⌥ Return` | Play your selected Youdao online pronunciation. |
+| `⌃ Return` | Save a word, or mark a saved word as learned. |
 | `Shift` | Preview the word's Youdao dictionary page. |
 
 When **Both** pronunciation is selected, `⌥ Return` plays British followed by American.
 
 ## Privacy
 
-WordPing sends lookup text to Youdao using your own API account. It does not include shared credentials. Recent lookup text and results are cached locally in Alfred's workflow cache directory; use the clear action at the bottom of the recent lookup list to delete them.
+WordPing sends lookup text to Youdao using your own API account. It does not include shared credentials. Recent lookup text and results are cached locally in Alfred's workflow cache directory; use `wp :clear` to delete them.
 
 ## Support WordPing
 

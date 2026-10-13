@@ -2,6 +2,8 @@ declare var tjs: any;
 
 import Translator from './translator';
 import TranslationCache, { CacheEntry, isEchoedTranslation } from './cache';
+import Vocabulary, { VocabularyEntry } from './vocabulary';
+import { parseLookupInput } from './query';
 
 interface WorkflowSettings {
   key: string;
@@ -70,6 +72,102 @@ function cachePath(): string {
   return `${directory}/translations.json`;
 }
 
+function dataDirectory(): string {
+  return tjs.env.alfred_workflow_data
+    || `${tjs.homeDir}/Library/Application Support/Alfred/Workflow Data/com.bitman.wordping`;
+}
+
+function firstItem(output: string): any {
+  try {
+    return JSON.parse(output).items?.[0] || {};
+  } catch {
+    return {};
+  }
+}
+
+function savedOutput(entries: VocabularyEntry[], review = false): string {
+  const items: any[] = entries.map((entry) => {
+    const first = firstItem(entry.output);
+    return {
+      title: entry.query,
+      subtitle: review ? 'Press Return to reveal the translation' : `Saved translation: ${first.title || ''}`,
+      arg: first.arg || first.title || entry.query,
+      autocomplete: review ? `:review ${entry.query}` : entry.query,
+      valid: !review,
+      icon: first.icon || { path: 'assets/translate.png' },
+      mods: {
+        ...(first.mods || {}),
+        ctrl: {
+          subtitle: 'Mark learned and remove from saved words',
+          arg: `~remove:${encodeURIComponent(entry.query)}`,
+          valid: true,
+          variables: { wordping_command: `~remove:${encodeURIComponent(entry.query)}` },
+        },
+      },
+      quicklookurl: first.quicklookurl,
+      text: first.text,
+    };
+  });
+  if (entries.length === 0) items.push({
+    title: 'No saved words',
+    subtitle: 'Look up a word and press Control-Return to save it',
+    valid: false,
+  });
+  if (!review && entries.length > 0) items.push(exportAction());
+  return JSON.stringify({ items });
+}
+
+function exportAction(): any {
+  return {
+    title: 'Export saved words as CSV…',
+    subtitle: 'Save a copy in Downloads for Anki, Quizlet, or a spreadsheet',
+    arg: '~export',
+    valid: true,
+    icon: { path: 'assets/translate.png' },
+  };
+}
+
+function clearAction(): any {
+  return {
+    title: 'Clear recent lookups…',
+    subtitle: 'Press Return to delete WordPing’s local history',
+    arg: '__wordping_clear__',
+    valid: true,
+    icon: { path: '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/TrashIcon.icns' },
+  };
+}
+
+function commandMenu(): string {
+  return JSON.stringify({ items: [
+    { title: 'Saved words', subtitle: 'Browse your saved vocabulary', autocomplete: ':saved', valid: false },
+    { title: 'Review saved words', subtitle: 'Quiz yourself', autocomplete: ':review', valid: false },
+    { title: 'Clear recent lookups', subtitle: 'Delete local lookup history', autocomplete: ':clear', valid: false },
+    { title: 'Export saved words', subtitle: 'Save vocabulary as CSV in Downloads', autocomplete: ':export', valid: false },
+  ] });
+}
+
+function csvCell(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+function reviewReveal(entry?: VocabularyEntry): string {
+  if (!entry) return JSON.stringify({ items: [{ title: 'Saved word not found', valid: false }] });
+  const parsed = JSON.parse(entry.output);
+  parsed.items = (parsed.items || []).map((item: any) => ({
+    ...item,
+    mods: {
+      ...(item.mods || {}),
+      ctrl: {
+        subtitle: 'Mark learned and remove from saved words',
+        arg: `~remove:${encodeURIComponent(entry.query)}`,
+        valid: true,
+        variables: { wordping_command: `~remove:${encodeURIComponent(entry.query)}` },
+      },
+    },
+  }));
+  return JSON.stringify(parsed);
+}
+
 function historyOutput(entries: CacheEntry[]): string {
   if (entries.length === 0) {
     return JSON.stringify({ items: [{
@@ -98,13 +196,7 @@ function historyOutput(entries: CacheEntry[]): string {
       text: first.text,
     };
   });
-  items.push({
-    title: 'Clear recent lookups…',
-    subtitle: 'Press Return to delete WordPing’s local history',
-    arg: '__wordping_clear__',
-    valid: true,
-    icon: { path: '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/TrashIcon.icns' },
-  });
+  items.push(clearAction());
   return JSON.stringify({ items });
 }
 
@@ -114,7 +206,70 @@ async function main(): Promise<void> {
     if (nativeLanguage === learningLanguage) throw new Error('Choose different native and learning languages in WordPing configuration');
     const languageScope = learningLanguage === 'en' ? nativeLanguage : `${nativeLanguage}|${learningLanguage}`;
     const cache = new TranslationCache(cachePath(), Math.min(500, Math.max(1, historyLimit)));
-    const word: string = (tjs.args[3] || '').trim();
+    const vocabulary = new Vocabulary(`${dataDirectory()}/vocabulary.json`);
+    const rawInput = tjs.args[3] || '';
+    const { word, commandMode } = parseLookupInput(rawInput);
+    const internalCommand = rawInput.trim().startsWith('~');
+
+    if (internalCommand && word.startsWith('~save:')) {
+      const query = decodeURIComponent(word.slice(6));
+      const output = await cache.get(query, languageScope);
+      if (!output) throw new Error('Look up the word again before saving it');
+      await vocabulary.save(query, languageScope, output);
+      console.log(`Saved “${query}” to vocabulary.`);
+      return;
+    }
+    if (internalCommand && word.startsWith('~remove:')) {
+      const query = decodeURIComponent(word.slice(8));
+      await vocabulary.remove(query, languageScope);
+      console.log(`Marked “${query}” as learned.`);
+      return;
+    }
+    if (internalCommand && word === '~export') {
+      const entries = await vocabulary.list(languageScope);
+      const rows = ['Word,Translation,Saved At', ...entries.map((entry) => {
+        const translation = firstItem(entry.output).title || '';
+        return [entry.query, translation, new Date(entry.savedAt).toISOString()].map(csvCell).join(',');
+      })];
+      const path = `${tjs.homeDir}/Downloads/WordPing Vocabulary.csv`;
+      await tjs.writeFile(path, rows.join('\n') + '\n');
+      console.log(`Exported ${entries.length} saved word${entries.length === 1 ? '' : 's'} to Downloads.`);
+      return;
+    }
+    if (commandMode) {
+      const command = word.toLocaleLowerCase();
+      if (!word) {
+        console.log(commandMenu());
+        return;
+      }
+      if (command === 'saved') {
+        console.log(savedOutput(await vocabulary.list(languageScope)));
+        return;
+      }
+      if (command === 'review') {
+        console.log(savedOutput(await vocabulary.list(languageScope), true));
+        return;
+      }
+      if (command === 'clear') {
+        console.log(JSON.stringify({ items: [clearAction()] }));
+        return;
+      }
+      if (command === 'export') {
+        const entries = await vocabulary.list(languageScope);
+        console.log(JSON.stringify({ items: entries.length ? [exportAction()] : [{ title: 'No saved words to export', valid: false }] }));
+        return;
+      }
+      if (command.startsWith('review ')) {
+        const query = word.slice(7).trim();
+        const entries = await vocabulary.list(languageScope);
+        const entry = entries.find((candidate) => candidate.query.toLocaleLowerCase() === query.toLocaleLowerCase());
+        if (entry) {
+          console.log(reviewReveal(entry));
+          return;
+        }
+      }
+      // Unrecognized commands are ordinary lookups without the leading colon.
+    }
 
     if (!word) {
       console.log(historyOutput(await cache.recent(languageScope)));

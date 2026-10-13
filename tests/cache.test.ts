@@ -1,5 +1,7 @@
-import TranslationCache, { limitEntries, normalizeQuery, CacheEntry } from '../src/cache';
+import TranslationCache, { limitEntries, normalizeQuery, CacheEntry, isEchoedTranslation } from '../src/cache';
 import Workflow from '../src/workflow/workflow';
+import Vocabulary from '../src/vocabulary';
+import { dictionaryResults, normalizeInput } from '../src/translator';
 
 declare var tjs: any;
 
@@ -8,6 +10,15 @@ function assert(condition: boolean, message: string): void {
 }
 
 assert(normalizeQuery('  Hello  ') === 'hello', 'queries should be trimmed and case-insensitive');
+assert(normalizeInput('  NASA  ') === 'NASA', 'translation input should preserve uppercase acronyms');
+assert(normalizeInput('iPhone') === 'iPhone', 'translation input should preserve camel case');
+const nasaFallback = dictionaryResults({ web_trans: { 'web-translation': [{
+  key: 'NASA', trans: [{ value: '美国国家航空航天局' }],
+}] } }, 'nasa');
+assert(nasaFallback[0].title === '美国国家航空航天局', 'dictionary fallback should return exact acronym translations');
+assert(isEchoedTranslation('nasa', 'zh-CHS', '{"items":[{"title":"NASA"}]}'), 'echoed Chinese translations should bypass cache');
+assert(isEchoedTranslation('nasa', 'zh-CHS', '{"items":[{"title":"NASA"},{"title":"secondary definition"}]}'), 'an echoed primary translation should bypass cache even with secondary results');
+assert(!isEchoedTranslation('nasa', 'zh-CHS', '{"items":[{"title":"美国国家航空航天局"}]}'), 'real Chinese translations should remain cached');
 
 const entries: CacheEntry[] = [
   { query: 'old', language: 'en', output: '{}', updatedAt: 1 },
@@ -28,14 +39,24 @@ await cache.clear();
 assert((await cache.recent('zh-CHS')).length === 0, 'clear should remove all cached lookups');
 await tjs.remove(directory, { recursive: true });
 
+const vocabularyDirectory = await tjs.makeTempDir('/tmp/wordping-vocabulary-tests-XXXXXX');
+const vocabulary = new Vocabulary(`${vocabularyDirectory}/vocabulary.json`);
+await vocabulary.save('NASA', 'zh-CHS', '{"items":[{"title":"美国国家航空航天局"}]}');
+assert((await vocabulary.list('zh-CHS'))[0].query === 'NASA', 'saved vocabulary should preserve query spelling');
+await vocabulary.remove('nasa', 'zh-CHS');
+assert((await vocabulary.list('zh-CHS')).length === 0, 'marking a word learned should remove it case-insensitively');
+await tjs.remove(vocabularyDirectory, { recursive: true });
+
 const workflow = JSON.parse(new Workflow().compose([{
   title: '你好',
   subtitle: 'hello',
   arg: '你好',
   pronounce: 'hello',
-}]).output());
+}], 'hello').output());
 assert(workflow.items[0].mods.cmd.icon.path === 'assets/translate-say.png', 'Command should show the pronunciation icon');
 assert(workflow.items[0].mods.alt.icon.path === 'assets/translate-say.png', 'Option should show the pronunciation icon');
 assert(workflow.items[0].icon.path === 'assets/translate.png', 'Normal results should always show the translation icon');
+assert(workflow.items[0].mods.ctrl.arg === '~save:hello', 'Control should save the source query');
+assert(workflow.items[0].mods.ctrl.variables.wordping_command === '~save:hello', 'Control should pass its command through an Alfred variable');
 
 console.log('Cache tests passed');

@@ -5,7 +5,7 @@ class Workflow {
 
   private results: any[] = [];
 
-  compose(results: Result[]): this {
+  compose(results: Result[], query?: string): this {
     this.results = results.map(r => {
       return new Item().setTitle(r.title)
       .setSubtitle(r.subtitle)
@@ -13,6 +13,12 @@ class Workflow {
       .setIcon('assets/translate.png')
       .setCmd('Speak locally: ' + r.pronounce, r.pronounce, true, 'assets/translate-say.png')
       .setAlt('Play online pronunciation: ' + r.pronounce, r.pronounce, true, 'assets/translate-say.png')
+      .setCtrl(
+        'Save to vocabulary',
+        query ? `~save:${encodeURIComponent(query)}` : r.arg,
+        true,
+        query ? { wordping_command: `~save:${encodeURIComponent(query)}` } : undefined,
+      )
       .setCopy(r.title)
       .setQuicklookurl(r.quicklookurl)
       .result();

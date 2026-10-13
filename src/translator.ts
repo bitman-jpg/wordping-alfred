@@ -63,12 +63,12 @@ class Translator implements ITranslator{
     const source = detectedSource(firstResponse.data?.l);
     const first = this.adapter.parse(firstResponse.data);
     if (firstResponse.data?.errorCode !== '0') {
-      return new Workflow().compose(first).output();
+      return new Workflow().compose(first, word).output();
     }
 
     if (source === this.nativeLanguage.toLowerCase()) {
       const reverseResponse = await redaxios.create().get(this.adapter.url(word, this.learningLanguage));
-      return new Workflow().compose(this.adapter.parse(reverseResponse.data)).output();
+      return new Workflow().compose(this.adapter.parse(reverseResponse.data), word).output();
     }
 
     if (!source || isEchoedResult(first, word)) {
@@ -76,7 +76,7 @@ class Translator implements ITranslator{
       const reverse = this.adapter.parse(reverseResponse.data);
       if (reverseResponse.data?.errorCode !== '0') {
         const fallback = await this.dictionaryFallback(first, word);
-        return fallback || new Workflow().compose(first).output();
+        return fallback || new Workflow().compose(first, word).output();
       }
       const firstUseful = !isEchoedResult(first, word);
       const reverseUseful = !isEchoedResult(reverse, word);
@@ -85,13 +85,13 @@ class Translator implements ITranslator{
           ...first.map((result) => ({ ...result, subtitle: `${this.nativeLanguage} · ${result.subtitle}` })),
           ...reverse.map((result) => ({ ...result, subtitle: `${this.learningLanguage} · ${result.subtitle}` })),
         ];
-        return new Workflow().compose(labeled).output();
+        return new Workflow().compose(labeled, word).output();
       }
-      if (!firstUseful && reverseUseful) return new Workflow().compose(reverse).output();
+      if (!firstUseful && reverseUseful) return new Workflow().compose(reverse, word).output();
     }
 
     const fallback = await this.dictionaryFallback(first, word);
-    return fallback || new Workflow().compose(first).output();
+    return fallback || new Workflow().compose(first, word).output();
   }
 
   private async dictionaryFallback(results: Result[], word: string): Promise<string | undefined> {
@@ -101,7 +101,7 @@ class Translator implements ITranslator{
     try {
       const dictionaryResponse = await redaxios.create().get(dictionaryUrl);
       const fallback = dictionaryResults(dictionaryResponse.data, word);
-      return fallback.length > 0 ? new Workflow().compose(fallback).output() : undefined;
+      return fallback.length > 0 ? new Workflow().compose(fallback, word).output() : undefined;
     } catch {
       return undefined;
     }
