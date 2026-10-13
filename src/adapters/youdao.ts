@@ -39,6 +39,7 @@ class Youdao implements Adapter {
   }
 
   parse(data: any): Result[] {
+    this.results = [];
     if (data.errorCode !== "0") {
       return this.parseError(data.errorCode);
     }

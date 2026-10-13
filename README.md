@@ -1,13 +1,16 @@
 # Alfred WordPing
 
-Ping a word. Learn it.
+Ping a word. Learn it—in your language.
 
-WordPing is a fast translation and dictionary workflow for Alfred. Type a word or phrase, see its translation and definitions, copy the result, or hear its pronunciation without leaving Alfred.
+WordPing is a fast translation and dictionary workflow for Alfred. Choose your native language and the language you're learning, then look up words in either direction without leaving Alfred. English is optional.
+
+For example, an English speaker learning French can look up `bonjour` in English or `hello` in French. A Chinese speaker learning English can look up `nasa` in Chinese or `你好` in English. WordPing offers 17 language choices; translation availability depends on Youdao.
 
 ## Features
 
-- Translate English into your chosen native language.
-- Translate other supported languages into English.
+- Choose your native and learning languages instead of being locked to English.
+- Translate between your chosen languages in both directions.
+- Translate other detected languages into your native language.
 - Show translations, short definitions, and alternatives when available.
 - Copy translations with one key.
 - Hear local or online pronunciation.
@@ -27,7 +30,7 @@ WordPing is a fast translation and dictionary workflow for Alfred. Type a word o
 1. Download the latest `.alfredworkflow` file from GitHub Releases.
 2. Open the downloaded file to install WordPing in Alfred.
 3. Enter your Youdao app key and secret in the setup window.
-4. Choose your native language.
+4. Choose your native and learning languages. English is the default learning language.
 5. Choose **American**, **British**, or **Both (British, then American)** for online pronunciation. American is the default.
 
 To obtain credentials, create a Natural Language Translation application in [Youdao AI Cloud](https://ai.youdao.com/), then copy its app key and secret into WordPing.
@@ -44,7 +47,7 @@ wp 你好
 wp bonjour
 ```
 
-English input is translated into your selected native language. Other supported languages are translated into English.
+Input in your learning language is translated into your native language, and native-language input goes the other way. Other detected languages go to your native language. If Youdao cannot identify the source language, WordPing may show both directions with labeled results.
 
 Activate `wp` without entering a lookup to see recent history. Select **Clear recent lookups…** at the bottom and press Return to delete the local history. Repeating a lookup uses its cached result, reducing latency and Youdao API usage. The maximum number of saved lookups can be changed in the workflow configuration.
 

@@ -120,7 +120,7 @@
 	<key>createdby</key>
 	<string>bitman</string>
 	<key>description</key>
-	<string>Translate, understand, and pronounce words with Youdao</string>
+	<string>Learn beyond English: translate between your native and learning languages</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
@@ -279,7 +279,7 @@ fi
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
-				<string>Type a word or phrase to translate</string>
+				<string>Translate between your native and learning languages</string>
 				<key>title</key>
 				<string>WordPing</string>
 				<key>type</key>
@@ -540,6 +540,42 @@ Existing YoudaoTranslator users can use the same app key and secret. Alfred keep
 				<string>zh-CHS</string>
 				<key>pairs</key>
 				<array>
+					<array><string>English</string><string>en</string></array>
+				<array><string>Chinese, Simplified</string><string>zh-CHS</string></array>
+					<array><string>Chinese, Traditional</string><string>zh-CHT</string></array>
+					<array><string>Japanese</string><string>ja</string></array>
+					<array><string>Korean</string><string>ko</string></array>
+					<array><string>French</string><string>fr</string></array>
+					<array><string>German</string><string>de</string></array>
+					<array><string>Spanish</string><string>es</string></array>
+					<array><string>Portuguese</string><string>pt</string></array>
+					<array><string>Italian</string><string>it</string></array>
+					<array><string>Russian</string><string>ru</string></array>
+					<array><string>Arabic</string><string>ar</string></array>
+					<array><string>Hindi</string><string>hi</string></array>
+					<array><string>Indonesian</string><string>id</string></array>
+					<array><string>Dutch</string><string>nl</string></array>
+					<array><string>Thai</string><string>th</string></array>
+					<array><string>Vietnamese</string><string>vi</string></array>
+				</array>
+			</dict>
+			<key>description</key>
+			<string>Translations from your learning language appear in this language</string>
+			<key>label</key>
+			<string>Native language</string>
+			<key>type</key>
+			<string>popupbutton</string>
+			<key>variable</key>
+			<string>nativeLanguage</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>en</string>
+				<key>pairs</key>
+				<array>
+					<array><string>English</string><string>en</string></array>
 					<array><string>Chinese, Simplified</string><string>zh-CHS</string></array>
 					<array><string>Chinese, Traditional</string><string>zh-CHT</string></array>
 					<array><string>Japanese</string><string>ja</string></array>
@@ -559,13 +595,13 @@ Existing YoudaoTranslator users can use the same app key and secret. Alfred keep
 				</array>
 			</dict>
 			<key>description</key>
-			<string>English queries are translated into this language</string>
+			<string>Words in this language are translated into your native language</string>
 			<key>label</key>
-			<string>Native language</string>
+			<string>Learning language</string>
 			<key>type</key>
 			<string>popupbutton</string>
 			<key>variable</key>
-			<string>nativeLanguage</string>
+			<string>learningLanguage</string>
 		</dict>
 		<dict>
 			<key>config</key>

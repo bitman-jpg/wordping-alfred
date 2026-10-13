@@ -8,12 +8,23 @@ export interface CacheEntry {
 }
 
 interface CacheFile {
-  version: 1;
+  version: 4;
   entries: CacheEntry[];
 }
 
 export function normalizeQuery(query: string): string {
   return query.trim().toLocaleLowerCase();
+}
+
+export function isEchoedTranslation(query: string, language: string, output: string): boolean {
+  if (!language) return false;
+  try {
+    const items = JSON.parse(output).items;
+    return Array.isArray(items) && items.length > 0
+      && String(items[0]?.title || '').trim().toLocaleLowerCase() === query.trim().toLocaleLowerCase();
+  } catch {
+    return false;
+  }
 }
 
 export function limitEntries(entries: CacheEntry[], maximum: number): CacheEntry[] {
@@ -65,7 +76,8 @@ export default class TranslationCache {
     try {
       const bytes = await tjs.readFile(this.path);
       const parsed = JSON.parse(new TextDecoder().decode(bytes)) as CacheFile;
-      if (parsed.version !== 1 || !Array.isArray(parsed.entries)) return [];
+      // Routing changed to use native and learning languages; old results may point the wrong way.
+      if (parsed.version !== 4 || !Array.isArray(parsed.entries)) return [];
       return limitEntries(parsed.entries, this.maximum);
     } catch {
       return [];
@@ -76,7 +88,7 @@ export default class TranslationCache {
     try {
       const slash = this.path.lastIndexOf('/');
       if (slash > 0) await tjs.makeDir(this.path.slice(0, slash), { recursive: true });
-      const data: CacheFile = { version: 1, entries: limitEntries(entries, this.maximum) };
+      const data: CacheFile = { version: 4, entries: limitEntries(entries, this.maximum) };
       await tjs.writeFile(this.path, JSON.stringify(data));
     } catch {
       // Cache failures must never prevent a lookup.
