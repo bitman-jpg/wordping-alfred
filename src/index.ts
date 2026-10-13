@@ -2,7 +2,7 @@ declare var tjs: any;
 
 import Translator from './translator';
 import TranslationCache, { CacheEntry, isEchoedTranslation } from './cache';
-import Vocabulary, { VocabularyEntry } from './vocabulary';
+import Vocabulary, { VocabularyEntry, nextReviewDays } from './vocabulary';
 import { parseLookupInput } from './query';
 
 interface WorkflowSettings {
@@ -85,32 +85,34 @@ function firstItem(output: string): any {
   }
 }
 
+function removeModifier(query: string, returnTo: 'saved' | 'review'): any {
+  const command = `~remove:${encodeURIComponent(query)}`;
+  return {
+    subtitle: 'Remove from saved words',
+    arg: command,
+    valid: true,
+    variables: { wordping_command: command, wordping_return: returnTo },
+  };
+}
+
 function savedOutput(entries: VocabularyEntry[], review = false): string {
   const items: any[] = entries.map((entry) => {
     const first = firstItem(entry.output);
     return {
       title: entry.query,
-      subtitle: review ? 'Press Return to reveal the translation' : `Saved translation: ${first.title || ''}`,
+      subtitle: review ? 'Due now · Press Return to reveal the translation' : `Saved translation: ${first.title || ''}`,
       arg: first.arg || first.title || entry.query,
       autocomplete: review ? `:review ${entry.query}` : entry.query,
       valid: !review,
       icon: first.icon || { path: 'assets/translate.png' },
-      mods: {
-        ...(first.mods || {}),
-        ctrl: {
-          subtitle: 'Mark learned and remove from saved words',
-          arg: `~remove:${encodeURIComponent(entry.query)}`,
-          valid: true,
-          variables: { wordping_command: `~remove:${encodeURIComponent(entry.query)}` },
-        },
-      },
+      mods: { ...(review ? {} : first.mods || {}), ctrl: removeModifier(entry.query, review ? 'review' : 'saved') },
       quicklookurl: first.quicklookurl,
       text: first.text,
     };
   });
   if (entries.length === 0) items.push({
-    title: 'No saved words',
-    subtitle: 'Look up a word and press Control-Return to save it',
+    title: review ? 'No words due' : 'No saved words',
+    subtitle: review ? 'Your next review will appear when a saved word is due' : 'Look up a word and press Control-Return to save it',
     valid: false,
   });
   if (!review && entries.length > 0) items.push(exportAction());
@@ -137,10 +139,10 @@ function clearAction(): any {
   };
 }
 
-function commandMenu(): string {
+function commandMenu(dueCount: number): string {
   return JSON.stringify({ items: [
     { title: 'Saved words', subtitle: 'Browse your saved vocabulary', autocomplete: ':saved', valid: false },
-    { title: 'Review saved words', subtitle: 'Quiz yourself', autocomplete: ':review', valid: false },
+    { title: `Review saved words (${dueCount} due)`, subtitle: 'Practice words due now', autocomplete: ':review', valid: false },
     { title: 'Clear recent lookups', subtitle: 'Delete local lookup history', autocomplete: ':clear', valid: false },
     { title: 'Export saved words', subtitle: 'Save vocabulary as CSV in Downloads', autocomplete: ':export', valid: false },
   ] });
@@ -152,19 +154,35 @@ function csvCell(value: string): string {
 
 function reviewReveal(entry?: VocabularyEntry): string {
   if (!entry) return JSON.stringify({ items: [{ title: 'Saved word not found', valid: false }] });
+  const days = nextReviewDays(entry);
+  const nextReview = `in ${days} ${days === 1 ? 'day' : 'days'}`;
   const parsed = JSON.parse(entry.output);
   parsed.items = (parsed.items || []).map((item: any) => ({
     ...item,
     mods: {
       ...(item.mods || {}),
-      ctrl: {
-        subtitle: 'Mark learned and remove from saved words',
-        arg: `~remove:${encodeURIComponent(entry.query)}`,
-        valid: true,
-        variables: { wordping_command: `~remove:${encodeURIComponent(entry.query)}` },
-      },
+      ctrl: removeModifier(entry.query, 'review'),
     },
   }));
+  const query = encodeURIComponent(entry.query);
+  parsed.items.splice(1, 0,
+    {
+      title: `Got it · next review ${nextReview}`,
+      subtitle: 'Recalled it; each success lengthens the interval',
+      arg: `~remember:${query}`,
+      valid: true,
+      icon: { path: '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/ToolbarFavoritesIcon.icns' },
+      mods: { ctrl: removeModifier(entry.query, 'review') },
+    },
+    {
+      title: 'Missed it · keep in review',
+      subtitle: 'Stays due now; review progress resets',
+      arg: `~again:${query}`,
+      valid: true,
+      icon: { path: '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/Sync.icns' },
+      mods: { ctrl: removeModifier(entry.query, 'review') },
+    },
+  );
   return JSON.stringify(parsed);
 }
 
@@ -216,13 +234,20 @@ async function main(): Promise<void> {
       const output = await cache.get(query, languageScope);
       if (!output) throw new Error('Look up the word again before saving it');
       await vocabulary.save(query, languageScope, output);
-      console.log(`Saved “${query}” to vocabulary.`);
+      console.log(`Saved “${query}” to vocabulary. Ready to review.`);
       return;
     }
     if (internalCommand && word.startsWith('~remove:')) {
       const query = decodeURIComponent(word.slice(8));
       await vocabulary.remove(query, languageScope);
-      console.log(`Marked “${query}” as learned.`);
+      console.log(`Removed “${query}” from saved words.`);
+      return;
+    }
+    if (internalCommand && (word.startsWith('~remember:') || word.startsWith('~again:'))) {
+      const remembered = word.startsWith('~remember:');
+      const query = decodeURIComponent(word.slice(remembered ? 10 : 7));
+      if (!await vocabulary.review(query, languageScope, remembered)) throw new Error('Saved word not found');
+      console.log(remembered ? `Remembered “${query}”. Scheduled for later review.` : `“${query}” stays due for review.`);
       return;
     }
     if (internalCommand && word === '~export') {
@@ -239,7 +264,7 @@ async function main(): Promise<void> {
     if (commandMode) {
       const command = word.toLocaleLowerCase();
       if (!word) {
-        console.log(commandMenu());
+        console.log(commandMenu((await vocabulary.due(languageScope)).length));
         return;
       }
       if (command === 'saved') {
@@ -247,7 +272,7 @@ async function main(): Promise<void> {
         return;
       }
       if (command === 'review') {
-        console.log(savedOutput(await vocabulary.list(languageScope), true));
+        console.log(savedOutput(await vocabulary.due(languageScope), true));
         return;
       }
       if (command === 'clear') {

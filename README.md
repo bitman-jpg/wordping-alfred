@@ -18,7 +18,7 @@ For example, an English speaker learning French can look up `bonjour` in English
 - Translate text selected in other Mac applications.
 - Preview the full Youdao dictionary page with Quick Look.
 - Reopen recent lookups and reuse cached translations without another API call.
-- Save words into a personal vocabulary list and review them later.
+- Save words into a personal vocabulary list and review them when due.
 
 ## Requirements
 
@@ -52,7 +52,7 @@ Input in your learning language is translated into your native language, and nat
 
 Activate `wp` without entering a lookup to see recent history. Type `wp :clear` and press Return on **Clear recent lookups…** to delete local history without scrolling. Repeating a lookup uses its cached result, reducing latency and Youdao API usage. The maximum number of saved lookups can be changed in the workflow configuration.
 
-Press `Control-Return` on a translation to save it. Use `wp :saved` to browse saved vocabulary and `wp :export` to export it as CSV. Use `wp :review` to quiz yourself: press Return on a word to reveal its translation. In either view, `Control-Return` marks the word as learned and removes it from the list.
+Press `Control-Return` on a translation to save it. Saving an existing word resets its review progress and makes it due now. Use `wp :saved` to browse saved vocabulary and `wp :export` to export it as CSV. Use `wp :review` to see words due now. Press Return on a word to reveal its translation, then choose **Got it** if you recalled it or **Missed it** if you did not. Alfred returns to the review list after either choice. Got it schedules the next review after 1, 3, 7, 14, 30, then 60 days as you keep succeeding. Missed it resets that progress and keeps the word in the due list, after other due words. The `wp :` menu shows how many words are due. In both saved and review views, `Control-Return` removes the word permanently and refreshes that list.
 
 The colon marks a WordPing command. Without it, `wp saved`, `wp review`, `wp clear`, and `wp export` are ordinary lookups. Type `wp :` to see all commands. Unknown colon commands and review phrases that do not match a saved word fall back to normal lookup.
 
@@ -79,7 +79,7 @@ After selecting a WordPing result:
 | `Return` | Copy the selected translation. |
 | `⌘ Return` | Speak the English word or translation with the Mac voice. |
 | `⌥ Return` | Play your selected Youdao online pronunciation. |
-| `⌃ Return` | Save a word, or mark a saved word as learned. |
+| `⌃ Return` | Save a lookup, or remove a word from saved vocabulary. |
 | `Shift` | Preview the word's Youdao dictionary page. |
 
 When **Both** pronunciation is selected, `⌥ Return` plays British followed by American.

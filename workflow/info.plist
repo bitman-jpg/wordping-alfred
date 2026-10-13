@@ -201,7 +201,25 @@
 				<integer>102</integer>
 				<key>script</key>
 				<string>command="${wordping_command:-$1}"
-./runtime/tjs run ./index.js "$command"</string>
+result=$(./runtime/tjs run ./index.js "$command")
+printf '%s\n' "$result"
+return_to=""
+case "$command" in
+  ~remember:*|~again:*)
+    return_to="review"
+    ;;
+  ~remove:*)
+    return_to="${wordping_return:-}"
+    ;;
+esac
+case "$return_to" in
+  review)
+    /usr/bin/osascript -e 'tell application id "com.runningwithcrayons.Alfred" to search "wp :review"' &gt;/dev/null
+    ;;
+  saved)
+    /usr/bin/osascript -e 'tell application id "com.runningwithcrayons.Alfred" to search "wp :saved"' &gt;/dev/null
+    ;;
+esac</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -770,7 +788,7 @@ Existing YoudaoTranslator users can use the same app key and secret. Alfred keep
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.5.4</string>
+	<string>0.6.6</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>

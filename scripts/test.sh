@@ -8,3 +8,5 @@ for test_file in tests/*.test.ts; do
   ./runtime/tjs run "$test_bundle"
   rm -f "$test_bundle"
 done
+
+sh scripts/test-review-ui.sh

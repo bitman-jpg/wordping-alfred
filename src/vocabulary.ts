@@ -7,6 +7,39 @@ export interface VocabularyEntry {
   language: string;
   output: string;
   savedAt: number;
+  reviewStep?: number;
+  dueAt?: number;
+  lastReviewedAt?: number;
+}
+
+const DAY = 24 * 60 * 60 * 1000;
+const REVIEW_DAYS = [1, 3, 7, 14, 30, 60];
+const OLD_RETRY_DELAY = 10 * 60 * 1000;
+
+function dueTime(entry: VocabularyEntry): number {
+  // v0.6.2 postponed missed words by ten minutes. Treat those as due now.
+  if (entry.reviewStep === 0 && entry.lastReviewedAt !== undefined
+    && entry.dueAt === entry.lastReviewedAt + OLD_RETRY_DELAY) {
+    return entry.lastReviewedAt;
+  }
+  return entry.dueAt ?? entry.savedAt;
+}
+
+function restoreResavedReview(entry: VocabularyEntry): VocabularyEntry {
+  // Older versions kept a future review date when the user saved a word again.
+  if (entry.lastReviewedAt !== undefined && entry.savedAt > entry.lastReviewedAt
+    && entry.dueAt !== undefined && entry.dueAt > entry.savedAt) {
+    return { ...entry, reviewStep: 0, dueAt: entry.savedAt, lastReviewedAt: undefined };
+  }
+  return entry;
+}
+
+export function isDue(entry: VocabularyEntry, now = Date.now()): boolean {
+  return dueTime(entry) <= now;
+}
+
+export function nextReviewDays(entry: VocabularyEntry): number {
+  return REVIEW_DAYS[Math.min(entry.reviewStep ?? 0, REVIEW_DAYS.length - 1)];
 }
 
 interface VocabularyFile {
@@ -19,11 +52,37 @@ export default class Vocabulary {
 
   async save(query: string, language: string, output: string): Promise<void> {
     const key = normalizeQuery(query);
-    const entries = (await this.read()).filter((entry) =>
+    const now = Date.now();
+    const existing = await this.read();
+    const entries = existing.filter((entry) =>
       normalizeQuery(entry.query) !== key || entry.language !== language
     );
-    entries.unshift({ query: query.trim(), language, output, savedAt: Date.now() });
+    entries.unshift({
+      query: query.trim(), language, output, savedAt: now,
+      reviewStep: 0,
+      dueAt: now,
+    });
     await this.write(entries);
+  }
+
+  async due(language: string, now = Date.now()): Promise<VocabularyEntry[]> {
+    return (await this.list(language))
+      .filter((entry) => isDue(entry, now))
+      .sort((a, b) => dueTime(a) - dueTime(b));
+  }
+
+  async review(query: string, language: string, remembered: boolean, now = Date.now()): Promise<boolean> {
+    const key = normalizeQuery(query);
+    const entries = await this.read();
+    const entry = entries.find((candidate) => normalizeQuery(candidate.query) === key && candidate.language === language);
+    if (!entry) return false;
+    const days = nextReviewDays(entry);
+    const step = remembered ? Math.min((entry.reviewStep ?? 0) + 1, REVIEW_DAYS.length) : 0;
+    entry.reviewStep = step;
+    entry.lastReviewedAt = now;
+    entry.dueAt = remembered ? now + days * DAY : now;
+    await this.write(entries);
+    return true;
   }
 
   async remove(query: string, language: string): Promise<void> {
@@ -43,7 +102,8 @@ export default class Vocabulary {
     try {
       const bytes = await tjs.readFile(this.path);
       const parsed = JSON.parse(new TextDecoder().decode(bytes)) as VocabularyFile;
-      return parsed.version === 1 && Array.isArray(parsed.entries) ? parsed.entries : [];
+      return parsed.version === 1 && Array.isArray(parsed.entries)
+        ? parsed.entries.map(restoreResavedReview) : [];
     } catch {
       return [];
     }
