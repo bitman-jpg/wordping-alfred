@@ -11,3 +11,4 @@ done
 
 sh scripts/test-review-ui.sh
 sh scripts/test-reminders.sh
+sh scripts/test-backup-ui.sh

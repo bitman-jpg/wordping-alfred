@@ -63,8 +63,57 @@ interface VocabularyFile {
   entries: VocabularyEntry[];
 }
 
+interface VocabularyBackup extends VocabularyFile {
+  format: 'wordping-vocabulary';
+  exportedAt: string;
+}
+
+function validTimestamp(value: unknown): boolean {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+function validEntry(value: any): value is VocabularyEntry {
+  return value && typeof value.query === 'string' && value.query.trim().length > 0
+    && typeof value.language === 'string' && value.language.trim().length > 0
+    && typeof value.output === 'string' && value.output.length > 0
+    && validTimestamp(value.savedAt)
+    && (value.reviewStep === undefined || (Number.isInteger(value.reviewStep) && value.reviewStep >= 0 && value.reviewStep <= REVIEW_DAYS.length))
+    && (value.dueAt === undefined || validTimestamp(value.dueAt))
+    && (value.lastReviewedAt === undefined || validTimestamp(value.lastReviewedAt));
+}
+
 export default class Vocabulary {
   constructor(private path: string) {}
+
+  async backup(): Promise<string> {
+    const data: VocabularyBackup = {
+      format: 'wordping-vocabulary', version: 1,
+      exportedAt: new Date().toISOString(), entries: await this.read(),
+    };
+    return JSON.stringify(data, null, 2) + '\n';
+  }
+
+  async restore(contents: string): Promise<{ added: number; kept: number }> {
+    let parsed: any;
+    try { parsed = JSON.parse(contents); } catch { throw new Error('Backup is not valid JSON'); }
+    if (parsed?.format !== 'wordping-vocabulary' || parsed.version !== 1
+      || !Array.isArray(parsed.entries) || !parsed.entries.every(validEntry)) {
+      throw new Error('This is not a supported WordPing vocabulary backup');
+    }
+    const existing = await this.read();
+    const seen = new Set(existing.map((entry) => `${entry.language}\0${normalizeQuery(entry.query)}`));
+    let added = 0;
+    let kept = 0;
+    for (const entry of parsed.entries as VocabularyEntry[]) {
+      const key = `${entry.language}\0${normalizeQuery(entry.query)}`;
+      if (seen.has(key)) { kept++; continue; }
+      seen.add(key);
+      existing.push(entry);
+      added++;
+    }
+    if (added) await this.write(existing);
+    return { added, kept };
+  }
 
   async save(query: string, language: string, output: string): Promise<void> {
     const key = normalizeQuery(query);

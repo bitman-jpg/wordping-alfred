@@ -96,7 +96,7 @@ function firstItem(output: string, search = ''): any {
 function removeModifier(query: string, returnTo: 'saved' | 'review'): any {
   const command = `~remove:${encodeURIComponent(query)}`;
   return {
-    subtitle: 'Remove from saved words',
+    subtitle: 'Remove from vocabulary',
     arg: command,
     valid: true,
     variables: { wordping_command: command, wordping_return: returnTo },
@@ -119,7 +119,7 @@ function savedOutput(entries: VocabularyEntry[], search = ''): string {
     };
   });
   if (entries.length === 0) items.push({
-    title: search ? `No saved words matching “${search}”` : 'No saved words',
+    title: search ? `No vocabulary entries matching “${search}”` : 'No vocabulary entries',
     subtitle: search ? 'Search a different word or translation' : 'Look up a word and press Control-Return to save it',
     valid: false,
   });
@@ -129,9 +129,23 @@ function savedOutput(entries: VocabularyEntry[], search = ''): string {
 
 function exportAction(): any {
   return {
-    title: 'Export saved words as CSV…',
-    subtitle: 'Save a copy in Downloads for Anki, Quizlet, or a spreadsheet',
+    title: 'Export vocabulary (CSV)…',
+    subtitle: 'Current pair for spreadsheets; no review progress',
     arg: '~export',
+    valid: true,
+    icon: { path: 'assets/translate.png' },
+  };
+}
+
+function backupPath(): string {
+  return `${tjs.homeDir}/Downloads/WordPing Vocabulary Backup.json`;
+}
+
+function restoreAction(path: string): any {
+  return {
+    title: `Restore vocabulary from ${path.split('/').pop() || path}`,
+    subtitle: 'Add missing entries; keep existing vocabulary and progress',
+    arg: `~restore:${encodeURIComponent(path)}`,
     valid: true,
     icon: { path: 'assets/translate.png' },
   };
@@ -149,11 +163,13 @@ function clearAction(): any {
 
 function commandMenu(dueCount: number): string {
   return JSON.stringify({ items: [
-    { title: 'Saved words', subtitle: 'Browse your saved vocabulary', autocomplete: ':saved', valid: false },
-    { title: `Review saved words (${dueCount} due)`, subtitle: 'Practice words due now', autocomplete: ':review', valid: false },
-    { title: 'Daily review reminder', subtitle: 'Set a local time for a due-word notification', autocomplete: ':remind', valid: false },
+    { title: `Review vocabulary (${dueCount} due)`, subtitle: 'Practice due words in a short session', autocomplete: ':review', valid: false },
+    { title: 'Browse vocabulary', subtitle: 'Search the words you have saved', autocomplete: ':saved', valid: false },
+    { title: 'Daily review reminder', subtitle: 'Get notified when reviews are due', autocomplete: ':remind', valid: false },
+    { title: 'Back up vocabulary (JSON)', subtitle: 'All pairs and review progress; can be restored', autocomplete: ':backup', valid: false },
+    { title: 'Restore vocabulary (JSON)', subtitle: 'Merge a backup; keep existing entries', autocomplete: ':restore', valid: false },
+    { title: 'Export vocabulary (CSV)', subtitle: 'Current pair for spreadsheets; no review progress', autocomplete: ':export', valid: false },
     { title: 'Clear recent lookups', subtitle: 'Delete local lookup history', autocomplete: ':clear', valid: false },
-    { title: 'Export saved words', subtitle: 'Save vocabulary as CSV in Downloads', autocomplete: ':export', valid: false },
   ] });
 }
 
@@ -347,7 +363,7 @@ async function main(): Promise<void> {
       await vocabulary.remove(query, languageScope);
       const session = await reviewSession.load(languageScope);
       if (session) await reviewSession.reconcile(session, await vocabulary.list(languageScope));
-      console.log(`Removed “${query}” from saved words.`);
+      console.log(`Removed “${query}” from vocabulary.`);
       return;
     }
     if (internalCommand && (word.startsWith('~remember:') || word.startsWith('~again:'))) {
@@ -371,6 +387,21 @@ async function main(): Promise<void> {
       const path = `${tjs.homeDir}/Downloads/WordPing Vocabulary.csv`;
       await tjs.writeFile(path, rows.join('\n') + '\n');
       console.log(`Exported ${entries.length} saved word${entries.length === 1 ? '' : 's'} to Downloads.`);
+      return;
+    }
+    if (internalCommand && word === '~backup') {
+      const path = backupPath();
+      await tjs.writeFile(path, await vocabulary.backup());
+      console.log(`Saved vocabulary backup to ${path}`);
+      return;
+    }
+    if (internalCommand && word.startsWith('~restore:')) {
+      const path = decodeURIComponent(word.slice(9));
+      let contents: string;
+      try { contents = new TextDecoder().decode(await tjs.readFile(path)); }
+      catch { throw new Error(`Cannot read backup at ${path}`); }
+      const result = await vocabulary.restore(contents);
+      console.log(`Restored ${result.added} word${result.added === 1 ? '' : 's'}; kept ${result.kept} already saved.`);
       return;
     }
     if (commandMode) {
@@ -421,7 +452,31 @@ async function main(): Promise<void> {
       }
       if (command === 'export') {
         const entries = await vocabulary.list(languageScope);
-        console.log(JSON.stringify({ items: entries.length ? [exportAction()] : [{ title: 'No saved words to export', valid: false }] }));
+        console.log(JSON.stringify({ items: entries.length ? [exportAction()] : [{ title: 'No vocabulary entries to export', valid: false }] }));
+        return;
+      }
+      if (command === 'backup') {
+        console.log(JSON.stringify({ items: [{
+          title: 'Back up vocabulary (JSON) to Downloads',
+          subtitle: 'All language pairs and progress; replaces the previous backup',
+          arg: '~backup', valid: true,
+        }] }));
+        return;
+      }
+      if (command === 'restore' || command.startsWith('restore ')) {
+        const supplied = word.slice(7).trim();
+        const unquoted = supplied.replace(/^(['"])(.*)\1$/, '$2');
+        const path = unquoted ? unquoted.replace(/^~(?=\/)/, tjs.homeDir) : backupPath();
+        try {
+          await tjs.readFile(path);
+          console.log(JSON.stringify({ items: [restoreAction(path)] }));
+        } catch {
+          console.log(JSON.stringify({ items: [{
+            title: 'Backup file not found',
+            subtitle: supplied ? 'Check the path after wp :restore' : 'Place WordPing Vocabulary Backup.json in Downloads',
+            valid: false,
+          }] }));
+        }
         return;
       }
       if (command.startsWith('review ')) {

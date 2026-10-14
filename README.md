@@ -53,9 +53,19 @@ Input in your learning language is translated into your native language, and nat
 
 Activate `wp` without entering a lookup to see recent history. Type `wp :clear` and press Return on **Clear recent lookups…** to delete local history without scrolling. Repeating a lookup uses its cached result, reducing latency and Youdao API usage. The maximum number of saved lookups can be changed in the workflow configuration.
 
-Press `Control-Return` on a translation to save it. Saving an existing word resets its review progress and makes it due now. Use `wp :saved` to browse saved vocabulary, or type `wp :saved` followed by text to search saved words and their translations. Use `wp :export` to export the full list as CSV. Use `wp :review` to start or resume a session of up to 10 due words. Press `Command-Return` on the current word to hear it spoken without revealing the translation. Press Return to reveal its translation, then choose **Got it** if you recalled it or **Missed it** if you did not. Alfred shows the next word and your progress after each choice. Got it schedules the next review after 1, 3, 7, 14, 30, then 60 days as you keep succeeding. Missed words return once at the end of the session; if missed again, they remain due for a future session. The session ends with a summary and an option to start another batch. When no words are due, `wp :review` shows the date and time of the next review. The `wp :` menu shows how many words are due. In both saved and review views, `Control-Return` removes the word permanently and refreshes that list.
+Press `Control-Return` on a translation to save it. Saving an existing word resets its review progress and makes it due now. Use `wp :saved` to browse your vocabulary, or type `wp :saved` followed by text to search words and their translations. Use `wp :review` to start or resume a session of up to 10 due words. Press `Command-Return` on the current word to hear it spoken without revealing the translation. Press Return to reveal its translation, then choose **Got it** if you recalled it or **Missed it** if you did not. Alfred shows the next word and your progress after each choice. Got it schedules the next review after 1, 3, 7, 14, 30, then 60 days as you keep succeeding. Missed words return once at the end of the session; if missed again, they remain due for a future session. The session ends with a summary and an option to start another batch. When no words are due, `wp :review` shows the date and time of the next review. The `wp :` menu shows how many words are due. In both vocabulary and review views, `Control-Return` removes the word permanently and refreshes that list.
 
-The colon marks a WordPing command. Without it, `wp saved`, `wp review`, `wp clear`, and `wp export` are ordinary lookups. Type `wp :` to see all commands. Unknown colon commands and review phrases that do not match a saved word fall back to normal lookup.
+The vocabulary file commands serve different purposes:
+
+| Command | What it saves or reads |
+| --- | --- |
+| `wp :backup` | A complete JSON backup in Downloads: all language pairs, translations, and review progress. Use this to move or recover your WordPing vocabulary. |
+| `wp :restore` | The JSON backup in Downloads. Adds missing entries while keeping existing vocabulary and progress. Add a file path after the command to use a backup elsewhere. |
+| `wp :export` | A CSV in Downloads for spreadsheets or flashcard apps. Includes words, translations, and saved dates for the current language pair; excludes review progress. |
+
+The backup file is named `WordPing Vocabulary Backup.json`. A new backup replaces the previous file, so move or rename older copies you want to keep. To restore on another Mac, copy the file to Downloads, type `wp :restore`, and press Return. You can also type `wp :restore /path/to/backup.json` for a file elsewhere.
+
+The colon marks a WordPing command. Without it, `wp saved`, `wp review`, `wp clear`, `wp export`, `wp backup`, and `wp restore` are ordinary lookups. Type `wp :` to see all commands. Unknown colon commands and review phrases that do not match a saved word fall back to normal lookup.
 
 To get a daily reminder, type `wp :remind 09:00` (or another 24-hour local time) and press Return on the result. WordPing posts a notification at that time only when words are due; it reminds you to open `wp :review`. Type `wp :remind` to see the current time, refresh the schedule, or turn the reminder off. Reminders use a macOS LaunchAgent in `~/Library/LaunchAgents/com.bitman.wordping.review.plist` and are off until you set one. If your Mac is asleep at the scheduled time, macOS runs the job when it wakes.
 
@@ -89,7 +99,7 @@ When **Both** pronunciation is selected, `⌥ Return` plays British followed by 
 
 ## Privacy
 
-WordPing sends lookup text to Youdao using your own API account. It does not include shared credentials. Recent lookup text and results are cached locally in Alfred's workflow cache directory; use `wp :clear` to delete them. Saved vocabulary and review progress are stored locally in Alfred's workflow data directory.
+WordPing sends lookup text to Youdao using your own API account. It does not include shared credentials. Recent lookup text and results are cached locally in Alfred's workflow cache directory; use `wp :clear` to delete them. Saved vocabulary and review progress are stored locally in Alfred's workflow data directory. JSON backups contain saved words, translations, and review progress, but no Youdao credentials.
 
 ## Support WordPing
 

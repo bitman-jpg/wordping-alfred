@@ -43,13 +43,14 @@ assert.match(due[0].subtitle, /⌘ Return to pronounce/);
 assert.equal(due[0].mods.ctrl.variables.wordping_command, '~remove:mote');
 assert.equal(due[0].mods.ctrl.variables.wordping_return, 'review');
 assert.equal(saved[0].mods.ctrl.variables.wordping_return, 'saved');
+assert.equal(saved[saved.length - 1].title, 'Export vocabulary (CSV)…');
 assert.equal(savedByWord.length, 1);
 assert.equal(savedByWord[0].title, 'mote');
 assert.equal(savedByTranslation[0].title, 'mote');
 assert.equal(savedByTranslation[0].mods.ctrl.variables.wordping_return, 'saved');
 assert.equal(savedByAlternative[0].subtitle, 'Saved translation: Alternative');
 assert.equal(savedByAlternative[0].arg, 'Alternative');
-assert.match(savedNoMatch[0].title, /No saved words matching/);
+assert.match(savedNoMatch[0].title, /No vocabulary entries matching/);
 assert.equal(savedNoMatch[0].valid, false);
 assert.equal(revealed[0].mods.ctrl.arg, '~remove:mote');
 assert.equal(revealed[1].arg, '~remember:mote');
@@ -61,7 +62,7 @@ for (const item of revealed) {
 }
 assert.equal(dueAfterMiss[0].title, 'mote');
 assert.equal(dueAfterRemove[0].title, 'No words due');
-assert.equal(savedAfterRemove[0].title, 'No saved words');
+assert.equal(savedAfterRemove[0].title, 'No vocabulary entries');
 console.log('Review shortcut tests passed');
 JS
 

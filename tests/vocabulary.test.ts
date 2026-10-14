@@ -72,5 +72,34 @@ const restored = (await legacy.due('fr|en', now + 1000))[0];
 assert(restored?.query === 'pastoral' && restored.reviewStep === 0 && restored.dueAt === restored.savedAt,
   'previously re-saved words should reappear as due with reset progress');
 
+const source = new Vocabulary(`${directory}/source.json`);
+await tjs.writeFile(`${directory}/source.json`, JSON.stringify({ version: 1, entries: [
+  { query: 'bonjour', language: 'fr|en', output: '{"items":[{"title":"hello"}]}', savedAt: now,
+    reviewStep: 2, dueAt: now + 4 * day, lastReviewedAt: now + day },
+  { query: 'hola', language: 'es|en', output: '{"items":[{"title":"hello"}]}', savedAt: now,
+    reviewStep: 1, dueAt: now + day },
+] }));
+const backup = await source.backup();
+const parsedBackup = JSON.parse(backup);
+assert(parsedBackup.format === 'wordping-vocabulary' && parsedBackup.entries.length === 2,
+  'backup should include all language pairs');
+const destination = new Vocabulary(`${directory}/destination.json`);
+await tjs.writeFile(`${directory}/destination.json`, JSON.stringify({ version: 1, entries: [
+  { query: 'BONJOUR', language: 'fr|en', output: '{}', savedAt: now + day, reviewStep: 3, dueAt: now + 8 * day },
+] }));
+const merged = await destination.restore(backup);
+assert(merged.added === 1 && merged.kept === 1, 'restore should merge missing words without duplicating existing words');
+assert((await destination.list('fr|en'))[0].reviewStep === 3, 'restore should preserve local progress on duplicate words');
+const imported = (await destination.list('es|en'))[0];
+assert(imported.query === 'hola' && imported.reviewStep === 1 && imported.dueAt === now + day,
+  'restore should preserve imported review progress');
+const invalid = JSON.parse(backup);
+invalid.entries.unshift({ query: 'new word', language: 'fr|en', output: '{}', savedAt: now });
+invalid.entries[1].dueAt = 'tomorrow';
+let rejected = false;
+try { await destination.restore(JSON.stringify(invalid)); } catch { rejected = true; }
+assert(rejected && !(await destination.list('fr|en')).some((candidate) => candidate.query === 'new word'),
+  'invalid backups should be rejected without changing saved words');
+
 await tjs.remove(directory, { recursive: true });
 console.log('Vocabulary review tests passed');
