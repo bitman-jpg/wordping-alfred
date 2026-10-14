@@ -19,6 +19,7 @@ For example, an English speaker learning French can look up `bonjour` in English
 - Preview the full Youdao dictionary page with Quick Look.
 - Reopen recent lookups and reuse cached translations without another API call.
 - Save words into a personal vocabulary list and review them when due.
+- Set an optional daily notification when saved words are due for review.
 
 ## Requirements
 
@@ -55,6 +56,8 @@ Activate `wp` without entering a lookup to see recent history. Type `wp :clear` 
 Press `Control-Return` on a translation to save it. Saving an existing word resets its review progress and makes it due now. Use `wp :saved` to browse saved vocabulary, or type `wp :saved` followed by text to search saved words and their translations. Use `wp :export` to export the full list as CSV. Use `wp :review` to start or resume a session of up to 10 due words. Press Return on the current word to reveal its translation, then choose **Got it** if you recalled it or **Missed it** if you did not. Alfred shows the next word and your progress after each choice. Got it schedules the next review after 1, 3, 7, 14, 30, then 60 days as you keep succeeding. Missed words return once at the end of the session; if missed again, they remain due for a future session. The session ends with a summary and an option to start another batch. The `wp :` menu shows how many words are due. In both saved and review views, `Control-Return` removes the word permanently and refreshes that list.
 
 The colon marks a WordPing command. Without it, `wp saved`, `wp review`, `wp clear`, and `wp export` are ordinary lookups. Type `wp :` to see all commands. Unknown colon commands and review phrases that do not match a saved word fall back to normal lookup.
+
+To get a daily reminder, type `wp :remind 09:00` (or another 24-hour local time) and press Return on the result. WordPing posts a notification at that time only when words are due; it reminds you to open `wp :review`. Type `wp :remind` to see the current time, refresh the schedule, or turn the reminder off. Reminders use a macOS LaunchAgent in `~/Library/LaunchAgents/com.bitman.wordping.review.plist` and are off until you set one. If your Mac is asleep at the scheduled time, macOS runs the job when it wakes.
 
 ## Translate selected text
 

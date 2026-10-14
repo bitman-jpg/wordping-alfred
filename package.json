@@ -1,6 +1,6 @@
 {
   "name": "wordping-alfred",
-  "version": "0.6.6",
+  "version": "0.7.2",
   "description": "Fast Youdao translation and word lookup for Alfred",
   "main": "src/index.ts",
   "scripts": {

@@ -6,6 +6,20 @@
 	<string>com.bitman.wordping</string>
 	<key>connections</key>
 	<dict>
+		<key>BC3C0377-13E1-44B8-A278-FA60466971AB</key>
+		<array><dict>
+			<key>destinationuid</key><string>BBFEE06A-C05D-4AF1-B7E2-8ED15FEB3529</string>
+			<key>modifiers</key><integer>0</integer>
+			<key>modifiersubtext</key><string></string>
+			<key>vitoclose</key><false/>
+		</dict></array>
+		<key>BBFEE06A-C05D-4AF1-B7E2-8ED15FEB3529</key>
+		<array><dict>
+			<key>destinationuid</key><string>2E2D3683-AD98-4F16-88EE-CBD7F605EA38</string>
+			<key>modifiers</key><integer>0</integer>
+			<key>modifiersubtext</key><string></string>
+			<key>vitoclose</key><false/>
+		</dict></array>
 		<key>284F6AAD-8FE7-44A6-AAE4-62A0F8BEE779</key>
 		<array/>
 		<key>B14A8F8F-8088-45F3-A031-572990731E5B</key>
@@ -174,6 +188,40 @@
 	<key>objects</key>
 	<array>
 		<dict>
+			<key>config</key><dict>
+				<key>availableviaurlhandler</key><true/>
+				<key>triggerid</key><string>daily-review</string>
+			</dict>
+			<key>type</key><string>alfred.workflow.trigger.external</string>
+			<key>uid</key><string>BC3C0377-13E1-44B8-A278-FA60466971AB</string>
+			<key>version</key><integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key><dict>
+				<key>concurrently</key><false/>
+				<key>escaping</key><integer>102</integer>
+				<key>script</key><string>./runtime/tjs run ./index.js '~reminder-check'</string>
+				<key>scriptargtype</key><integer>1</integer>
+				<key>scriptfile</key><string></string>
+				<key>type</key><integer>0</integer>
+			</dict>
+			<key>type</key><string>alfred.workflow.action.script</string>
+			<key>uid</key><string>BBFEE06A-C05D-4AF1-B7E2-8ED15FEB3529</string>
+			<key>version</key><integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key><dict>
+				<key>lastpathcomponent</key><false/>
+				<key>onlyshowifquerypopulated</key><true/>
+				<key>removeextension</key><false/>
+				<key>text</key><string>{query}</string>
+				<key>title</key><string>WordPing review</string>
+			</dict>
+			<key>type</key><string>alfred.workflow.output.notification</string>
+			<key>uid</key><string>2E2D3683-AD98-4F16-88EE-CBD7F605EA38</string>
+			<key>version</key><integer>1</integer>
+		</dict>
+		<dict>
 			<key>config</key>
 			<dict>
 				<key>inputstring</key>
@@ -201,7 +249,10 @@
 				<integer>102</integer>
 				<key>script</key>
 				<string>command="${wordping_command:-$1}"
-result=$(./runtime/tjs run ./index.js "$command")
+case "$command" in
+  ~remind:*) result=$(/bin/sh ./scripts/reminders.sh "$command" 2&gt;&amp;1) ;;
+  *) result=$(./runtime/tjs run ./index.js "$command") ;;
+esac
 printf '%s\n' "$result"
 return_to=""
 case "$command" in
@@ -788,7 +839,7 @@ Existing YoudaoTranslator users can use the same app key and secret. Alfred keep
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.6.6</string>
+	<string>0.7.2</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>

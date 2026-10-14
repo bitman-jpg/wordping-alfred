@@ -151,9 +151,38 @@ function commandMenu(dueCount: number): string {
   return JSON.stringify({ items: [
     { title: 'Saved words', subtitle: 'Browse your saved vocabulary', autocomplete: ':saved', valid: false },
     { title: `Review saved words (${dueCount} due)`, subtitle: 'Practice words due now', autocomplete: ':review', valid: false },
+    { title: 'Daily review reminder', subtitle: 'Set a local time for a due-word notification', autocomplete: ':remind', valid: false },
     { title: 'Clear recent lookups', subtitle: 'Delete local lookup history', autocomplete: ':clear', valid: false },
     { title: 'Export saved words', subtitle: 'Save vocabulary as CSV in Downloads', autocomplete: ':export', valid: false },
   ] });
+}
+
+async function reminderTime(): Promise<string | undefined> {
+  try {
+    const bytes = await tjs.readFile(`${tjs.homeDir}/Library/LaunchAgents/com.bitman.wordping.review.plist`);
+    const plist = new TextDecoder().decode(bytes);
+    const hour = plist.match(/<key>Hour<\/key>\s*<integer>(\d+)<\/integer>/)?.[1];
+    const minute = plist.match(/<key>Minute<\/key>\s*<integer>(\d+)<\/integer>/)?.[1];
+    if (hour === undefined || minute === undefined) return undefined;
+    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+  } catch {
+    return undefined;
+  }
+}
+
+function reminderMenu(time?: string, requested = ''): string {
+  const items: any[] = [];
+  if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(requested)) items.push({
+    title: `Remind me daily at ${requested}`,
+    subtitle: 'Notify only when saved words are due',
+    arg: `~remind:${requested}`, valid: true,
+  });
+  else if (requested) items.push({ title: 'Use a time in HH:MM format, such as 09:00', valid: false });
+  else items.push({ title: time ? `Reminder set for ${time}` : 'Daily reminder is off',
+    subtitle: time ? 'Press Return to refresh the schedule, or type a new time' : 'Type wp :remind HH:MM to set a local time',
+    arg: time ? `~remind:${time}` : undefined, valid: Boolean(time) });
+  if (time) items.push({ title: 'Turn off daily reminder', arg: '~remind:off', valid: true });
+  return JSON.stringify({ items });
 }
 
 function csvCell(value: string): string {
@@ -268,6 +297,23 @@ async function main(): Promise<void> {
     const { word, commandMode } = parseLookupInput(rawInput);
     const internalCommand = rawInput.trim().startsWith('~');
 
+    if (internalCommand && word === '~reminder-check') {
+      const count = (await vocabulary.due(languageScope)).length;
+      if (count) {
+        const stampPath = `${dataDirectory()}/reminder-last-shown-${encodeURIComponent(languageScope)}.txt`;
+        const now = new Date();
+        const today = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}|${await reminderTime() || 'unscheduled'}`;
+        let lastShown = '';
+        try { lastShown = new TextDecoder().decode(await tjs.readFile(stampPath)); } catch {}
+        if (lastShown !== today) {
+          await tjs.makeDir(dataDirectory(), { recursive: true });
+          await tjs.writeFile(stampPath, today);
+          console.log(`${count} saved ${count === 1 ? 'word is' : 'words are'} due · Open Alfred and type wp :review`);
+        }
+      }
+      return;
+    }
+
     if (internalCommand && word.startsWith('~save:')) {
       const query = decodeURIComponent(word.slice(6));
       const output = await cache.get(query, languageScope);
@@ -315,6 +361,10 @@ async function main(): Promise<void> {
       }
       if (command === 'saved') {
         console.log(savedOutput(await vocabulary.list(languageScope)));
+        return;
+      }
+      if (command === 'remind' || command.startsWith('remind ')) {
+        console.log(reminderMenu(await reminderTime(), word.slice(6).trim()));
         return;
       }
       if (command.startsWith('saved ')) {

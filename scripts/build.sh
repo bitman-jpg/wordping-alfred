@@ -10,6 +10,8 @@ cp runtime/tjs dist/runtime/tjs
 mkdir -p dist/assets
 cp assets/icon.png assets/translate.png assets/translate-say.png dist/assets/
 cp workflow/info.plist dist/info.plist
+mkdir -p dist/scripts
+cp scripts/reminders.sh dist/scripts/reminders.sh
 cp LICENSE dist/LICENSE
 
 release_file="release/WordPing-v${release_version}-Apple-Silicon.alfredworkflow"

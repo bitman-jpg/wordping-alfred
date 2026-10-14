@@ -10,3 +10,4 @@ for test_file in tests/*.test.ts; do
 done
 
 sh scripts/test-review-ui.sh
+sh scripts/test-reminders.sh
