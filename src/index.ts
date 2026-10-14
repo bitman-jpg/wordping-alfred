@@ -193,11 +193,19 @@ function reviewPromptOutput(entry: VocabularyEntry, state: ReviewSessionState): 
   const retry = state.pending[0]?.retry;
   return JSON.stringify({ items: [{
     title: entry.query,
-    subtitle: `${state.completed + 1} of ${state.total}${retry ? ' · Second try' : ''} · Press Return to reveal the translation`,
+    subtitle: `${state.completed + 1} of ${state.total}${retry ? ' · Second try' : ''} · Return to reveal · ⌘ Return to pronounce`,
     autocomplete: `:review ${entry.query}`,
     valid: false,
     icon: firstItem(entry.output).icon || { path: 'assets/translate.png' },
-    mods: { ctrl: removeModifier(entry.query, 'review') },
+    mods: {
+      cmd: {
+        subtitle: `Speak locally: ${entry.query}`,
+        arg: entry.query,
+        valid: true,
+        icon: { path: 'assets/translate-say.png' },
+      },
+      ctrl: removeModifier(entry.query, 'review'),
+    },
   }] });
 }
 

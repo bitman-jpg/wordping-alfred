@@ -36,6 +36,10 @@ const dueAfterRemove = JSON.parse(process.argv[10]).items;
 const savedAfterRemove = JSON.parse(process.argv[11]).items;
 
 assert.equal(due[0].mods.ctrl.arg, '~remove:mote');
+assert.equal(due[0].mods.cmd.arg, 'mote');
+assert.equal(due[0].mods.cmd.valid, true);
+assert.equal(due[0].mods.cmd.icon.path, 'assets/translate-say.png');
+assert.match(due[0].subtitle, /⌘ Return to pronounce/);
 assert.equal(due[0].mods.ctrl.variables.wordping_command, '~remove:mote');
 assert.equal(due[0].mods.ctrl.variables.wordping_return, 'review');
 assert.equal(saved[0].mods.ctrl.variables.wordping_return, 'saved');
