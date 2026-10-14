@@ -268,7 +268,7 @@ function reviewReveal(entry?: VocabularyEntry, state?: ReviewSessionState): stri
     },
   }));
   const query = encodeURIComponent(entry.query);
-  parsed.items.splice(1, 0,
+  parsed.items.unshift(
     {
       title: `Got it · next review ${nextReview}`,
       subtitle: 'Recalled it; each success lengthens the interval',

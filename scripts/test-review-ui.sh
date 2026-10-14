@@ -52,9 +52,12 @@ assert.equal(savedByAlternative[0].subtitle, 'Saved translation: Alternative');
 assert.equal(savedByAlternative[0].arg, 'Alternative');
 assert.match(savedNoMatch[0].title, /No vocabulary entries matching/);
 assert.equal(savedNoMatch[0].valid, false);
-assert.equal(revealed[0].mods.ctrl.arg, '~remove:mote');
-assert.equal(revealed[1].arg, '~remember:mote');
-assert.equal(revealed[2].arg, '~again:mote');
+assert.equal(revealed[0].arg, '~remember:mote');
+assert.equal(revealed[0].valid, true);
+assert.equal(revealed[1].arg, '~again:mote');
+assert.equal(revealed[1].valid, true);
+assert.equal(revealed[2].title, '莫特');
+assert.equal(revealed[2].arg, '莫特');
 for (const item of revealed) {
   assert.equal(item.mods.ctrl.arg, '~remove:mote');
   assert.equal(item.mods.ctrl.variables.wordping_command, '~remove:mote');
