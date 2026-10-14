@@ -108,3 +108,42 @@ assert.equal(summary[1].autocomplete, ':review next');
 assert.equal(next[0].title, 'word-11');
 console.log('Review session workflow tests passed');
 JS
+
+node - "$test_dir/data/vocabulary.json" <<'JS'
+const fs = require('node:fs');
+const now = Date.now();
+const future = now + 2 * 24 * 60 * 60 * 1000;
+const entries = [
+  { query: 'later', language: 'zh-CHS', output: '{}', savedAt: now, dueAt: future + 24 * 60 * 60 * 1000 },
+  { query: 'sooner', language: 'zh-CHS', output: '{}', savedAt: now, dueAt: future },
+];
+fs.writeFileSync(process.argv[2], JSON.stringify({ version: 1, entries }));
+JS
+rm "$test_dir/data/review-session-zh-CHS.json"
+no_due=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
+node - "$no_due" <<'JS'
+const assert = require('node:assert/strict');
+const item = JSON.parse(process.argv[2]).items[0];
+assert.equal(item.title, 'No words due');
+assert.match(item.subtitle, /^Next word due [A-Z][a-z]{2} \d{1,2}.* at \d{1,2}:\d{2} [AP]M$/);
+console.log('Upcoming review display test passed');
+JS
+
+node - "$test_dir/data/vocabulary.json" <<'JS'
+const fs = require('node:fs');
+const path = process.argv[2];
+const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+data.entries.push({ query: 'due-now', language: 'zh-CHS', output: '{}', savedAt: Date.now() - 1000 });
+fs.writeFileSync(path, JSON.stringify(data));
+JS
+alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review' > /dev/null
+alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" '~remember:due-now' > /dev/null
+completed_with_future=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
+node - "$completed_with_future" <<'JS'
+const assert = require('node:assert/strict');
+const items = JSON.parse(process.argv[2]).items;
+assert.match(items[0].title, /Session complete/);
+assert.equal(items[1].title, 'All caught up');
+assert.match(items[1].subtitle, /^Next word due /);
+console.log('Completed review schedule display test passed');
+JS

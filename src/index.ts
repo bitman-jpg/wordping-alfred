@@ -209,7 +209,19 @@ function reviewPromptOutput(entry: VocabularyEntry, state: ReviewSessionState): 
   }] });
 }
 
-function reviewSummary(state: ReviewSessionState, dueCount: number): string {
+function nextDueMessage(timestamp?: number): string {
+  if (timestamp === undefined) return 'Your next review will appear when a word is due';
+  const date = new Date(timestamp);
+  const today = new Date();
+  const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][date.getMonth()];
+  const year = date.getFullYear() === today.getFullYear() ? '' : `, ${date.getFullYear()}`;
+  const hour = date.getHours() % 12 || 12;
+  const minute = String(date.getMinutes()).padStart(2, '0');
+  const period = date.getHours() < 12 ? 'AM' : 'PM';
+  return `Next word due ${month} ${date.getDate()}${year} at ${hour}:${minute} ${period}`;
+}
+
+function reviewSummary(state: ReviewSessionState, dueCount: number, nextDue?: number): string {
   const remembered = state.total - state.missed;
   return JSON.stringify({ items: [
     {
@@ -219,7 +231,7 @@ function reviewSummary(state: ReviewSessionState, dueCount: number): string {
     },
     {
       title: dueCount ? `Start another session · ${dueCount} due` : 'All caught up',
-      subtitle: dueCount ? 'Review up to 10 more words' : 'Your next review will appear when a word is due',
+      subtitle: dueCount ? 'Review up to 10 more words' : nextDueMessage(nextDue),
       autocomplete: dueCount ? ':review next' : undefined,
       valid: false,
     },
@@ -383,6 +395,7 @@ async function main(): Promise<void> {
       if (command === 'review' || command === 'review next') {
         const fresh = command === 'review next';
         const due = await vocabulary.due(languageScope);
+        const nextDue = due.length ? undefined : await vocabulary.nextDue(languageScope);
         let session = fresh ? undefined : await reviewSession.load(languageScope);
         const completedOnEarlierDay = session?.completedAt
           && new Date(session.completedAt).toDateString() !== new Date().toDateString();
@@ -396,9 +409,9 @@ async function main(): Promise<void> {
           if (entry) console.log(reviewPromptOutput(entry, session));
           else console.log(JSON.stringify({ items: [{ title: 'Saved word not found', valid: false }] }));
         } else if (session.total) {
-          console.log(reviewSummary(session, due.length));
+          console.log(reviewSummary(session, due.length, nextDue));
         } else {
-          console.log(JSON.stringify({ items: [{ title: 'No words due', subtitle: 'Your next review will appear when a saved word is due', valid: false }] }));
+          console.log(JSON.stringify({ items: [{ title: 'No words due', subtitle: nextDueMessage(nextDue), valid: false }] }));
         }
         return;
       }

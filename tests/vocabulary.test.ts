@@ -42,6 +42,8 @@ assert(entry.reviewStep === 1 && entry.dueAt === now + day, 'first success shoul
 assert(nextReviewDays(entry) === 3, 'review action should show the next three-day interval');
 assert((await vocabulary.due('fr|en', now)).length === 1, 'remembered word should leave the due list');
 assert(isDue(entry, now + day), 'word should return when due');
+assert(await vocabulary.nextDue('fr|en', now) === now + day, 'next due should find the earliest upcoming review');
+assert(await vocabulary.nextDue('es|en', now) === undefined, 'next due should stay within the language pair and skip overdue words');
 
 await vocabulary.review('Bonjour', 'fr|en', true, now + day);
 entry = (await vocabulary.list('fr|en'))[0];
