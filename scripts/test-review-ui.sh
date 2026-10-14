@@ -71,6 +71,37 @@ JS
 
 node - "$test_dir/data/vocabulary.json" <<'JS'
 const fs = require('node:fs');
+fs.writeFileSync(process.argv[2], JSON.stringify({ version: 1, entries: [
+  { query: 'mote', language: 'zh-CHS', output: JSON.stringify({ items: [{ title: '莫特', arg: '莫特' }] }), savedAt: 1 },
+  { query: 'untranslated', language: 'zh-CHS', output: '{}', savedAt: 2 },
+] }));
+JS
+reverse_prompt=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse')
+reverse_reveal=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse mote')
+alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" '~remember:mote' > /dev/null
+reverse_summary=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse')
+forward_after_reverse=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
+node - "$reverse_prompt" "$reverse_reveal" "$reverse_summary" "$forward_after_reverse" <<'JS'
+const assert = require('node:assert/strict');
+const [prompt, reveal, summary, forward] = process.argv.slice(2).map((value) => JSON.parse(value).items);
+assert.equal(prompt[0].title, '莫特');
+assert.equal(prompt[0].autocomplete, ':reverse mote');
+assert.equal(prompt[0].mods.cmd, undefined, 'pronunciation must not reveal the answer');
+assert.equal(prompt[0].mods.ctrl.variables.wordping_return, 'reverse');
+assert.equal(reveal[0].arg, '~remember:mote');
+assert.equal(reveal[0].variables.wordping_return, 'reverse');
+assert.equal(reveal[1].arg, '~again:mote');
+assert.equal(reveal[1].variables.wordping_return, 'reverse');
+assert.equal(reveal[2].title, 'mote');
+assert.equal(reveal[2].mods.cmd.arg, 'mote');
+assert.equal(reveal[2].mods.ctrl.variables.wordping_return, 'reverse');
+assert.match(summary[0].title, /Session complete · 1 word/);
+assert.equal(forward[0].title, 'untranslated');
+console.log('Reverse review workflow tests passed');
+JS
+
+node - "$test_dir/data/vocabulary.json" <<'JS'
+const fs = require('node:fs');
 const entries = Array.from({ length: 11 }, (_, index) => ({
   query: `word-${index + 1}`, language: 'zh-CHS',
   output: JSON.stringify({ items: [{ title: `translation-${index + 1}`, arg: `translation-${index + 1}` }] }),

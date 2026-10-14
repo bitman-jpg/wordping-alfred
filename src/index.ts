@@ -4,7 +4,7 @@ import Translator from './translator';
 import TranslationCache, { CacheEntry, isEchoedTranslation } from './cache';
 import Vocabulary, { VocabularyEntry, nextReviewDays, searchSavedEntries } from './vocabulary';
 import { parseLookupInput } from './query';
-import ReviewSession, { ReviewSessionState } from './review-session';
+import ReviewSession, { ReviewMode, ReviewSessionState } from './review-session';
 
 interface WorkflowSettings {
   key: string;
@@ -93,7 +93,7 @@ function firstItem(output: string, search = ''): any {
   }
 }
 
-function removeModifier(query: string, returnTo: 'saved' | 'review'): any {
+function removeModifier(query: string, returnTo: 'saved' | 'review' | 'reverse'): any {
   const command = `~remove:${encodeURIComponent(query)}`;
   return {
     subtitle: 'Remove from vocabulary',
@@ -161,9 +161,10 @@ function clearAction(): any {
   };
 }
 
-function commandMenu(dueCount: number): string {
+function commandMenu(dueCount: number, reverseDueCount: number): string {
   return JSON.stringify({ items: [
     { title: `Review vocabulary (${dueCount} due)`, subtitle: 'Practice due words in a short session', autocomplete: ':review', valid: false },
+    { title: `Review in reverse (${reverseDueCount} due)`, subtitle: 'See the translation; recall the saved word', autocomplete: ':reverse', valid: false },
     { title: 'Browse vocabulary', subtitle: 'Search the words you have saved', autocomplete: ':saved', valid: false },
     { title: 'Daily review reminder', subtitle: 'Get notified when reviews are due', autocomplete: ':remind', valid: false },
     { title: 'Back up vocabulary (JSON)', subtitle: 'All pairs and review progress; can be restored', autocomplete: ':backup', valid: false },
@@ -205,22 +206,29 @@ function csvCell(value: string): string {
   return `"${value.replace(/"/g, '""')}"`;
 }
 
+function reversePrompt(entry: VocabularyEntry): string | undefined {
+  const title = firstItem(entry.output).title;
+  return typeof title === 'string' && title.trim() && title.trim().toLocaleLowerCase() !== entry.query.trim().toLocaleLowerCase()
+    ? title.trim() : undefined;
+}
+
 function reviewPromptOutput(entry: VocabularyEntry, state: ReviewSessionState): string {
   const retry = state.pending[0]?.retry;
+  const reverse = state.mode === 'reverse';
   return JSON.stringify({ items: [{
-    title: entry.query,
-    subtitle: `${state.completed + 1} of ${state.total}${retry ? ' · Second try' : ''} · Return to reveal · ⌘ Return to pronounce`,
-    autocomplete: `:review ${entry.query}`,
+    title: reverse ? reversePrompt(entry) || 'Translation unavailable' : entry.query,
+    subtitle: `${state.completed + 1} of ${state.total}${retry ? ' · Second try' : ''} · ${reverse ? 'Recall the saved word · Return to reveal' : 'Return to reveal · ⌘ Return to pronounce'}`,
+    autocomplete: `${reverse ? ':reverse' : ':review'} ${entry.query}`,
     valid: false,
     icon: firstItem(entry.output).icon || { path: 'assets/translate.png' },
     mods: {
-      cmd: {
+      ...(!reverse ? { cmd: {
         subtitle: `Speak locally: ${entry.query}`,
         arg: entry.query,
         valid: true,
         icon: { path: 'assets/translate-say.png' },
-      },
-      ctrl: removeModifier(entry.query, 'review'),
+      } } : {}),
+      ctrl: removeModifier(entry.query, reverse ? 'reverse' : 'review'),
     },
   }] });
 }
@@ -248,7 +256,7 @@ function reviewSummary(state: ReviewSessionState, dueCount: number, nextDue?: nu
     {
       title: dueCount ? `Start another session · ${dueCount} due` : 'All caught up',
       subtitle: dueCount ? 'Review up to 10 more words' : nextDueMessage(nextDue),
-      autocomplete: dueCount ? ':review next' : undefined,
+      autocomplete: dueCount ? (state.mode === 'reverse' ? ':reverse-next' : ':review next') : undefined,
       valid: false,
     },
   ] });
@@ -258,13 +266,26 @@ function reviewReveal(entry?: VocabularyEntry, state?: ReviewSessionState): stri
   if (!entry) return JSON.stringify({ items: [{ title: 'Saved word not found', valid: false }] });
   const days = nextReviewDays(entry);
   const nextReview = `in ${days} ${days === 1 ? 'day' : 'days'}`;
+  const reverse = state?.mode === 'reverse';
+  const returnTo = reverse ? 'reverse' : 'review';
   const parsed = JSON.parse(entry.output);
-  parsed.items = (parsed.items || []).map((item: any) => ({
+  parsed.items = reverse ? [{
+    title: entry.query,
+    subtitle: `${state ? `${state.completed + 1} of ${state.total} · ` : ''}Saved word · ⌘ Return to pronounce`,
+    arg: entry.query,
+    valid: true,
+    icon: firstItem(entry.output).icon || { path: 'assets/translate.png' },
+    mods: {
+      cmd: { subtitle: `Speak locally: ${entry.query}`, arg: entry.query, valid: true,
+        icon: { path: 'assets/translate-say.png' } },
+      ctrl: removeModifier(entry.query, returnTo),
+    },
+  }] : (parsed.items || []).map((item: any) => ({
     ...item,
     subtitle: `${state ? `${state.completed + 1} of ${state.total} · ` : ''}${item.subtitle || ''}`,
     mods: {
       ...(item.mods || {}),
-      ctrl: removeModifier(entry.query, 'review'),
+      ctrl: removeModifier(entry.query, returnTo),
     },
   }));
   const query = encodeURIComponent(entry.query);
@@ -274,16 +295,18 @@ function reviewReveal(entry?: VocabularyEntry, state?: ReviewSessionState): stri
       subtitle: 'Recalled it; each success lengthens the interval',
       arg: `~remember:${query}`,
       valid: true,
+      variables: { wordping_return: returnTo },
       icon: { path: '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/ToolbarFavoritesIcon.icns' },
-      mods: { ctrl: removeModifier(entry.query, 'review') },
+      mods: { ctrl: removeModifier(entry.query, returnTo) },
     },
     {
       title: 'Missed it · keep in review',
       subtitle: 'Review again at the end of this session',
       arg: `~again:${query}`,
       valid: true,
+      variables: { wordping_return: returnTo },
       icon: { path: '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/Sync.icns' },
-      mods: { ctrl: removeModifier(entry.query, 'review') },
+      mods: { ctrl: removeModifier(entry.query, returnTo) },
     },
   );
   return JSON.stringify(parsed);
@@ -407,7 +430,8 @@ async function main(): Promise<void> {
     if (commandMode) {
       const command = word.toLocaleLowerCase();
       if (!word) {
-        console.log(commandMenu((await vocabulary.due(languageScope)).length));
+        const due = await vocabulary.due(languageScope);
+        console.log(commandMenu(due.length, due.filter(reversePrompt).length));
         return;
       }
       if (command === 'saved') {
@@ -423,15 +447,18 @@ async function main(): Promise<void> {
         console.log(savedOutput(searchSavedEntries(await vocabulary.list(languageScope), search), search));
         return;
       }
-      if (command === 'review' || command === 'review next') {
-        const fresh = command === 'review next';
-        const due = await vocabulary.due(languageScope);
-        const nextDue = due.length ? undefined : await vocabulary.nextDue(languageScope);
+      if (command === 'review' || command === 'review next' || command === 'reverse' || command === 'reverse-next') {
+        const mode: ReviewMode = command.startsWith('reverse') ? 'reverse' : 'forward';
+        const fresh = command === 'review next' || command === 'reverse-next';
+        const due = (await vocabulary.due(languageScope)).filter((entry) => mode === 'forward' || reversePrompt(entry));
+        const nextDue = due.length ? undefined : await vocabulary.nextDue(languageScope, Date.now(),
+          (entry) => mode === 'forward' || Boolean(reversePrompt(entry)));
         let session = fresh ? undefined : await reviewSession.load(languageScope);
+        if (session && (session.mode || 'forward') !== mode) session = undefined;
         const completedOnEarlierDay = session?.completedAt
           && new Date(session.completedAt).toDateString() !== new Date().toDateString();
         if (!session || (due.length > 0 && (session.total === 0 || completedOnEarlierDay))) {
-          session = await reviewSession.start(languageScope, due);
+          session = await reviewSession.start(languageScope, due, mode);
         }
         session = await reviewSession.reconcile(session, await vocabulary.list(languageScope));
         if (session.pending.length) {
@@ -442,7 +469,9 @@ async function main(): Promise<void> {
         } else if (session.total) {
           console.log(reviewSummary(session, due.length, nextDue));
         } else {
-          console.log(JSON.stringify({ items: [{ title: 'No words due', subtitle: nextDueMessage(nextDue), valid: false }] }));
+          console.log(JSON.stringify({ items: [{ title: 'No words due',
+            subtitle: mode === 'reverse' && nextDue === undefined
+              ? 'Save a word with a translation to review in reverse' : nextDueMessage(nextDue), valid: false }] }));
         }
         return;
       }
@@ -482,7 +511,18 @@ async function main(): Promise<void> {
       if (command.startsWith('review ')) {
         const query = word.slice(7).trim();
         const session = await reviewSession.load(languageScope);
-        const entry = session?.pending[0]?.query.toLocaleLowerCase() === query.toLocaleLowerCase()
+        const entry = session?.mode !== 'reverse' && session?.pending[0]?.query.toLocaleLowerCase() === query.toLocaleLowerCase()
+          ? (await vocabulary.list(languageScope)).find((candidate) => candidate.query.toLocaleLowerCase() === query.toLocaleLowerCase())
+          : undefined;
+        if (entry) {
+          console.log(reviewReveal(entry, session));
+          return;
+        }
+      }
+      if (command.startsWith('reverse ')) {
+        const query = word.slice(8).trim();
+        const session = await reviewSession.load(languageScope);
+        const entry = session?.mode === 'reverse' && session.pending[0]?.query.toLocaleLowerCase() === query.toLocaleLowerCase()
           ? (await vocabulary.list(languageScope)).find((candidate) => candidate.query.toLocaleLowerCase() === query.toLocaleLowerCase())
           : undefined;
         if (entry) {

@@ -136,9 +136,10 @@ export default class Vocabulary {
       .sort((a, b) => dueTime(a) - dueTime(b));
   }
 
-  async nextDue(language: string, now = Date.now()): Promise<number | undefined> {
+  async nextDue(language: string, now = Date.now(), eligible: (entry: VocabularyEntry) => boolean = () => true): Promise<number | undefined> {
     let next: number | undefined;
     for (const entry of await this.list(language)) {
+      if (!eligible(entry)) continue;
       const time = dueTime(entry);
       if (time > now && (next === undefined || time < next)) next = time;
     }

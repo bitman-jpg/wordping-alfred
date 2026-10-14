@@ -13,6 +13,7 @@ const due = Array.from({ length: 12 }, (_, index) => ({
 }));
 
 let state = await store.start('fr|en', due);
+assert(state.mode === 'forward', 'ordinary review should use the forward mode');
 assert(state.total === 10 && state.pending.length === 10, 'session should select at most ten due words');
 assert(state.pending[0].query === 'word-1' && state.pending[9].query === 'word-10', 'session should preserve due order');
 assert(!(await store.load('es|en')), 'session should stay within its language pair');
@@ -42,6 +43,9 @@ assert(state.total === 1 && state.pending[0].query === 'word-2', 'removed word s
 await store.grade(state, 'word-2', false);
 await store.reconcile(state, []);
 assert(state.total === 0 && state.missed === 0, 'removing a pending retry should update summary counts');
+
+state = await store.start('fr|en', due.slice(0, 2), 'reverse');
+assert((await store.load('fr|en'))?.mode === 'reverse', 'reverse mode should survive a new workflow run');
 
 await tjs.remove(directory, { recursive: true });
 console.log('Review session tests passed');

@@ -257,7 +257,7 @@ printf '%s\n' "$result"
 return_to=""
 case "$command" in
   ~remember:*|~again:*)
-    return_to="review"
+    return_to="${wordping_return:-review}"
     ;;
   ~remove:*)
     return_to="${wordping_return:-}"
@@ -266,6 +266,9 @@ esac
 case "$return_to" in
   review)
     /usr/bin/osascript -e 'tell application id "com.runningwithcrayons.Alfred" to search "wp :review"' &gt;/dev/null
+    ;;
+  reverse)
+    /usr/bin/osascript -e 'tell application id "com.runningwithcrayons.Alfred" to search "wp :reverse"' &gt;/dev/null
     ;;
   saved)
     /usr/bin/osascript -e 'tell application id "com.runningwithcrayons.Alfred" to search "wp :saved"' &gt;/dev/null

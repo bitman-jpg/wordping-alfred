@@ -8,9 +8,12 @@ export interface ReviewPrompt {
   retry: boolean;
 }
 
+export type ReviewMode = 'forward' | 'reverse';
+
 export interface ReviewSessionState {
   version: 1;
   language: string;
+  mode?: ReviewMode;
   total: number;
   completed: number;
   missed: number;
@@ -34,10 +37,10 @@ export default class ReviewSession {
     }
   }
 
-  async start(language: string, due: VocabularyEntry[]): Promise<ReviewSessionState> {
+  async start(language: string, due: VocabularyEntry[], mode: ReviewMode = 'forward'): Promise<ReviewSessionState> {
     const pending = due.slice(0, 10).map((entry) => ({ query: entry.query, retry: false }));
     const state: ReviewSessionState = {
-      version: 1, language, total: pending.length, completed: 0,
+      version: 1, language, mode, total: pending.length, completed: 0,
       missed: 0, recovered: 0, unresolved: 0, pending,
     };
     await this.write(state);

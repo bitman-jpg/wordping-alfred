@@ -18,12 +18,13 @@ node - "$command_menu" <<'JS'
 const assert = require('node:assert/strict');
 const items = JSON.parse(process.argv[2]).items;
 assert.deepEqual(items.map((item) => item.autocomplete),
-  [':review', ':saved', ':remind', ':backup', ':restore', ':export', ':clear']);
-assert.equal(items[1].title, 'Browse vocabulary');
-assert.equal(items[3].title, 'Back up vocabulary (JSON)');
-assert.match(items[3].subtitle, /All pairs and review progress/);
-assert.equal(items[5].title, 'Export vocabulary (CSV)');
-assert.match(items[5].subtitle, /no review progress/);
+  [':review', ':reverse', ':saved', ':remind', ':backup', ':restore', ':export', ':clear']);
+assert.equal(items[1].title, 'Review in reverse (0 due)');
+assert.equal(items[2].title, 'Browse vocabulary');
+assert.equal(items[4].title, 'Back up vocabulary (JSON)');
+assert.match(items[4].subtitle, /All pairs and review progress/);
+assert.equal(items[6].title, 'Export vocabulary (CSV)');
+assert.match(items[6].subtitle, /no review progress/);
 JS
 
 missing=$(run_workflow ':restore')
