@@ -60,3 +60,47 @@ assert.equal(dueAfterRemove[0].title, 'No words due');
 assert.equal(savedAfterRemove[0].title, 'No saved words');
 console.log('Review shortcut tests passed');
 JS
+
+node - "$test_dir/data/vocabulary.json" <<'JS'
+const fs = require('node:fs');
+const entries = Array.from({ length: 11 }, (_, index) => ({
+  query: `word-${index + 1}`, language: 'zh-CHS',
+  output: JSON.stringify({ items: [{ title: `translation-${index + 1}`, arg: `translation-${index + 1}` }] }),
+  savedAt: index + 1,
+}));
+fs.writeFileSync(process.argv[2], JSON.stringify({ version: 1, entries }));
+JS
+
+session_start=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review next')
+alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" '~again:word-1' > /dev/null
+retry_later=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
+for index in 2 3 4 5 6 7 8 9 10; do
+  alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" "~remember:word-$index" > /dev/null
+done
+retry_prompt=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
+alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" '~again:word-1' > /dev/null
+summary=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
+node - "$test_dir/data/review-session-zh-CHS.json" <<'JS'
+const fs = require('node:fs');
+const path = process.argv[2];
+const session = JSON.parse(fs.readFileSync(path, 'utf8'));
+session.completedAt = Date.now() - 48 * 60 * 60 * 1000;
+fs.writeFileSync(path, JSON.stringify(session));
+JS
+next_session=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
+
+node - "$session_start" "$retry_later" "$retry_prompt" "$summary" "$next_session" <<'JS'
+const assert = require('node:assert/strict');
+const [start, later, retry, summary, next] = process.argv.slice(2).map((value) => JSON.parse(value).items);
+assert.equal(start[0].title, 'word-1');
+assert.match(start[0].subtitle, /1 of 10/);
+assert.equal(later[0].title, 'word-2');
+assert.equal(retry[0].title, 'word-1');
+assert.match(retry[0].subtitle, /Second try/);
+assert.match(summary[0].title, /Session complete · 10 words/);
+assert.match(summary[0].subtitle, /9 recalled first try · 0 recovered · 1 still due/);
+assert.match(summary[1].title, /2 due/);
+assert.equal(summary[1].autocomplete, ':review next');
+assert.equal(next[0].title, 'word-11');
+console.log('Review session workflow tests passed');
+JS

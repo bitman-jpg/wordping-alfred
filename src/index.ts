@@ -4,6 +4,7 @@ import Translator from './translator';
 import TranslationCache, { CacheEntry, isEchoedTranslation } from './cache';
 import Vocabulary, { VocabularyEntry, nextReviewDays, searchSavedEntries } from './vocabulary';
 import { parseLookupInput } from './query';
+import ReviewSession, { ReviewSessionState } from './review-session';
 
 interface WorkflowSettings {
   key: string;
@@ -77,6 +78,10 @@ function dataDirectory(): string {
     || `${tjs.homeDir}/Library/Application Support/Alfred/Workflow Data/com.bitman.wordping`;
 }
 
+function reviewSessionPath(language: string): string {
+  return `${dataDirectory()}/review-session-${encodeURIComponent(language)}.json`;
+}
+
 function firstItem(output: string, search = ''): any {
   try {
     const items = JSON.parse(output).items || [];
@@ -98,27 +103,27 @@ function removeModifier(query: string, returnTo: 'saved' | 'review'): any {
   };
 }
 
-function savedOutput(entries: VocabularyEntry[], review = false, search = ''): string {
+function savedOutput(entries: VocabularyEntry[], search = ''): string {
   const items: any[] = entries.map((entry) => {
     const first = firstItem(entry.output, search);
     return {
       title: entry.query,
-      subtitle: review ? 'Due now · Press Return to reveal the translation' : `Saved translation: ${first.title || ''}`,
+      subtitle: `Saved translation: ${first.title || ''}`,
       arg: first.arg || first.title || entry.query,
-      autocomplete: review ? `:review ${entry.query}` : entry.query,
-      valid: !review,
+      autocomplete: entry.query,
+      valid: true,
       icon: first.icon || { path: 'assets/translate.png' },
-      mods: { ...(review ? {} : first.mods || {}), ctrl: removeModifier(entry.query, review ? 'review' : 'saved') },
+      mods: { ...(first.mods || {}), ctrl: removeModifier(entry.query, 'saved') },
       quicklookurl: first.quicklookurl,
       text: first.text,
     };
   });
   if (entries.length === 0) items.push({
-    title: review ? 'No words due' : search ? `No saved words matching “${search}”` : 'No saved words',
-    subtitle: review ? 'Your next review will appear when a saved word is due' : search ? 'Search a different word or translation' : 'Look up a word and press Control-Return to save it',
+    title: search ? `No saved words matching “${search}”` : 'No saved words',
+    subtitle: search ? 'Search a different word or translation' : 'Look up a word and press Control-Return to save it',
     valid: false,
   });
-  if (!review && !search && entries.length > 0) items.push(exportAction());
+  if (!search && entries.length > 0) items.push(exportAction());
   return JSON.stringify({ items });
 }
 
@@ -155,13 +160,43 @@ function csvCell(value: string): string {
   return `"${value.replace(/"/g, '""')}"`;
 }
 
-function reviewReveal(entry?: VocabularyEntry): string {
+function reviewPromptOutput(entry: VocabularyEntry, state: ReviewSessionState): string {
+  const retry = state.pending[0]?.retry;
+  return JSON.stringify({ items: [{
+    title: entry.query,
+    subtitle: `${state.completed + 1} of ${state.total}${retry ? ' · Second try' : ''} · Press Return to reveal the translation`,
+    autocomplete: `:review ${entry.query}`,
+    valid: false,
+    icon: firstItem(entry.output).icon || { path: 'assets/translate.png' },
+    mods: { ctrl: removeModifier(entry.query, 'review') },
+  }] });
+}
+
+function reviewSummary(state: ReviewSessionState, dueCount: number): string {
+  const remembered = state.total - state.missed;
+  return JSON.stringify({ items: [
+    {
+      title: `Session complete · ${state.total} ${state.total === 1 ? 'word' : 'words'}`,
+      subtitle: `${remembered} recalled first try · ${state.recovered} recovered · ${state.unresolved} still due`,
+      valid: false,
+    },
+    {
+      title: dueCount ? `Start another session · ${dueCount} due` : 'All caught up',
+      subtitle: dueCount ? 'Review up to 10 more words' : 'Your next review will appear when a word is due',
+      autocomplete: dueCount ? ':review next' : undefined,
+      valid: false,
+    },
+  ] });
+}
+
+function reviewReveal(entry?: VocabularyEntry, state?: ReviewSessionState): string {
   if (!entry) return JSON.stringify({ items: [{ title: 'Saved word not found', valid: false }] });
   const days = nextReviewDays(entry);
   const nextReview = `in ${days} ${days === 1 ? 'day' : 'days'}`;
   const parsed = JSON.parse(entry.output);
   parsed.items = (parsed.items || []).map((item: any) => ({
     ...item,
+    subtitle: `${state ? `${state.completed + 1} of ${state.total} · ` : ''}${item.subtitle || ''}`,
     mods: {
       ...(item.mods || {}),
       ctrl: removeModifier(entry.query, 'review'),
@@ -179,7 +214,7 @@ function reviewReveal(entry?: VocabularyEntry): string {
     },
     {
       title: 'Missed it · keep in review',
-      subtitle: 'Stays due now; review progress resets',
+      subtitle: 'Review again at the end of this session',
       arg: `~again:${query}`,
       valid: true,
       icon: { path: '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/Sync.icns' },
@@ -228,6 +263,7 @@ async function main(): Promise<void> {
     const languageScope = learningLanguage === 'en' ? nativeLanguage : `${nativeLanguage}|${learningLanguage}`;
     const cache = new TranslationCache(cachePath(), Math.min(500, Math.max(1, historyLimit)));
     const vocabulary = new Vocabulary(`${dataDirectory()}/vocabulary.json`);
+    const reviewSession = new ReviewSession(reviewSessionPath(languageScope));
     const rawInput = tjs.args[3] || '';
     const { word, commandMode } = parseLookupInput(rawInput);
     const internalCommand = rawInput.trim().startsWith('~');
@@ -243,13 +279,20 @@ async function main(): Promise<void> {
     if (internalCommand && word.startsWith('~remove:')) {
       const query = decodeURIComponent(word.slice(8));
       await vocabulary.remove(query, languageScope);
+      const session = await reviewSession.load(languageScope);
+      if (session) await reviewSession.reconcile(session, await vocabulary.list(languageScope));
       console.log(`Removed “${query}” from saved words.`);
       return;
     }
     if (internalCommand && (word.startsWith('~remember:') || word.startsWith('~again:'))) {
       const remembered = word.startsWith('~remember:');
       const query = decodeURIComponent(word.slice(remembered ? 10 : 7));
+      const session = await reviewSession.load(languageScope);
+      if (!session || !session.pending[0] || session.pending[0].query.toLocaleLowerCase() !== query.toLocaleLowerCase()) {
+        throw new Error('Open the current word in wp :review before grading it');
+      }
       if (!await vocabulary.review(query, languageScope, remembered)) throw new Error('Saved word not found');
+      await reviewSession.grade(session, query, remembered);
       console.log(remembered ? `Remembered “${query}”. Scheduled for later review.` : `“${query}” stays due for review.`);
       return;
     }
@@ -276,11 +319,29 @@ async function main(): Promise<void> {
       }
       if (command.startsWith('saved ')) {
         const search = word.slice(6).trim();
-        console.log(savedOutput(searchSavedEntries(await vocabulary.list(languageScope), search), false, search));
+        console.log(savedOutput(searchSavedEntries(await vocabulary.list(languageScope), search), search));
         return;
       }
-      if (command === 'review') {
-        console.log(savedOutput(await vocabulary.due(languageScope), true));
+      if (command === 'review' || command === 'review next') {
+        const fresh = command === 'review next';
+        const due = await vocabulary.due(languageScope);
+        let session = fresh ? undefined : await reviewSession.load(languageScope);
+        const completedOnEarlierDay = session?.completedAt
+          && new Date(session.completedAt).toDateString() !== new Date().toDateString();
+        if (!session || (due.length > 0 && (session.total === 0 || completedOnEarlierDay))) {
+          session = await reviewSession.start(languageScope, due);
+        }
+        session = await reviewSession.reconcile(session, await vocabulary.list(languageScope));
+        if (session.pending.length) {
+          const entry = (await vocabulary.list(languageScope)).find((candidate) =>
+            candidate.query.toLocaleLowerCase() === session.pending[0].query.toLocaleLowerCase());
+          if (entry) console.log(reviewPromptOutput(entry, session));
+          else console.log(JSON.stringify({ items: [{ title: 'Saved word not found', valid: false }] }));
+        } else if (session.total) {
+          console.log(reviewSummary(session, due.length));
+        } else {
+          console.log(JSON.stringify({ items: [{ title: 'No words due', subtitle: 'Your next review will appear when a saved word is due', valid: false }] }));
+        }
         return;
       }
       if (command === 'clear') {
@@ -294,10 +355,12 @@ async function main(): Promise<void> {
       }
       if (command.startsWith('review ')) {
         const query = word.slice(7).trim();
-        const entries = await vocabulary.list(languageScope);
-        const entry = entries.find((candidate) => candidate.query.toLocaleLowerCase() === query.toLocaleLowerCase());
+        const session = await reviewSession.load(languageScope);
+        const entry = session?.pending[0]?.query.toLocaleLowerCase() === query.toLocaleLowerCase()
+          ? (await vocabulary.list(languageScope)).find((candidate) => candidate.query.toLocaleLowerCase() === query.toLocaleLowerCase())
+          : undefined;
         if (entry) {
-          console.log(reviewReveal(entry));
+          console.log(reviewReveal(entry, session));
           return;
         }
       }
