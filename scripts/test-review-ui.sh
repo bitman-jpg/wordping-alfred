@@ -43,14 +43,14 @@ assert.match(due[0].subtitle, /⌘ Return to pronounce/);
 assert.equal(due[0].mods.ctrl.variables.wordping_command, '~remove:mote');
 assert.equal(due[0].mods.ctrl.variables.wordping_return, 'review');
 assert.equal(saved[0].mods.ctrl.variables.wordping_return, 'saved');
-assert.equal(saved[saved.length - 1].title, 'Export vocabulary (CSV)…');
+assert.equal(saved.length, 1, 'saved words should contain only saved entries');
 assert.equal(savedByWord.length, 1);
 assert.equal(savedByWord[0].title, 'mote');
 assert.equal(savedByTranslation[0].title, 'mote');
 assert.equal(savedByTranslation[0].mods.ctrl.variables.wordping_return, 'saved');
 assert.equal(savedByAlternative[0].subtitle, 'Saved translation: Alternative');
 assert.equal(savedByAlternative[0].arg, 'Alternative');
-assert.match(savedNoMatch[0].title, /No vocabulary entries matching/);
+assert.match(savedNoMatch[0].title, /No saved words matching/);
 assert.equal(savedNoMatch[0].valid, false);
 assert.equal(revealed[0].arg, '~remember:mote');
 assert.equal(revealed[0].valid, true);
@@ -65,7 +65,7 @@ for (const item of revealed) {
 }
 assert.equal(dueAfterMiss[0].title, 'mote');
 assert.equal(dueAfterRemove[0].title, 'No words due');
-assert.equal(savedAfterRemove[0].title, 'No vocabulary entries');
+assert.equal(savedAfterRemove[0].title, 'No saved words');
 console.log('Review shortcut tests passed');
 JS
 
@@ -77,17 +77,40 @@ fs.writeFileSync(process.argv[2], JSON.stringify({ version: 1, entries: [
 ] }));
 JS
 reverse_prompt=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse')
-reverse_reveal=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse mote')
+reverse_guess=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse MoTe')
+reverse_correct=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse-check:MoTe')
+reverse_wrong=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse-check:note')
+reverse_reveal=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse-reveal')
+reverse_before_grade=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse')
+node - "$test_dir/data/vocabulary.json" <<'JS'
+const fs = require('node:fs');
+const path = process.argv[2];
+const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+data.entries.push({ query: 'next-word', language: 'zh-CHS', output: JSON.stringify({ items: [{ title: '下一个' }] }), savedAt: 3 });
+fs.writeFileSync(path, JSON.stringify(data));
+JS
 alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" '~remember:mote' > /dev/null
 reverse_summary=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse')
+alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" '~next:reverse' > /dev/null
+reverse_next=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':reverse')
 forward_after_reverse=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
-node - "$reverse_prompt" "$reverse_reveal" "$reverse_summary" "$forward_after_reverse" <<'JS'
+node - "$reverse_prompt" "$reverse_guess" "$reverse_correct" "$reverse_wrong" "$reverse_reveal" "$reverse_before_grade" "$reverse_summary" "$reverse_next" "$forward_after_reverse" <<'JS'
 const assert = require('node:assert/strict');
-const [prompt, reveal, summary, forward] = process.argv.slice(2).map((value) => JSON.parse(value).items);
+const [prompt, guess, correct, wrong, reveal, beforeGrade, summary, next, forward] = process.argv.slice(2).map((value) => JSON.parse(value).items);
 assert.equal(prompt[0].title, '莫特');
-assert.equal(prompt[0].autocomplete, ':reverse mote');
+assert.equal(prompt[0].autocomplete, ':reverse-reveal');
 assert.equal(prompt[0].mods.cmd, undefined, 'pronunciation must not reveal the answer');
 assert.equal(prompt[0].mods.ctrl.variables.wordping_return, 'reverse');
+assert.equal(guess[0].title, 'Check “MoTe”');
+assert.equal(guess[0].autocomplete, ':reverse-check:MoTe');
+assert.equal(guess[0].valid, false);
+assert.equal(correct[0].arg, '~remember:mote');
+assert.match(correct[0].subtitle, /Correct/);
+assert.equal(correct[2].title, 'mote');
+assert.equal(wrong[0].arg, '~again:mote');
+assert.match(wrong[0].title, /Not quite/);
+assert.equal(wrong[1].arg, '~remember:mote');
+assert.equal(wrong[2].title, 'mote');
 assert.equal(reveal[0].arg, '~remember:mote');
 assert.equal(reveal[0].variables.wordping_return, 'reverse');
 assert.equal(reveal[1].arg, '~again:mote');
@@ -95,7 +118,12 @@ assert.equal(reveal[1].variables.wordping_return, 'reverse');
 assert.equal(reveal[2].title, 'mote');
 assert.equal(reveal[2].mods.cmd.arg, 'mote');
 assert.equal(reveal[2].mods.ctrl.variables.wordping_return, 'reverse');
+assert.equal(beforeGrade[0].title, '莫特', 'checking must not grade the word');
 assert.match(summary[0].title, /Session complete · 1 word/);
+assert.equal(summary[1].arg, '~next:reverse');
+assert.equal(summary[1].valid, true);
+assert.equal(summary[1].autocomplete, undefined);
+assert.equal(next[0].title, '下一个');
 assert.equal(forward[0].title, 'untranslated');
 console.log('Reverse review workflow tests passed');
 JS
@@ -119,13 +147,7 @@ done
 retry_prompt=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
 alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" '~again:word-1' > /dev/null
 summary=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
-node - "$test_dir/data/review-session-zh-CHS.json" <<'JS'
-const fs = require('node:fs');
-const path = process.argv[2];
-const session = JSON.parse(fs.readFileSync(path, 'utf8'));
-session.completedAt = Date.now() - 48 * 60 * 60 * 1000;
-fs.writeFileSync(path, JSON.stringify(session));
-JS
+alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" '~next:review' > /dev/null
 next_session=$(alfred_workflow_data="$test_dir/data" alfred_workflow_cache="$test_dir" ./runtime/tjs run "$test_dir/index.js" ':review')
 
 node - "$session_start" "$retry_later" "$retry_prompt" "$summary" "$next_session" <<'JS'
@@ -139,7 +161,9 @@ assert.match(retry[0].subtitle, /Second try/);
 assert.match(summary[0].title, /Session complete · 10 words/);
 assert.match(summary[0].subtitle, /9 recalled first try · 0 recovered · 1 still due/);
 assert.match(summary[1].title, /2 due/);
-assert.equal(summary[1].autocomplete, ':review next');
+assert.equal(summary[1].arg, '~next:review');
+assert.equal(summary[1].valid, true);
+assert.equal(summary[1].autocomplete, undefined);
 assert.equal(next[0].title, 'word-11');
 console.log('Review session workflow tests passed');
 JS

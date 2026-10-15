@@ -259,6 +259,12 @@ case "$command" in
   ~remember:*|~again:*)
     return_to="${wordping_return:-review}"
     ;;
+  ~next:review)
+    return_to="review"
+    ;;
+  ~next:reverse)
+    return_to="reverse"
+    ;;
   ~remove:*)
     return_to="${wordping_return:-}"
     ;;

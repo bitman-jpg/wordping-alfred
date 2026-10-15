@@ -14,7 +14,7 @@ class Workflow {
       .setCmd('Speak locally: ' + r.pronounce, r.pronounce, true, 'assets/translate-say.png')
       .setAlt('Play online pronunciation: ' + r.pronounce, r.pronounce, true, 'assets/translate-say.png')
       .setCtrl(
-        'Save to vocabulary',
+        'Save word',
         query ? `~save:${encodeURIComponent(query)}` : r.arg,
         true,
         query ? { wordping_command: `~save:${encodeURIComponent(query)}` } : undefined,

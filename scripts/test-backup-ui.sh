@@ -14,17 +14,26 @@ run_workflow() {
 }
 
 command_menu=$(run_workflow ':')
-node - "$command_menu" <<'JS'
+words_menu=$(run_workflow ':words')
+files_menu=$(run_workflow ':files')
+node - "$command_menu" "$words_menu" "$files_menu" <<'JS'
 const assert = require('node:assert/strict');
 const items = JSON.parse(process.argv[2]).items;
-assert.deepEqual(items.map((item) => item.autocomplete),
-  [':review', ':reverse', ':saved', ':remind', ':backup', ':restore', ':export', ':clear']);
-assert.equal(items[1].title, 'Review in reverse (0 due)');
-assert.equal(items[2].title, 'Browse vocabulary');
-assert.equal(items[4].title, 'Back up vocabulary (JSON)');
-assert.match(items[4].subtitle, /All pairs and review progress/);
-assert.equal(items[6].title, 'Export vocabulary (CSV)');
-assert.match(items[6].subtitle, /no review progress/);
+assert.deepEqual(items.map((item) => item.autocomplete), [':words', ':clear']);
+assert.equal(items[0].title, 'Saved words…');
+const words = JSON.parse(process.argv[3]).items;
+assert.deepEqual(words.map((item) => item.autocomplete),
+  [':review', ':reverse', ':saved', ':remind', ':files']);
+assert.equal(words[1].title, 'Review in reverse (0 due)');
+assert.equal(words[2].title, 'Browse saved words');
+assert.equal(words[4].title, 'Manage saved words…');
+assert.match(words[4].subtitle, /Back up, restore, or export/);
+const files = JSON.parse(process.argv[4]).items;
+assert.deepEqual(files.map((item) => item.autocomplete), [':backup', ':restore', ':export']);
+assert.equal(files[0].title, 'Back up saved words (JSON)');
+assert.match(files[0].subtitle, /All pairs and review progress/);
+assert.equal(files[2].title, 'Export saved words (CSV)');
+assert.match(files[2].subtitle, /no review progress/);
 JS
 
 missing=$(run_workflow ':restore')
@@ -45,7 +54,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const [menu, result, file, restore, customRestore] = process.argv.slice(2);
 assert.equal(JSON.parse(menu).items[0].arg, '~backup');
-assert.match(result, /Saved vocabulary backup/);
+assert.match(result, /Saved word backup/);
 const backup = JSON.parse(fs.readFileSync(file, 'utf8'));
 assert.equal(backup.format, 'wordping-vocabulary');
 assert.equal(backup.entries[0].reviewStep, 2);

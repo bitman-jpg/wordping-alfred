@@ -96,7 +96,7 @@ function firstItem(output: string, search = ''): any {
 function removeModifier(query: string, returnTo: 'saved' | 'review' | 'reverse'): any {
   const command = `~remove:${encodeURIComponent(query)}`;
   return {
-    subtitle: 'Remove from vocabulary',
+    subtitle: 'Remove from saved words',
     arg: command,
     valid: true,
     variables: { wordping_command: command, wordping_return: returnTo },
@@ -119,17 +119,16 @@ function savedOutput(entries: VocabularyEntry[], search = ''): string {
     };
   });
   if (entries.length === 0) items.push({
-    title: search ? `No vocabulary entries matching “${search}”` : 'No vocabulary entries',
+    title: search ? `No saved words matching “${search}”` : 'No saved words',
     subtitle: search ? 'Search a different word or translation' : 'Look up a word and press Control-Return to save it',
     valid: false,
   });
-  if (!search && entries.length > 0) items.push(exportAction());
   return JSON.stringify({ items });
 }
 
 function exportAction(): any {
   return {
-    title: 'Export vocabulary (CSV)…',
+    title: 'Export saved words (CSV)…',
     subtitle: 'Current pair for spreadsheets; no review progress',
     arg: '~export',
     valid: true,
@@ -143,8 +142,8 @@ function backupPath(): string {
 
 function restoreAction(path: string): any {
   return {
-    title: `Restore vocabulary from ${path.split('/').pop() || path}`,
-    subtitle: 'Add missing entries; keep existing vocabulary and progress',
+    title: `Restore saved words from ${path.split('/').pop() || path}`,
+    subtitle: 'Add missing entries; keep existing saved words and progress',
     arg: `~restore:${encodeURIComponent(path)}`,
     valid: true,
     icon: { path: 'assets/translate.png' },
@@ -161,16 +160,28 @@ function clearAction(): any {
   };
 }
 
-function commandMenu(dueCount: number, reverseDueCount: number): string {
+function commandMenu(): string {
   return JSON.stringify({ items: [
-    { title: `Review vocabulary (${dueCount} due)`, subtitle: 'Practice due words in a short session', autocomplete: ':review', valid: false },
-    { title: `Review in reverse (${reverseDueCount} due)`, subtitle: 'See the translation; recall the saved word', autocomplete: ':reverse', valid: false },
-    { title: 'Browse vocabulary', subtitle: 'Search the words you have saved', autocomplete: ':saved', valid: false },
-    { title: 'Daily review reminder', subtitle: 'Get notified when reviews are due', autocomplete: ':remind', valid: false },
-    { title: 'Back up vocabulary (JSON)', subtitle: 'All pairs and review progress; can be restored', autocomplete: ':backup', valid: false },
-    { title: 'Restore vocabulary (JSON)', subtitle: 'Merge a backup; keep existing entries', autocomplete: ':restore', valid: false },
-    { title: 'Export vocabulary (CSV)', subtitle: 'Current pair for spreadsheets; no review progress', autocomplete: ':export', valid: false },
+    { title: 'Saved words…', subtitle: 'Review, browse, reminders, and files', autocomplete: ':words', valid: false },
     { title: 'Clear recent lookups', subtitle: 'Delete local lookup history', autocomplete: ':clear', valid: false },
+  ] });
+}
+
+function savedWordsMenu(dueCount: number, reverseDueCount: number): string {
+  return JSON.stringify({ items: [
+    { title: `Review saved words (${dueCount} due)`, subtitle: 'Practice due words in a short session', autocomplete: ':review', valid: false },
+    { title: `Review in reverse (${reverseDueCount} due)`, subtitle: 'See the translation; type or recall the saved word', autocomplete: ':reverse', valid: false },
+    { title: 'Browse saved words', subtitle: 'Search the words you have saved', autocomplete: ':saved', valid: false },
+    { title: 'Daily review reminder', subtitle: 'Get notified when reviews are due', autocomplete: ':remind', valid: false },
+    { title: 'Manage saved words…', subtitle: 'Back up, restore, or export your list', autocomplete: ':files', valid: false },
+  ] });
+}
+
+function filesMenu(): string {
+  return JSON.stringify({ items: [
+    { title: 'Back up saved words (JSON)', subtitle: 'All pairs and review progress; can be restored', autocomplete: ':backup', valid: false },
+    { title: 'Restore saved words (JSON)', subtitle: 'Merge a backup; keep existing entries', autocomplete: ':restore', valid: false },
+    { title: 'Export saved words (CSV)', subtitle: 'Current pair for spreadsheets; no review progress', autocomplete: ':export', valid: false },
   ] });
 }
 
@@ -212,13 +223,18 @@ function reversePrompt(entry: VocabularyEntry): string | undefined {
     ? title.trim() : undefined;
 }
 
+function matchesReverseAnswer(answer: string, query: string): boolean {
+  const normalized = (value: string) => value.normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+  return normalized(answer) === normalized(query);
+}
+
 function reviewPromptOutput(entry: VocabularyEntry, state: ReviewSessionState): string {
   const retry = state.pending[0]?.retry;
   const reverse = state.mode === 'reverse';
   return JSON.stringify({ items: [{
     title: reverse ? reversePrompt(entry) || 'Translation unavailable' : entry.query,
-    subtitle: `${state.completed + 1} of ${state.total}${retry ? ' · Second try' : ''} · ${reverse ? 'Recall the saved word · Return to reveal' : 'Return to reveal · ⌘ Return to pronounce'}`,
-    autocomplete: `${reverse ? ':reverse' : ':review'} ${entry.query}`,
+    subtitle: `${state.completed + 1} of ${state.total}${retry ? ' · Second try' : ''} · ${reverse ? 'Type an answer or Return to reveal' : 'Return to reveal · ⌘ Return to pronounce'}`,
+    autocomplete: reverse ? ':reverse-reveal' : `:review ${entry.query}`,
     valid: false,
     icon: firstItem(entry.output).icon || { path: 'assets/translate.png' },
     mods: {
@@ -256,18 +272,20 @@ function reviewSummary(state: ReviewSessionState, dueCount: number, nextDue?: nu
     {
       title: dueCount ? `Start another session · ${dueCount} due` : 'All caught up',
       subtitle: dueCount ? 'Review up to 10 more words' : nextDueMessage(nextDue),
-      autocomplete: dueCount ? (state.mode === 'reverse' ? ':reverse-next' : ':review next') : undefined,
-      valid: false,
+      arg: dueCount ? `~next:${state.mode === 'reverse' ? 'reverse' : 'review'}` : undefined,
+      valid: dueCount > 0,
     },
   ] });
 }
 
-function reviewReveal(entry?: VocabularyEntry, state?: ReviewSessionState): string {
+function reviewReveal(entry?: VocabularyEntry, state?: ReviewSessionState, attempt?: string): string {
   if (!entry) return JSON.stringify({ items: [{ title: 'Saved word not found', valid: false }] });
   const days = nextReviewDays(entry);
   const nextReview = `in ${days} ${days === 1 ? 'day' : 'days'}`;
   const reverse = state?.mode === 'reverse';
   const returnTo = reverse ? 'reverse' : 'review';
+  const checked = reverse && attempt !== undefined;
+  const correct = checked && matchesReverseAnswer(attempt, entry.query);
   const parsed = JSON.parse(entry.output);
   parsed.items = reverse ? [{
     title: entry.query,
@@ -289,27 +307,36 @@ function reviewReveal(entry?: VocabularyEntry, state?: ReviewSessionState): stri
     },
   }));
   const query = encodeURIComponent(entry.query);
-  parsed.items.unshift(
-    {
+  const gotIt = {
       title: `Got it · next review ${nextReview}`,
-      subtitle: 'Recalled it; each success lengthens the interval',
+      subtitle: checked && correct ? `Correct: “${attempt}” matches · Return to grade` : 'Recalled it; each success lengthens the interval',
       arg: `~remember:${query}`,
       valid: true,
       variables: { wordping_return: returnTo },
       icon: { path: '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/ToolbarFavoritesIcon.icns' },
       mods: { ctrl: removeModifier(entry.query, returnTo) },
-    },
-    {
-      title: 'Missed it · keep in review',
-      subtitle: 'Review again at the end of this session',
+    };
+  const missedIt = {
+      title: checked && !correct ? 'Not quite · mark missed' : 'Missed it · keep in review',
+      subtitle: checked && !correct ? `Your answer: “${attempt}” · Saved word: “${entry.query}”` : 'Review again at the end of this session',
       arg: `~again:${query}`,
       valid: true,
       variables: { wordping_return: returnTo },
       icon: { path: '/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/Sync.icns' },
       mods: { ctrl: removeModifier(entry.query, returnTo) },
-    },
-  );
+    };
+  parsed.items.unshift(...(checked && !correct ? [missedIt, gotIt] : [gotIt, missedIt]));
   return JSON.stringify(parsed);
+}
+
+function reverseAnswerOutput(answer: string, entry: VocabularyEntry): string {
+  return JSON.stringify({ items: [{
+    title: `Check “${answer}”`,
+    subtitle: 'Return to compare with the saved word',
+    autocomplete: `:reverse-check:${encodeURIComponent(answer)}`,
+    valid: false,
+    mods: { ctrl: removeModifier(entry.query, 'reverse') },
+  }] });
 }
 
 function historyOutput(entries: CacheEntry[]): string {
@@ -378,7 +405,7 @@ async function main(): Promise<void> {
       const output = await cache.get(query, languageScope);
       if (!output) throw new Error('Look up the word again before saving it');
       await vocabulary.save(query, languageScope, output);
-      console.log(`Saved “${query}” to vocabulary. Ready to review.`);
+      console.log(`Saved “${query}” for review.`);
       return;
     }
     if (internalCommand && word.startsWith('~remove:')) {
@@ -386,7 +413,7 @@ async function main(): Promise<void> {
       await vocabulary.remove(query, languageScope);
       const session = await reviewSession.load(languageScope);
       if (session) await reviewSession.reconcile(session, await vocabulary.list(languageScope));
-      console.log(`Removed “${query}” from vocabulary.`);
+      console.log(`Removed “${query}” from saved words.`);
       return;
     }
     if (internalCommand && (word.startsWith('~remember:') || word.startsWith('~again:'))) {
@@ -399,6 +426,18 @@ async function main(): Promise<void> {
       if (!await vocabulary.review(query, languageScope, remembered)) throw new Error('Saved word not found');
       await reviewSession.grade(session, query, remembered);
       console.log(remembered ? `Remembered “${query}”. Scheduled for later review.` : `“${query}” stays due for review.`);
+      return;
+    }
+    if (internalCommand && (word === '~next:review' || word === '~next:reverse')) {
+      const mode: ReviewMode = word === '~next:reverse' ? 'reverse' : 'forward';
+      const session = await reviewSession.load(languageScope);
+      if (!session || session.pending.length || (session.mode || 'forward') !== mode) {
+        throw new Error('Finish the current review session first');
+      }
+      const due = (await vocabulary.due(languageScope)).filter((entry) => mode === 'forward' || reversePrompt(entry));
+      if (!due.length) throw new Error('No words due for another session');
+      await reviewSession.start(languageScope, due, mode);
+      console.log(`Started another ${mode === 'reverse' ? 'reverse ' : ''}review session.`);
       return;
     }
     if (internalCommand && word === '~export') {
@@ -415,7 +454,7 @@ async function main(): Promise<void> {
     if (internalCommand && word === '~backup') {
       const path = backupPath();
       await tjs.writeFile(path, await vocabulary.backup());
-      console.log(`Saved vocabulary backup to ${path}`);
+      console.log(`Saved word backup to ${path}`);
       return;
     }
     if (internalCommand && word.startsWith('~restore:')) {
@@ -430,8 +469,16 @@ async function main(): Promise<void> {
     if (commandMode) {
       const command = word.toLocaleLowerCase();
       if (!word) {
+        console.log(commandMenu());
+        return;
+      }
+      if (command === 'words') {
         const due = await vocabulary.due(languageScope);
-        console.log(commandMenu(due.length, due.filter(reversePrompt).length));
+        console.log(savedWordsMenu(due.length, due.filter(reversePrompt).length));
+        return;
+      }
+      if (command === 'files') {
+        console.log(filesMenu());
         return;
       }
       if (command === 'saved') {
@@ -481,12 +528,12 @@ async function main(): Promise<void> {
       }
       if (command === 'export') {
         const entries = await vocabulary.list(languageScope);
-        console.log(JSON.stringify({ items: entries.length ? [exportAction()] : [{ title: 'No vocabulary entries to export', valid: false }] }));
+        console.log(JSON.stringify({ items: entries.length ? [exportAction()] : [{ title: 'No saved words to export', valid: false }] }));
         return;
       }
       if (command === 'backup') {
         console.log(JSON.stringify({ items: [{
-          title: 'Back up vocabulary (JSON) to Downloads',
+          title: 'Back up saved words (JSON) to Downloads',
           subtitle: 'All language pairs and progress; replaces the previous backup',
           arg: '~backup', valid: true,
         }] }));
@@ -519,16 +566,22 @@ async function main(): Promise<void> {
           return;
         }
       }
-      if (command.startsWith('reverse ')) {
-        const query = word.slice(8).trim();
+      if (command === 'reverse-reveal' || command.startsWith('reverse-check:') || command.startsWith('reverse ')) {
         const session = await reviewSession.load(languageScope);
-        const entry = session?.mode === 'reverse' && session.pending[0]?.query.toLocaleLowerCase() === query.toLocaleLowerCase()
+        const query = session?.mode === 'reverse' ? session.pending[0]?.query : undefined;
+        const entry = query
           ? (await vocabulary.list(languageScope)).find((candidate) => candidate.query.toLocaleLowerCase() === query.toLocaleLowerCase())
           : undefined;
         if (entry) {
-          console.log(reviewReveal(entry, session));
+          if (command === 'reverse-reveal') console.log(reviewReveal(entry, session));
+          else if (command.startsWith('reverse-check:')) {
+            console.log(reviewReveal(entry, session, decodeURIComponent(word.slice('reverse-check:'.length))));
+          } else console.log(reverseAnswerOutput(word.slice(8).trim(), entry));
           return;
         }
+        console.log(JSON.stringify({ items: [{ title: 'No active reverse review',
+          subtitle: 'Type wp :reverse to start a session', valid: false }] }));
+        return;
       }
       // Unrecognized commands are ordinary lookups without the leading colon.
     }
