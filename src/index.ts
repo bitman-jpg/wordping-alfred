@@ -1,6 +1,6 @@
 declare var tjs: any;
 
-import Translator from './translator';
+import Translator, { YoudaoResponseError } from './translator';
 import TranslationCache, { CacheEntry, isEchoedTranslation } from './cache';
 import Vocabulary, { VocabularyEntry, nextReviewDays, searchSavedEntries } from './vocabulary';
 import { parseLookupInput } from './query';
@@ -366,6 +366,7 @@ function historyOutput(entries: CacheEntry[]): string {
 }
 
 async function main(): Promise<void> {
+  const rawInput = tjs.args[3] || '';
   try {
     const { nativeLanguage, learningLanguage, historyLimit } = await workflowSettings();
     if (nativeLanguage === learningLanguage) throw new Error('Choose different native and learning languages in WordPing configuration');
@@ -373,9 +374,17 @@ async function main(): Promise<void> {
     const cache = new TranslationCache(cachePath(), Math.min(500, Math.max(1, historyLimit)));
     const vocabulary = new Vocabulary(`${dataDirectory()}/vocabulary.json`);
     const reviewSession = new ReviewSession(reviewSessionPath(languageScope));
-    const rawInput = tjs.args[3] || '';
     const { word, commandMode } = parseLookupInput(rawInput);
     const internalCommand = rawInput.trim().startsWith('~');
+
+    if (internalCommand && word.startsWith('~dictionary:')) {
+      const query = decodeURIComponent(word.slice(12));
+      const url = `https://dict.youdao.com/w/${encodeURIComponent(query)}/`;
+      const opened = await tjs.spawn(['/usr/bin/open', url]).wait();
+      if (opened.exit_status !== 0) throw new Error('Could not open the Youdao dictionary page');
+      console.log(`Opened Youdao Dictionary for “${query}”.`);
+      return;
+    }
 
     if (internalCommand && word === '~reminder-check') {
       const count = (await vocabulary.due(languageScope)).length;
@@ -595,6 +604,18 @@ async function main(): Promise<void> {
     await cache.put(word, languageScope, output);
     console.log(output);
   } catch (error) {
+    if (error instanceof YoudaoResponseError && error.code === 50) {
+      const { word } = parseLookupInput(rawInput);
+      const url = `https://dict.youdao.com/w/${encodeURIComponent(word)}/`;
+      console.log(JSON.stringify({ items: [{
+        title: `Open “${word}” in Youdao Dictionary`,
+        subtitle: 'Website translation unavailable · Return opens its dictionary entry',
+        arg: `~dictionary:${encodeURIComponent(word)}`,
+        quicklookurl: url,
+        valid: true,
+      }] }));
+      return;
+    }
     const message = error instanceof Error ? error.message : String(error);
     console.log(JSON.stringify({ items: [{ title: 'WordPing lookup failed', subtitle: message, valid: false }] }));
   }

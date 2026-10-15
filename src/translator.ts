@@ -1,6 +1,12 @@
 import KeylessYoudao, { WebTranslation } from './keyless-youdao';
 import Workflow, { Result } from './workflow/workflow';
 
+export class YoudaoResponseError extends Error {
+  constructor(public code: number) {
+    super(`Youdao website could not translate this lookup (code ${code})`);
+  }
+}
+
 export function normalizeInput(query: string): string {
   return query.trim();
 }
@@ -23,7 +29,7 @@ function sourceIsNative(source: string, native: string, learning: string): boole
 }
 
 export function lookupResults(data: WebTranslation, query: string): Result[] {
-  if (data.code !== 0) throw new Error(`Youdao website could not translate this lookup (code ${data.code})`);
+  if (data.code !== 0) throw new YoudaoResponseError(data.code);
   const translation = (data.translateResult || []).flat().map((item) => item.tgt || '').join('').trim();
   if (!translation) throw new Error('Youdao website returned no translation');
   const url = `https://www.youdao.com/w/${encodeURIComponent(query)}`;

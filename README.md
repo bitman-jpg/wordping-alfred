@@ -52,6 +52,7 @@ wp bonjour
 - Other detected languages are translated into your native language.
 - If Youdao cannot identify the source language, WordPing may show both directions with labeled results.
 - Results can include short definitions and alternative translations when available.
+- If the website translation request fails for a word that has a dictionary entry, press Return on the offered link to open that entry in your browser.
 
 ### Actions on a lookup result
 
