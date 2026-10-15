@@ -1,7 +1,7 @@
 import TranslationCache, { limitEntries, normalizeQuery, CacheEntry, isEchoedTranslation } from '../src/cache';
 import Workflow from '../src/workflow/workflow';
 import Vocabulary from '../src/vocabulary';
-import { dictionaryResults, normalizeInput } from '../src/translator';
+import { normalizeInput } from '../src/translator';
 
 declare var tjs: any;
 
@@ -12,10 +12,6 @@ function assert(condition: boolean, message: string): void {
 assert(normalizeQuery('  Hello  ') === 'hello', 'queries should be trimmed and case-insensitive');
 assert(normalizeInput('  NASA  ') === 'NASA', 'translation input should preserve uppercase acronyms');
 assert(normalizeInput('iPhone') === 'iPhone', 'translation input should preserve camel case');
-const nasaFallback = dictionaryResults({ web_trans: { 'web-translation': [{
-  key: 'NASA', trans: [{ value: '美国国家航空航天局' }],
-}] } }, 'nasa');
-assert(nasaFallback[0].title === '美国国家航空航天局', 'dictionary fallback should return exact acronym translations');
 assert(isEchoedTranslation('nasa', 'zh-CHS', '{"items":[{"title":"NASA"}]}'), 'echoed Chinese translations should bypass cache');
 assert(isEchoedTranslation('nasa', 'zh-CHS', '{"items":[{"title":"NASA"},{"title":"secondary definition"}]}'), 'an echoed primary translation should bypass cache even with secondary results');
 assert(!isEchoedTranslation('nasa', 'zh-CHS', '{"items":[{"title":"美国国家航空航天局"}]}'), 'real Chinese translations should remain cached');

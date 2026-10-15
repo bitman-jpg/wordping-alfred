@@ -1,5 +1,7 @@
 # Alfred WordPing
 
+> Experimental branch: the keyless Youdao website integration is a prototype. Youdao's current service terms restrict automated extraction, so this branch is pending permission before distribution.
+
 Ping a word. Learn it—in your language.
 
 WordPing is a fast translation and dictionary workflow for Alfred. Choose your native language and the language you're learning, then look up words in either direction without leaving Alfred. English is optional.
@@ -26,17 +28,15 @@ For example, an English speaker learning French can look up `bonjour` in English
 
 - An Apple silicon Mac
 - Alfred with the Powerpack
-- A Youdao AI Cloud app key and secret
+- An internet connection for new lookups
 
 ## Install
 
 1. Download the latest `.alfredworkflow` file from GitHub Releases and open it in Alfred.
-2. Enter your Youdao app key and secret in the setup window.
-3. Choose your native and learning languages. English is the default learning language.
-4. Choose **American**, **British**, or **Both (British, then American)** for online pronunciation. American is the default.
+2. Choose your native and learning languages. English is the default learning language.
+3. Choose **American**, **British**, or **Both (British, then American)** for online pronunciation. American is the default.
 
-- To get credentials, create a Natural Language Translation application in [Youdao AI Cloud](https://ai.youdao.com/).
-- You can reuse credentials from YoudaoTranslator, but enter them again in WordPing. Alfred stores each workflow's settings separately.
+No API key or account is needed. WordPing uses Youdao's website translation service for new lookups.
 
 ## Look up and translate
 
@@ -84,7 +84,7 @@ Set up the hotkey after installing WordPing:
 ## Recent lookups
 
 - Open Alfred and type `wp` alone to browse recent lookups.
-- Repeating a lookup uses its cached result, reducing latency and Youdao API usage.
+- Repeating a lookup uses its cached result, reducing latency and website requests.
 - Change the maximum number of saved lookups in the workflow configuration.
 - To delete local lookup history, type `wp :clear` and press Return on **Clear recent lookups…**.
 
@@ -148,10 +148,10 @@ Set up the hotkey after installing WordPing:
 
 ## Privacy
 
-- WordPing sends lookup text to Youdao using your own API account. It does not include shared credentials.
+- WordPing sends lookup text to Youdao's website translation service. No API credentials are used.
 - Recent lookup text and results are cached in Alfred's workflow cache directory. Use `wp :clear` to delete them.
 - Saved words and review progress are stored in Alfred's workflow data directory.
-- JSON backups contain saved words and review progress, but no Youdao credentials.
+- JSON backups contain saved words and review progress, but no credentials.
 
 ## Support WordPing
 

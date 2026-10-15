@@ -587,15 +587,13 @@ esac</string>
 	<key>readme</key>
 	<string># WordPing setup
 
-WordPing uses the Youdao translation API. Create or reuse a Youdao AI Cloud application and enter its app key and secret in this workflow's configuration.
+Experimental prototype: WordPing looks up words through Youdao's website without an API account. This branch is pending permission for distribution.
 
-1. Sign in at https://ai.youdao.com/ and create a Natural Language Translation service.
-2. Create an application and bind the translation service to it.
-3. Enter the application ID and secret in the setup form shown beside this guide.
-4. Choose your native language and online pronunciation accent from the dropdowns.
-6. Use the `wp` keyword followed by a word or phrase.
+1. Choose your native and learning languages from the dropdowns.
+2. Choose your online pronunciation accent.
+3. Use the `wp` keyword followed by a word or phrase.
 
-Existing YoudaoTranslator users can use the same app key and secret. Alfred keeps the two workflows' settings separately, so enter them in WordPing once.</string>
+An internet connection is required for new lookups. Recent lookups are cached locally.</string>
 	<key>uidata</key>
 	<dict>
 		<key>284F6AAD-8FE7-44A6-AAE4-62A0F8BEE779</key>
@@ -679,48 +677,6 @@ Existing YoudaoTranslator users can use the same app key and secret. Alfred keep
 	</dict>
 	<key>userconfigurationconfig</key>
 	<array>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>default</key>
-				<string></string>
-				<key>placeholder</key>
-				<string>Youdao application ID</string>
-				<key>required</key>
-				<true/>
-				<key>trim</key>
-				<true/>
-			</dict>
-			<key>description</key>
-			<string>Application ID from your Youdao AI Cloud application</string>
-			<key>label</key>
-			<string>Youdao app key</string>
-			<key>type</key>
-			<string>textfield</string>
-			<key>variable</key>
-			<string>key</string>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>default</key>
-				<string></string>
-				<key>placeholder</key>
-				<string>Youdao application secret</string>
-				<key>required</key>
-				<true/>
-				<key>trim</key>
-				<true/>
-			</dict>
-			<key>description</key>
-			<string>Application secret from your Youdao AI Cloud application</string>
-			<key>label</key>
-			<string>Youdao secret</string>
-			<key>type</key>
-			<string>textfield</string>
-			<key>variable</key>
-			<string>secret</string>
-		</dict>
 		<dict>
 			<key>config</key>
 			<dict>
@@ -848,7 +804,7 @@ Existing YoudaoTranslator users can use the same app key and secret. Alfred keep
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.7.2</string>
+	<string>0.8.0</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>

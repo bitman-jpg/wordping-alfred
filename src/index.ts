@@ -7,8 +7,6 @@ import { parseLookupInput } from './query';
 import ReviewSession, { ReviewMode, ReviewSessionState } from './review-session';
 
 interface WorkflowSettings {
-  key: string;
-  secret: string;
   nativeLanguage: string;
   learningLanguage: string;
   historyLimit: number;
@@ -32,13 +30,11 @@ async function readPlist(path: string): Promise<Record<string, any>> {
 
 async function workflowSettings(): Promise<WorkflowSettings> {
   const environment = {
-    key: tjs.env.key || '',
-    secret: tjs.env.secret || '',
     nativeLanguage: tjs.env.nativeLanguage || '',
     learningLanguage: tjs.env.learningLanguage || '',
     historyLimit: Number.parseInt(tjs.env.historyLimit || '', 10),
   };
-  if (environment.key && environment.secret) {
+  if (environment.nativeLanguage && environment.learningLanguage) {
     return {
       ...environment,
       nativeLanguage: environment.nativeLanguage || 'zh-CHS',
@@ -59,8 +55,6 @@ async function workflowSettings(): Promise<WorkflowSettings> {
   const legacy = workflow.variables || {};
 
   return {
-    key: environment.key || saved.key || legacy.key || '',
-    secret: environment.secret || saved.secret || legacy.secret || '',
     nativeLanguage: environment.nativeLanguage || saved.nativeLanguage || legacy.nativeLanguage || 'zh-CHS',
     learningLanguage: environment.learningLanguage || saved.learningLanguage || legacy.learningLanguage || 'en',
     historyLimit: environment.historyLimit || Number.parseInt(saved.historyLimit || legacy.historyLimit || '100', 10) || 100,
@@ -373,7 +367,7 @@ function historyOutput(entries: CacheEntry[]): string {
 
 async function main(): Promise<void> {
   try {
-    const { key, secret, nativeLanguage, learningLanguage, historyLimit } = await workflowSettings();
+    const { nativeLanguage, learningLanguage, historyLimit } = await workflowSettings();
     if (nativeLanguage === learningLanguage) throw new Error('Choose different native and learning languages in WordPing configuration');
     const languageScope = learningLanguage === 'en' ? nativeLanguage : `${nativeLanguage}|${learningLanguage}`;
     const cache = new TranslationCache(cachePath(), Math.min(500, Math.max(1, historyLimit)));
@@ -590,17 +584,13 @@ async function main(): Promise<void> {
       console.log(historyOutput(await cache.recent(languageScope)));
       return;
     }
-    if (!key || !secret) {
-      throw new Error('Add your Youdao app key and secret in WordPing configuration');
-    }
-
     const cached = await cache.get(word, languageScope);
     if (cached && !isEchoedTranslation(word, nativeLanguage, cached)) {
       console.log(cached);
       return;
     }
 
-    const translator = new Translator(key, secret, 'Youdao', nativeLanguage, learningLanguage);
+    const translator = new Translator(nativeLanguage, learningLanguage, cachePath().replace(/translations\.json$/, 'website-session.json'));
     const output = await translator.translate(word);
     await cache.put(word, languageScope, output);
     console.log(output);
