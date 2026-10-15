@@ -1,5 +1,6 @@
 import Translator, { lookupResults } from '../src/translator';
 import { WebTranslation } from '../src/keyless-youdao';
+import { memoryResults } from '../src/mymemory';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) throw new Error(message);
@@ -60,5 +61,22 @@ const meanings = lookupResults(result('Hello', 'zh-CHS2en', { ce: { word: { trs:
   { '#text': 'hello', '#tran': '你好' }, { '#text': 'hi', '#tran': '你好' },
 ] } } }), '你好');
 assert(meanings.length === 2 && meanings[1].title === 'hi', 'Chinese dictionary alternatives should be included without duplicates');
+
+const memory = memoryResults({ responseStatus: 200, matches: [
+  { segment: '<g>Rheumatic</g>', translation: '<g>风湿病</g>' },
+  { segment: 'rheumatic', translation: '风湿性' },
+  { segment: 'rheumatic fever', translation: '风湿热' },
+], responseData: { translatedText: '<g>风湿病</g>' } }, 'rheumatic', 'en', 'zh-CN');
+assert(memory.length === 2 && memory[0].title === '风湿性' && memory[1].title === '风湿病',
+  'fallback should prefer exact text and exclude unrelated matches');
+
+translator = new Translator('zh-CHS', 'en', '', async () => ({ code: 50 }), async (_word, from, to) => {
+  assert(from === 'en' && to === 'zh-CN', 'failed English lookup should use English to Chinese fallback');
+  return memory;
+});
+output = JSON.parse(await translator.translate('rheumatic'));
+assert(output.items[0].title === '风湿性' && output.items[0].subtitle.includes('MyMemory'),
+  'code 50 should show labeled fallback translations in Alfred');
+assert(output.items[0].mods.ctrl.arg === '~save:rheumatic', 'fallback should retain saving');
 
 console.log('Keyless translator tests passed');

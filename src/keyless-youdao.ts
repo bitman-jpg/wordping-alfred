@@ -110,8 +110,7 @@ export default class KeylessYoudao {
   async lookup(word: string, from: string, to: string): Promise<WebTranslation> {
     const current = await this.load() || await this.bootstrap();
     try {
-      const first = await this.translate(word, from, to, current);
-      return first.code === 50 ? this.translate(word, from, to, current) : first;
+      return await this.translate(word, from, to, current);
     } catch {
       // Website keys rotate. One refresh is enough before reporting the error.
       return this.translate(word, from, to, await this.bootstrap());

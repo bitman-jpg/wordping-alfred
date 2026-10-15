@@ -593,7 +593,7 @@ Experimental prototype: WordPing looks up words through Youdao's website without
 2. Choose your online pronunciation accent.
 3. Use the `wp` keyword followed by a word or phrase.
 
-An internet connection is required for new lookups. Recent lookups are cached locally.</string>
+An internet connection is required for new lookups. Recent lookups are cached locally. If Youdao rejects an English–Chinese lookup with code 50, WordPing sends that lookup to MyMemory's keyless translation API.</string>
 	<key>uidata</key>
 	<dict>
 		<key>284F6AAD-8FE7-44A6-AAE4-62A0F8BEE779</key>

@@ -53,6 +53,7 @@ wp bonjour
 - If Youdao cannot identify the source language, WordPing may show both directions with labeled results.
 - Results can include short definitions and alternative translations when available.
 - If the website translation request fails for a word that has a dictionary entry, press Return on the offered link to open that entry in your browser.
+- For English–Chinese lookups rejected by Youdao's website service, WordPing tries MyMemory's keyless translation API and labels those results. If it has no translation, WordPing offers a link to the Youdao dictionary page.
 
 ### Actions on a lookup result
 
@@ -149,7 +150,7 @@ Set up the hotkey after installing WordPing:
 
 ## Privacy
 
-- WordPing sends lookup text to Youdao's website translation service. No API credentials are used.
+- WordPing sends lookup text to Youdao's website translation service. If that rejects an English–Chinese lookup with code 50, it also sends the text to MyMemory's translation API. No API credentials are used.
 - Recent lookup text and results are cached in Alfred's workflow cache directory. Use `wp :clear` to delete them.
 - Saved words and review progress are stored in Alfred's workflow data directory.
 - JSON backups contain saved words and review progress, but no credentials.

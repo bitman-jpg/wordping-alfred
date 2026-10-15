@@ -1,5 +1,6 @@
 import KeylessYoudao, { WebTranslation } from './keyless-youdao';
 import Workflow, { Result } from './workflow/workflow';
+import { lookupMyMemory } from './mymemory';
 
 export class YoudaoResponseError extends Error {
   constructor(public code: number) {
@@ -58,6 +59,14 @@ export function lookupResults(data: WebTranslation, query: string): Result[] {
 }
 
 type Lookup = (word: string, from: string, to: string) => Promise<WebTranslation>;
+type FallbackLookup = (word: string, from: string, to: string) => Promise<Result[]>;
+
+function englishChinesePair(native: string, learning: string, word: string): { from: string; to: string } | undefined {
+  const chinese = [native, learning].find((language) => language === 'zh-CHS' || language === 'zh-CHT');
+  if (!chinese || (native !== 'en' && learning !== 'en')) return undefined;
+  const from = /[\u3400-\u9fff]/.test(word) ? (chinese === 'zh-CHT' ? 'zh-TW' : 'zh-CN') : 'en';
+  return { from, to: from === 'en' ? (chinese === 'zh-CHT' ? 'zh-TW' : 'zh-CN') : 'en' };
+}
 
 export default class Translator {
   private lookup: Lookup;
@@ -67,6 +76,7 @@ export default class Translator {
     private learningLanguage: string = 'en',
     sessionPath = '',
     lookup?: Lookup,
+    private fallbackLookup: FallbackLookup = lookupMyMemory,
   ) {
     const provider = new KeylessYoudao(sessionPath);
     this.lookup = lookup || provider.lookup.bind(provider);
@@ -74,18 +84,29 @@ export default class Translator {
 
   async translate(query: string): Promise<string> {
     const word = normalizeInput(query);
-    const detected = await this.lookup(word, 'auto', this.nativeLanguage);
-    const pair = detected.code === 0 ? direction(detected) : undefined;
-    const source = pair?.source || this.learningLanguage;
-    const target = sourceIsNative(source, this.nativeLanguage, this.learningLanguage)
-      ? this.learningLanguage : this.nativeLanguage;
-    let response = pair && sameLanguage(pair.target, target)
-      ? detected : await this.lookup(word, source, target);
-    const translated = (response.translateResult || []).flat().map((item) => item.tgt || '').join('').trim();
-    if (response === detected && sameLanguage(translated, word)) {
-      const explicit = await this.lookup(word, source, target);
-      if (explicit.code === 0) response = explicit;
+    try {
+      const detected = await this.lookup(word, 'auto', this.nativeLanguage);
+      const pair = detected.code === 0 ? direction(detected) : undefined;
+      const source = pair?.source || this.learningLanguage;
+      const target = sourceIsNative(source, this.nativeLanguage, this.learningLanguage)
+        ? this.learningLanguage : this.nativeLanguage;
+      let response = pair && sameLanguage(pair.target, target)
+        ? detected : await this.lookup(word, source, target);
+      const translated = (response.translateResult || []).flat().map((item) => item.tgt || '').join('').trim();
+      if (response === detected && sameLanguage(translated, word)) {
+        const explicit = await this.lookup(word, source, target);
+        if (explicit.code === 0) response = explicit;
+      }
+      return new Workflow().compose(lookupResults(response, word), word).output();
+    } catch (error) {
+      if (!(error instanceof YoudaoResponseError) || error.code !== 50) throw error;
+      const pair = englishChinesePair(this.nativeLanguage, this.learningLanguage, word);
+      if (!pair) throw error;
+      try {
+        const results = await this.fallbackLookup(word, pair.from, pair.to);
+        if (results.length) return new Workflow().compose(results, word).output();
+      } catch { /* The dictionary page remains available if MyMemory fails. */ }
+      throw error;
     }
-    return new Workflow().compose(lookupResults(response, word), word).output();
   }
 }
