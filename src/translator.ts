@@ -1,6 +1,6 @@
 import KeylessYoudao, { WebTranslation } from './keyless-youdao';
 import Workflow, { Result } from './workflow/workflow';
-import { lookupMyMemory } from './mymemory';
+import { lookupFallback } from './apple-translate';
 import { entryDetail } from './entry-detail';
 
 export class YoudaoResponseError extends Error {
@@ -80,7 +80,7 @@ export default class Translator {
     private learningLanguage: string = 'en',
     sessionPath = '',
     lookup?: Lookup,
-    private fallbackLookup: FallbackLookup = lookupMyMemory,
+    private fallbackLookup: FallbackLookup = lookupFallback,
   ) {
     const provider = new KeylessYoudao(sessionPath);
     this.lookup = lookup || provider.lookup.bind(provider);
@@ -114,7 +114,7 @@ export default class Translator {
       try {
         const results = await this.fallbackLookup(word, pair.from, pair.to);
         if (results.length) return new Workflow().compose(results, word).output();
-      } catch { /* The dictionary page remains available if MyMemory fails. */ }
+      } catch { /* The dictionary page remains available if both fallback providers fail. */ }
       throw error;
     }
   }

@@ -8,6 +8,11 @@ mkdir -p dist/runtime release
 ./runtime/tjs bundle --minify src/index.ts dist/index.js
 ./runtime/tjs bundle --minify src/warmup.ts dist/warmup.js
 cp runtime/tjs dist/runtime/tjs
+if ! command -v swiftc >/dev/null 2>&1; then
+  echo "Swift compiler not found; install the Xcode Command Line Tools to build WordPing" >&2
+  exit 1
+fi
+swiftc -O -parse-as-library -target arm64-apple-macosx26.0 src/apple-translate.swift -o dist/runtime/apple-translate
 mkdir -p dist/assets
 cp assets/icon.png assets/translate.png assets/translate-say.png dist/assets/
 cp workflow/info.plist dist/info.plist

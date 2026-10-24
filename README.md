@@ -27,6 +27,7 @@ For example, an English speaker learning French can look up `bonjour` in English
 - An Apple silicon Mac
 - Alfred 5.5 or newer with the Powerpack
 - An internet connection for new lookups
+- Xcode Command Line Tools if building from source
 
 ## Install
 
@@ -52,7 +53,8 @@ wp bonjour
 - Results can include short definitions and alternative translations when available.
 - For a single word with dictionary meanings, choose **Show full entry** to see all supplied meanings, pronunciation, pinyin, exam labels, word forms, and any examples in a larger view.
 - If a translation fails for a word that has a dictionary entry, press Return on the offered link to open that entry in your browser.
-- For English–Chinese lookups that Youdao cannot translate, WordPing tries MyMemory and labels those results. If it has no translation, WordPing offers a link to the Youdao dictionary page.
+- For English–Chinese lookups that Youdao cannot translate, WordPing first tries Apple's on-device Translation framework on macOS 26 or newer when its language models are installed. If Apple Translation is unavailable, WordPing tries MyMemory. The result is labeled with its provider; if neither translates it, WordPing offers a link to the Youdao dictionary page.
+- On macOS 26 or newer, manage downloaded language models in **System Settings → General → Language & Region → Translation Languages**. Apple Intelligence may already provide a model for your language pair.
 
 ### Actions on a lookup result
 
@@ -153,7 +155,7 @@ To receive a macOS notification when WordPing detects possible session expiry, o
 
 ## Privacy
 
-- WordPing sends lookup text to Youdao's website translation service. If that rejects an English–Chinese lookup with code 50, it also sends the text to MyMemory's translation API. No API credentials are used.
+- WordPing sends lookup text to Youdao's website translation service. For an English–Chinese lookup rejected with code 50, it first tries Apple Translation on the Mac. If that is unavailable, it sends the text to MyMemory's translation API. No API credentials are used.
 - Recent lookup text and results are stored locally. Use `wp :clear` to delete them.
 - Saved words and review progress are stored in Alfred's workflow data directory.
 - JSON backups contain saved words and review progress, but no credentials.
