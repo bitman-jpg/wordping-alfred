@@ -13,8 +13,6 @@
   },
   "include": [
     "./src/**/*.ts",
-    "src/libs/redaxios.js",
-    "src/adapters/youdao.js",
-    "src/libs/fetch.js"
+    "src/libs/md5.js"
   ]
 }

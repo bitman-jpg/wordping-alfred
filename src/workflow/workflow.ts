@@ -1,5 +1,12 @@
-import { Result } from "../adapters/adapter";
 import Item from "./item";
+
+export interface Result {
+  title: string;
+  subtitle: string;
+  arg: string;
+  pronounce: string;
+  quicklookurl?: string;
+}
 
 class Workflow {
 

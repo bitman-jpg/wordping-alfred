@@ -1,59 +1,82 @@
-import Translator from '../src/translator';
+import Translator, { lookupResults } from '../src/translator';
+import { WebTranslation } from '../src/keyless-youdao';
+import { memoryResults } from '../src/mymemory';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) throw new Error(message);
 }
 
-const originalFetch = globalThis.fetch;
+function result(text: string, type: string, dictResult?: any): WebTranslation {
+  return { code: 0, type, translateResult: [[{ tgt: text }]], dictResult };
+}
+
 let calls: string[] = [];
-let responseFor: (url: URL) => any;
-(globalThis as any).fetch = async (input: string) => {
-  const url = new URL(input);
-  calls.push(url.hostname === 'dict.youdao.com' ? 'dictionary' : url.searchParams.get('to') || '');
-  return { ok: true, status: 200, text: async () => JSON.stringify(responseFor(url)) };
+let reply: (source: string, target: string) => WebTranslation;
+const lookup = async (_word: string, source: string, target: string) => {
+  calls.push(`${source}>${target}`);
+  return reply(source, target);
 };
 
-function api(translation: string, detected?: string): any {
-  return { errorCode: '0', translation: [translation], ...(detected ? { l: detected } : {}) };
-}
+let translator = new Translator('zh-CHS', 'en', '', lookup);
+reply = () => result('击败', 'en2zh-CHS', { ec: { word: { trs: [
+  { pos: 'v.', tran: '敲，击，打；击败，战胜' },
+  { pos: 'n.', tran: '节拍' },
+] } } });
+let output = JSON.parse(await translator.translate('beat'));
+assert(output.items[0].title === '击败', 'translation should remain the first result');
+assert(output.items.some((item: any) => item.title === '敲，击，打'), 'dictionary meanings should be selectable');
+assert(output.items.some((item: any) => item.title === '节拍'), 'noun meanings should be included');
+assert(output.items[0].mods.ctrl.arg === '~save:beat', 'lookup should keep the save action');
+assert(output.items[0].quicklookurl.endsWith('/beat'), 'lookup should keep Shift preview');
+assert(calls.join(',') === 'auto>zh-CHS', 'detected English should use the website response directly');
 
-try {
-  const translator = new Translator('test-key', 'test-secret', 'Youdao', 'zh-CHS', 'en');
+calls = [];
+reply = () => result('Hello', 'zh-CHS2en');
+output = JSON.parse(await translator.translate('你好'));
+assert(output.items[0].title === 'Hello', 'native language should translate to learning language');
+assert(calls.join(',') === 'auto>zh-CHS', 'website auto mode handles Chinese to English');
 
-  calls = [];
-  responseFor = () => api('美国国家航空航天局（NASA）', 'en2zh-CHS');
-  let output = JSON.parse(await translator.translate('nasa'));
-  assert(output.items[0].title === '美国国家航空航天局（NASA）', 'English acronyms should translate to native language');
-  assert(calls.join(',') === 'zh-CHS', 'learning-language input should request native language directly');
+calls = [];
+translator = new Translator('en', 'fr', '', lookup);
+reply = (source) => source === 'auto' ? result('你好', 'fr2zh-CHS') : result('hello', 'fr2en');
+output = JSON.parse(await translator.translate('bonjour'));
+assert(output.items[0].title === 'hello', 'website auto mode must not force Chinese for non-Chinese pairs');
+assert(calls.join(',') === 'auto>en,fr>en', 'detected source should be retried with the configured target');
 
-  calls = [];
-  responseFor = (url) => api(url.searchParams.get('to') === 'en' ? 'hello' : '你好', 'zh-CHS2en');
-  output = JSON.parse(await translator.translate('你好'));
-  assert(output.items[0].title === 'hello', 'native-language input should translate to learning language');
-  assert(calls.join(',') === 'zh-CHS,en', 'native-language input should request the learning language');
+calls = [];
+translator = new Translator('zh-CHS', 'en', '', lookup);
+reply = (source) => source === 'auto' ? { code: 40 } : result('美国国家航空航天局', 'en2zh-CHS');
+output = JSON.parse(await translator.translate('NASA'));
+assert(output.items[0].title === '美国国家航空航天局', 'acronyms should retry with an explicit language');
+assert(calls.join(',') === 'auto>zh-CHS,en>zh-CHS', 'auto failure should use the learning language');
 
-  calls = [];
-  responseFor = () => api('你好', 'fr2zh-CHS');
-  output = JSON.parse(await translator.translate('bonjour'));
-  assert(output.items[0].title === '你好', 'third-language input should translate to native language');
-  assert(calls.join(',') === 'zh-CHS', 'detected third-language input needs one request');
+calls = [];
+translator = new Translator('zh-CHT', 'en', '', lookup);
+reply = () => result('Hello', 'zh-CHS2en');
+output = JSON.parse(await translator.translate('你好'));
+assert(output.items[0].title === 'Hello', 'traditional Chinese users should translate Chinese into their learning language');
+assert(calls.join(',') === 'auto>zh-CHT', 'website result can be reused when it already targets English');
 
-  calls = [];
-  responseFor = (url) => api(url.searchParams.get('to') === 'en' ? 'bank' : '银行');
-  output = JSON.parse(await translator.translate('banco'));
-  assert(output.items.length === 2, 'uncertain input should show both useful directions');
-  assert(output.items[0].subtitle.startsWith('zh-CHS ·'), 'uncertain results should label the native direction');
-  assert(output.items[1].subtitle.startsWith('en ·'), 'uncertain results should label the learning direction');
+const meanings = lookupResults(result('Hello', 'zh-CHS2en', { ce: { word: { trs: [
+  { '#text': 'hello', '#tran': '你好' }, { '#text': 'hi', '#tran': '你好' },
+] } } }), '你好');
+assert(meanings.length === 2 && meanings[1].title === 'hi', 'Chinese dictionary alternatives should be included without duplicates');
 
-  calls = [];
-  responseFor = (url) => url.hostname === 'dict.youdao.com'
-    ? { web_trans: { 'web-translation': [{ key: 'NASA', trans: [{ value: '美国国家航空航天局' }] }] } }
-    : api('NASA', 'en2zh-CHS');
-  output = JSON.parse(await translator.translate('NASA'));
-  assert(output.items[0].title === '美国国家航空航天局', 'echoed translations should use dictionary fallback');
-  assert(calls.join(',') === 'zh-CHS,en,dictionary', 'dictionary lookup should follow echoed translations');
-} finally {
-  (globalThis as any).fetch = originalFetch;
-}
+const memory = memoryResults({ responseStatus: 200, matches: [
+  { segment: '<g>Rheumatic</g>', translation: '<g>风湿病</g>' },
+  { segment: 'rheumatic', translation: '风湿性' },
+  { segment: 'rheumatic fever', translation: '风湿热' },
+], responseData: { translatedText: '<g>风湿病</g>' } }, 'rheumatic', 'en', 'zh-CN');
+assert(memory.length === 2 && memory[0].title === '风湿性' && memory[1].title === '风湿病',
+  'fallback should prefer exact text and exclude unrelated matches');
 
-console.log('Translator routing tests passed');
+translator = new Translator('zh-CHS', 'en', '', async () => ({ code: 50 }), async (_word, from, to) => {
+  assert(from === 'en' && to === 'zh-CN', 'failed English lookup should use English to Chinese fallback');
+  return memory;
+});
+output = JSON.parse(await translator.translate('rheumatic'));
+assert(output.items[0].title === '风湿性' && output.items[0].subtitle.includes('MyMemory'),
+  'code 50 should show labeled fallback translations in Alfred');
+assert(output.items[0].mods.ctrl.arg === '~save:rheumatic', 'fallback should retain saving');
+
+console.log('Keyless translator tests passed');
