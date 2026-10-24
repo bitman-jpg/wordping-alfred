@@ -451,7 +451,7 @@ fi
 				<key>keyword</key>
 				<string>wp</string>
 				<key>queuedelaycustom</key>
-				<integer>1</integer>
+				<integer>5</integer>
 				<key>queuedelayimmediatelyinitially</key>
 				<false/>
 				<key>queuedelaymode</key>
@@ -461,7 +461,10 @@ fi
 				<key>runningsubtext</key>
 				<string>Looking up with Youdao…</string>
 				<key>script</key>
-				<string>./runtime/tjs run ./index.js "$1"</string>
+				<string>if [ -z "$1" ]; then
+  /usr/bin/nohup ./runtime/tjs run ./warmup.js &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;
+fi
+./runtime/tjs run ./index.js "$1"</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -591,7 +594,7 @@ esac</string>
 2. Choose your online pronunciation accent.
 3. Use the `wp` keyword followed by a word or phrase.
 
-An internet connection is required for new lookups. Recent lookups are cached locally. If Youdao rejects an English–Chinese lookup with code 50, WordPing sends that lookup to MyMemory's keyless translation API.</string>
+An internet connection is required for new lookups. Recent lookups are stored locally. If Youdao rejects an English–Chinese lookup with code 50, WordPing sends that lookup to MyMemory's keyless translation API.</string>
 	<key>uidata</key>
 	<dict>
 		<key>284F6AAD-8FE7-44A6-AAE4-62A0F8BEE779</key>
@@ -796,13 +799,33 @@ An internet connection is required for new lookups. Recent lookups are cached lo
 			<key>variable</key>
 			<string>historyLimit</string>
 		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>0</string>
+				<key>pairs</key>
+				<array>
+					<array><string>Off</string><string>0</string></array>
+					<array><string>On</string><string>1</string></array>
+				</array>
+			</dict>
+			<key>description</key>
+			<string>Notify when fresh website keys recover a lookup that may have failed because the old keys expired</string>
+			<key>label</key>
+			<string>Developer mode</string>
+			<key>type</key>
+			<string>popupbutton</string>
+			<key>variable</key>
+			<string>developerMode</string>
+		</dict>
 	</array>
 	<key>variables</key>
 	<dict/>
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.8.0</string>
+	<string>0.8.4</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>

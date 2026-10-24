@@ -86,6 +86,11 @@ export default class Translator {
     const word = normalizeInput(query);
     try {
       const detected = await this.lookup(word, 'auto', this.nativeLanguage);
+      // An explicit English↔Chinese retry repeats code 50 on the website.
+      // Go straight to the existing fallback after one failed website request.
+      if (detected.code === 50 && englishChinesePair(this.nativeLanguage, this.learningLanguage, word)) {
+        throw new YoudaoResponseError(50);
+      }
       const pair = detected.code === 0 ? direction(detected) : undefined;
       const source = pair?.source || this.learningLanguage;
       const target = sourceIsNative(source, this.nativeLanguage, this.learningLanguage)

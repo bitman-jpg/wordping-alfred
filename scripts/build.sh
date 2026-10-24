@@ -6,6 +6,7 @@ release_version=$(node -p "require('./package.json').version")
 
 mkdir -p dist/runtime release
 ./runtime/tjs bundle --minify src/index.ts dist/index.js
+./runtime/tjs bundle --minify src/warmup.ts dist/warmup.js
 cp runtime/tjs dist/runtime/tjs
 mkdir -p dist/assets
 cp assets/icon.png assets/translate.png assets/translate-say.png dist/assets/

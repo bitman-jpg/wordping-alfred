@@ -1,8 +1,8 @@
-# Alfred WordPing
+# WordPing — Alfred translation and dictionary workflow for Mac
 
-Ping a word. Learn it—in your language.
+Translate words in Alfred, save vocabulary, and review it later.
 
-WordPing is a fast translation and dictionary workflow for Alfred. Choose your native language and the language you're learning, then look up words in either direction without leaving Alfred. English is optional.
+WordPing is an Alfred workflow for fast word lookup and translation on Mac. Translate in either direction between your native and learning languages, see dictionary definitions and pronunciation, then save words for spaced review. English is optional.
 
 For example, an English speaker learning French can look up `bonjour` in English or `hello` in French. A Chinese speaker learning English can look up `nasa` in Chinese or `你好` in English. WordPing offers 17 language choices; translation availability depends on Youdao.
 
@@ -17,7 +17,7 @@ For example, an English speaker learning French can look up `bonjour` in English
 - Choose American, British, or both pronunciations.
 - Translate text selected in other Mac applications.
 - Preview the full Youdao dictionary page with Quick Look.
-- Reopen recent lookups and reuse cached translations without another API call.
+- Reopen recent lookups.
 - Save words to your own list and review them when due.
 - Practice recall in either direction, with optional typed answers in reverse review.
 - Set an optional daily notification when saved words are due for review.
@@ -30,11 +30,11 @@ For example, an English speaker learning French can look up `bonjour` in English
 
 ## Install
 
-1. Download the latest `.alfredworkflow` file from GitHub Releases and open it in Alfred.
+1. Build this version with `sh scripts/build.sh`, then open the `.alfredworkflow` file in `release/` with Alfred. The current [public release](https://github.com/bitman-jpg/wordping-alfred/releases) uses Youdao AI Cloud credentials.
 2. Choose your native and learning languages. English is the default learning language.
 3. Choose **American**, **British**, or **Both (British, then American)** for online pronunciation. American is the default.
 
-No API key or account is needed. WordPing uses Youdao's website translation service for new lookups.
+No API key or account is needed for this version.
 
 ## Look up and translate
 
@@ -50,8 +50,8 @@ wp bonjour
 - Other detected languages are translated into your native language.
 - If Youdao cannot identify the source language, WordPing may show both directions with labeled results.
 - Results can include short definitions and alternative translations when available.
-- If the website translation request fails for a word that has a dictionary entry, press Return on the offered link to open that entry in your browser.
-- For English–Chinese lookups rejected by Youdao's website service, WordPing tries MyMemory's keyless translation API and labels those results. If it has no translation, WordPing offers a link to the Youdao dictionary page.
+- If a translation fails for a word that has a dictionary entry, press Return on the offered link to open that entry in your browser.
+- For English–Chinese lookups that Youdao cannot translate, WordPing tries MyMemory and labels those results. If it has no translation, WordPing offers a link to the Youdao dictionary page.
 
 ### Actions on a lookup result
 
@@ -84,9 +84,12 @@ Set up the hotkey after installing WordPing:
 ## Recent lookups
 
 - Open Alfred and type `wp` alone to browse recent lookups.
-- Repeating a lookup uses its cached result, reducing latency and website requests.
+- Opening `wp` prepares the translator in the background. No lookup text is sent until you enter one.
+- Repeating a lookup shows the saved result. Alfred waits 500 ms after typing stops before running the lookup script.
 - Change the maximum number of saved lookups in the workflow configuration.
 - To delete local lookup history, type `wp :clear` and press Return on **Clear recent lookups…**.
+
+To receive a macOS notification when WordPing detects possible session expiry, open its configuration in Alfred and set **Developer mode** to **On**. It is off by default. Diagnostic events are saved at `~/Library/Caches/com.runningwithcrayons.Alfred/Workflow Data/com.bitman.wordping/website-session-key-events.json`; the file keeps the latest 200 events.
 
 ## Saved words
 
@@ -149,7 +152,7 @@ Set up the hotkey after installing WordPing:
 ## Privacy
 
 - WordPing sends lookup text to Youdao's website translation service. If that rejects an English–Chinese lookup with code 50, it also sends the text to MyMemory's translation API. No API credentials are used.
-- Recent lookup text and results are cached in Alfred's workflow cache directory. Use `wp :clear` to delete them.
+- Recent lookup text and results are stored locally. Use `wp :clear` to delete them.
 - Saved words and review progress are stored in Alfred's workflow data directory.
 - JSON backups contain saved words and review progress, but no credentials.
 

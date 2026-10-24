@@ -70,7 +70,11 @@ const memory = memoryResults({ responseStatus: 200, matches: [
 assert(memory.length === 2 && memory[0].title === '风湿性' && memory[1].title === '风湿病',
   'fallback should prefer exact text and exclude unrelated matches');
 
-translator = new Translator('zh-CHS', 'en', '', async () => ({ code: 50 }), async (_word, from, to) => {
+let failedWebsiteCalls = 0;
+translator = new Translator('zh-CHS', 'en', '', async () => {
+  failedWebsiteCalls++;
+  return { code: 50 };
+}, async (_word, from, to) => {
   assert(from === 'en' && to === 'zh-CN', 'failed English lookup should use English to Chinese fallback');
   return memory;
 });
@@ -78,5 +82,6 @@ output = JSON.parse(await translator.translate('rheumatic'));
 assert(output.items[0].title === '风湿性' && output.items[0].subtitle.includes('MyMemory'),
   'code 50 should show labeled fallback translations in Alfred');
 assert(output.items[0].mods.ctrl.arg === '~save:rheumatic', 'fallback should retain saving');
+assert(failedWebsiteCalls === 1, 'code 50 should skip a website retry known to fail');
 
 console.log('Keyless translator tests passed');

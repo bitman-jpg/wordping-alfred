@@ -11,14 +11,43 @@ export interface WebTranslation {
 
 interface WebsiteSession {
   createdAt: number;
+  firstSeenAt?: number;
   signingKey: string;
   aesKey: string;
   aesIv: string;
 }
 
+interface KeyEvent {
+  at: string;
+  event: 'scheduled-refresh' | 'possible-expiry' | 'translation-code-50' | 'lookup-recovered' | 'lookup-retry-failed' | 'refresh-failed';
+  ageHours: number;
+  firstSeenHours: number;
+  keysChanged?: boolean;
+  failure?: string;
+  responseCode?: number;
+  source?: 'warmup' | 'daily';
+}
+
 const HOME = 'https://fanyi.youdao.com';
 const API = 'https://dict.youdao.com/webtranslate';
-const SESSION_AGE = 20 * 60 * 1000;
+const WARMUP_MAX_AGE = 24 * 60 * 60 * 1000;
+
+function sameSession(a: WebsiteSession, b: WebsiteSession): boolean {
+  return a.createdAt === b.createdAt && sameKeys(a, b);
+}
+
+function sameKeys(a: WebsiteSession, b: WebsiteSession): boolean {
+  return a.signingKey === b.signingKey && a.aesKey === b.aesKey && a.aesIv === b.aesIv;
+}
+
+function failureKind(error: unknown): string {
+  if (!(error instanceof Error)) return 'unknown';
+  if (error.name === 'AbortError' || /aborted|timed out/i.test(error.message)) return 'timeout';
+  const http = error.message.match(/HTTP (\d{3})/);
+  if (http) return `http-${http[1]}`;
+  if (error.name === 'OperationError' || /cipher|decrypt|invalid character/i.test(error.message)) return 'decode';
+  return error.name || 'error';
+}
 
 function bytesFromHex(hex: string): ArrayBuffer {
   const pairs = hex.match(/../g);
@@ -68,12 +97,34 @@ export default class KeylessYoudao {
 
   constructor(private sessionPath: string) {}
 
-  private async load(): Promise<WebsiteSession | undefined> {
-    if (this.session && Date.now() - this.session.createdAt < SESSION_AGE) return this.session;
+  private async logEvent(event: Omit<KeyEvent, 'at' | 'ageHours'>, old: WebsiteSession): Promise<void> {
+    const path = this.sessionPath.replace(/\.json$/, '-key-events.json');
+    const ageHours = Math.round((Date.now() - old.createdAt) / 36000) / 100;
+    const firstSeenHours = Math.round((Date.now() - (old.firstSeenAt || old.createdAt)) / 36000) / 100;
+    try {
+      let entries: KeyEvent[] = [];
+      try {
+        const saved = JSON.parse(new TextDecoder().decode(await tjs.readFile(path)));
+        if (Array.isArray(saved)) entries = saved;
+      } catch { /* The first event starts a new log. */ }
+      entries.push({ ...event, at: new Date().toISOString(), ageHours, firstSeenHours });
+      await tjs.writeFile(path, JSON.stringify(entries.slice(-200), null, 2));
+    } catch { /* Logging must never prevent translation. */ }
+    if (event.event === 'possible-expiry' && tjs.env.developerMode === '1') {
+      try {
+        const message = `Website keys may have expired after ${firstSeenHours} hours; fresh keys restored translation.`;
+        await tjs.spawn(['/usr/bin/osascript', '-e',
+          `display notification "${message}" with title "WordPing developer mode"`]).wait();
+      } catch { /* Notifications must never prevent translation. */ }
+    }
+  }
+
+  private async load(fromDisk = false): Promise<WebsiteSession | undefined> {
+    if (this.session && !fromDisk) return this.session;
     try {
       const bytes = await tjs.readFile(this.sessionPath);
       const saved = JSON.parse(new TextDecoder().decode(bytes)) as WebsiteSession;
-      if (saved.signingKey && saved.aesKey && saved.aesIv && Date.now() - saved.createdAt < SESSION_AGE) {
+      if (saved.signingKey && saved.aesKey && saved.aesIv) {
         this.session = saved;
         return saved;
       }
@@ -81,7 +132,48 @@ export default class KeylessYoudao {
     return undefined;
   }
 
-  private async bootstrap(): Promise<WebsiteSession> {
+  private async bootstrap(stale?: WebsiteSession): Promise<WebsiteSession> {
+    const directory = this.sessionPath.slice(0, this.sessionPath.lastIndexOf('/'));
+    await tjs.makeDir(directory, { recursive: true });
+    const lockPath = `${this.sessionPath}.warming`;
+    let ownsLock = false;
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const saved = await this.load(true);
+      if (saved && (!stale || !sameSession(saved, stale))) return saved;
+      try {
+        await tjs.makeDir(lockPath);
+        ownsLock = true;
+        break;
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+    try {
+      const saved = await this.load(true);
+      return saved && (!stale || !sameSession(saved, stale)) ? saved : await this.fetchSession(saved || stale);
+    } finally {
+      if (ownsLock) await tjs.remove(lockPath);
+    }
+  }
+
+  async warmup(): Promise<void> {
+    const current = await this.load();
+    if (current && Date.now() - current.createdAt < WARMUP_MAX_AGE) return;
+    const fresh = await this.bootstrap(current);
+    if (current && !sameSession(current, fresh)) {
+      await this.logEvent({ event: 'scheduled-refresh', source: 'warmup', keysChanged: !sameKeys(current, fresh) }, current);
+    }
+  }
+
+  async refresh(): Promise<void> {
+    const current = await this.load();
+    const fresh = await this.bootstrap(current);
+    if (current && !sameSession(current, fresh)) {
+      await this.logEvent({ event: 'scheduled-refresh', source: 'daily', keysChanged: !sameKeys(current, fresh) }, current);
+    }
+  }
+
+  private async fetchSession(previous?: WebsiteSession): Promise<WebsiteSession> {
     const html = await (await request(HOME)).text();
     const scriptUrl = html.match(/https:\/\/shared\.ydstatic\.com\/dict\/translation-website\/[^"']+\/js\/app\.[^"']+\.js/)?.[0];
     if (!scriptUrl) throw new Error('Youdao changed its website; cannot find translation script');
@@ -99,21 +191,52 @@ export default class KeylessYoudao {
       aesIv: answer.data.aesIv || script.match(/decodeIv:"([^"]+)"/)?.[1],
     };
     if (!session.aesKey || !session.aesIv) throw new Error('Youdao changed its response encryption');
+    session.firstSeenAt = previous && sameKeys(previous, session)
+      ? previous.firstSeenAt || previous.createdAt : session.createdAt;
     this.session = session;
     try {
-      await tjs.makeDir(this.sessionPath.slice(0, this.sessionPath.lastIndexOf('/')), { recursive: true });
       await tjs.writeFile(this.sessionPath, JSON.stringify(session));
     } catch { /* Lookups can work without a writable cache. */ }
     return session;
   }
 
+  // Diagnostic use: keep the original session and expose failures without refreshing it.
+  async probe(word: string, from: string, to: string): Promise<WebTranslation> {
+    const current = await this.load();
+    if (!current) throw new Error('No website session to probe');
+    return this.translate(word, from, to, current);
+  }
+
   async lookup(word: string, from: string, to: string): Promise<WebTranslation> {
     const current = await this.load() || await this.bootstrap();
     try {
-      return await this.translate(word, from, to, current);
-    } catch {
-      // Website keys rotate. One refresh is enough before reporting the error.
-      return this.translate(word, from, to, await this.bootstrap());
+      const response = await this.translate(word, from, to, current);
+      if (response.code === 50) {
+        await this.logEvent({ event: 'translation-code-50', responseCode: 50 }, current);
+      }
+      return response;
+    } catch (firstError) {
+      // A failed request is not proof of expiry. Compare one retry with fresh keys.
+      let fresh: WebsiteSession;
+      try {
+        fresh = await this.bootstrap(current);
+      } catch (refreshError) {
+        await this.logEvent({ event: 'refresh-failed', failure: failureKind(firstError) }, current);
+        throw refreshError;
+      }
+      const keysChanged = !sameKeys(current, fresh);
+      try {
+        const response = await this.translate(word, from, to, fresh);
+        const failure = failureKind(firstError);
+        const event = response.code !== 0 ? 'lookup-retry-failed'
+          : keysChanged && failure === 'decode' ? 'possible-expiry' : 'lookup-recovered';
+        await this.logEvent({ event, failure,
+          keysChanged, responseCode: response.code }, current);
+        return response;
+      } catch (retryError) {
+        await this.logEvent({ event: 'lookup-retry-failed', failure: failureKind(firstError), keysChanged }, current);
+        throw retryError;
+      }
     }
   }
 

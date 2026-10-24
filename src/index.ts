@@ -365,6 +365,20 @@ function historyOutput(entries: CacheEntry[]): string {
   return JSON.stringify({ items });
 }
 
+function clearPendingLookup(output: string): string {
+  const data = JSON.parse(output);
+  data.variables = { ...data.variables, wordping_pending_query: '' };
+  return JSON.stringify(data);
+}
+
+function pendingLookup(word: string): string {
+  return JSON.stringify({
+    variables: { wordping_pending_query: word },
+    rerun: 0.5,
+    items: [{ title: `Looking up “${word}”…`, subtitle: 'Translation starts after typing pauses', valid: false }],
+  });
+}
+
 async function main(): Promise<void> {
   const rawInput = tjs.args[3] || '';
   try {
@@ -595,19 +609,23 @@ async function main(): Promise<void> {
     }
     const cached = await cache.get(word, languageScope);
     if (cached && !isEchoedTranslation(word, nativeLanguage, cached)) {
-      console.log(cached);
+      console.log(clearPendingLookup(cached));
+      return;
+    }
+    if (tjs.env.WORDPING_DEBOUNCE === '1' && tjs.env.wordping_pending_query !== word) {
+      console.log(pendingLookup(word));
       return;
     }
 
     const translator = new Translator(nativeLanguage, learningLanguage, cachePath().replace(/translations\.json$/, 'website-session.json'));
     const output = await translator.translate(word);
     await cache.put(word, languageScope, output);
-    console.log(output);
+    console.log(clearPendingLookup(output));
   } catch (error) {
     if (error instanceof YoudaoResponseError && error.code === 50) {
       const { word } = parseLookupInput(rawInput);
       const url = `https://dict.youdao.com/w/${encodeURIComponent(word)}/`;
-      console.log(JSON.stringify({ items: [{
+      console.log(JSON.stringify({ variables: { wordping_pending_query: '' }, items: [{
         title: `Open “${word}” in Youdao Dictionary`,
         subtitle: 'Website translation unavailable · Return opens its dictionary entry',
         arg: `~dictionary:${encodeURIComponent(word)}`,
@@ -617,7 +635,7 @@ async function main(): Promise<void> {
       return;
     }
     const message = error instanceof Error ? error.message : String(error);
-    console.log(JSON.stringify({ items: [{ title: 'WordPing lookup failed', subtitle: message, valid: false }] }));
+    console.log(JSON.stringify({ variables: { wordping_pending_query: '' }, items: [{ title: 'WordPing lookup failed', subtitle: message, valid: false }] }));
   }
 }
 
