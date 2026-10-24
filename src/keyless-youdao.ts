@@ -5,7 +5,7 @@ declare var tjs: any;
 export interface WebTranslation {
   code: number;
   type?: string;
-  translateResult?: { tgt?: string; src?: string }[][];
+  translateResult?: { tgt?: string; src?: string; tgtPronounce?: string; srcPronounce?: string }[][];
   dictResult?: any;
 }
 

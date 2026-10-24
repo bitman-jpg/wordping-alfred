@@ -6,6 +6,7 @@ export interface Result {
   arg: string;
   pronounce: string;
   quicklookurl?: string;
+  detail?: boolean;
 }
 
 class Workflow {
@@ -14,6 +15,13 @@ class Workflow {
 
   compose(results: Result[], query?: string): this {
     this.results = results.map(r => {
+      if (r.detail) {
+        return new Item().setTitle(r.title)
+          .setSubtitle(r.subtitle)
+          .setArg(r.arg)
+          .setIcon('assets/translate.png')
+          .result();
+      }
       return new Item().setTitle(r.title)
       .setSubtitle(r.subtitle)
       .setArg(r.arg)

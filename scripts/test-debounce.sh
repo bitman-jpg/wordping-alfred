@@ -14,6 +14,16 @@ filter_config = next(obj['config'] for obj in workflow['objects']
                      if obj.get('config', {}).get('keyword') == 'wp')
 assert filter_config['queuedelaymode'] == 2
 assert filter_config['queuedelaycustom'] == 5, 'Alfred stores 500 ms as 5, not 0.5'
+objects = {obj['uid']: obj for obj in workflow['objects']}
+detail_filter = '93F217A1-23B7-42CF-8144-18E3C6E17711'
+detail_view = '1D41F916-C2D6-4F5A-B070-784E7D701D86'
+assert objects[detail_filter]['config']['matchstring'] == '^# WordPing entry: '
+assert objects[detail_view]['type'] == 'alfred.workflow.userinterface.text'
+assert objects[detail_view]['config']['inputtype'] == 0
+assert objects[detail_view]['config']['outputmode'] == 1
+assert any(link['destinationuid'] == detail_view for link in workflow['connections'][detail_filter])
+normal_filter = objects['A78568B3-C360-4A35-A46A-0D91172F86EF']['config']['matchstring']
+assert '# WordPing entry: ' in normal_filter, 'detail entries must bypass the copy action'
 PY
 
 WORDPING_DEBOUNCE=1 nativeLanguage=zh-CHS learningLanguage=en \

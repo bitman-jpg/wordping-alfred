@@ -92,6 +92,16 @@
 			</dict>
 			<dict>
 				<key>destinationuid</key>
+				<string>93F217A1-23B7-42CF-8144-18E3C6E17711</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
 				<string>6B0F6A32-751F-4071-A1E8-76A2E9486962</string>
 				<key>modifiers</key>
 				<integer>1048576</integer>
@@ -155,6 +165,19 @@
 			<dict>
 				<key>destinationuid</key>
 				<string>34050778-5F09-4E68-A7AB-A3A4F7C58529</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>93F217A1-23B7-42CF-8144-18E3C6E17711</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>1D41F916-C2D6-4F5A-B070-784E7D701D86</string>
 				<key>modifiers</key>
 				<integer>0</integer>
 				<key>modifiersubtext</key>
@@ -357,7 +380,7 @@ esac</string>
 				<key>matchmode</key>
 				<integer>2</integer>
 				<key>matchstring</key>
-				<string>^(?!~|__wordping_clear__$).+</string>
+				<string>^(?!~|__wordping_clear__$|# WordPing entry: ).+</string>
 			</dict>
 			<key>type</key>
 			<string>alfred.workflow.utility.filter</string>
@@ -384,6 +407,44 @@ esac</string>
 			<string>B14A8F8F-8088-45F3-A031-572990731E5B</string>
 			<key>version</key>
 			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>inputstring</key>
+				<string>{query}</string>
+				<key>matchcasesensitive</key>
+				<false/>
+				<key>matchmode</key>
+				<integer>2</integer>
+				<key>matchstring</key>
+				<string>^# WordPing entry: </string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.utility.filter</string>
+			<key>uid</key>
+			<string>93F217A1-23B7-42CF-8144-18E3C6E17711</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>behaviour</key><integer>2</integer>
+				<key>fontmode</key><integer>0</integer>
+				<key>fontsizing</key><integer>0</integer>
+				<key>footertext</key><string>Esc to return to Alfred</string>
+				<key>inputfile</key><string></string>
+				<key>inputtype</key><integer>0</integer>
+				<key>loadingtext</key><string></string>
+				<key>outputmode</key><integer>1</integer>
+				<key>scriptinput</key><integer>2</integer>
+				<key>spellchecking</key><integer>0</integer>
+				<key>stackview</key><false/>
+			</dict>
+			<key>type</key><string>alfred.workflow.userinterface.text</string>
+			<key>uid</key><string>1D41F916-C2D6-4F5A-B070-784E7D701D86</string>
+			<key>version</key><integer>1</integer>
 		</dict>
 		<dict>
 			<key>config</key>
@@ -633,6 +694,16 @@ An internet connection is required for new lookups. Recent lookups are stored lo
 			<key>ypos</key>
 			<real>240.0</real>
 		</dict>
+		<key>93F217A1-23B7-42CF-8144-18E3C6E17711</key>
+		<dict>
+			<key>xpos</key><real>660.0</real>
+			<key>ypos</key><real>630.0</real>
+		</dict>
+		<key>1D41F916-C2D6-4F5A-B070-784E7D701D86</key>
+		<dict>
+			<key>xpos</key><real>900.0</real>
+			<key>ypos</key><real>630.0</real>
+		</dict>
 		<key>A78568B3-C360-4A35-A46A-0D91172F86EF</key>
 		<dict>
 			<key>xpos</key>
@@ -825,7 +896,7 @@ An internet connection is required for new lookups. Recent lookups are stored lo
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.8.4</string>
+	<string>0.8.6</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>

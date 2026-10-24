@@ -25,7 +25,7 @@ For example, an English speaker learning French can look up `bonjour` in English
 ## Requirements
 
 - An Apple silicon Mac
-- Alfred with the Powerpack
+- Alfred 5.5 or newer with the Powerpack
 - An internet connection for new lookups
 
 ## Install
@@ -50,6 +50,7 @@ wp bonjour
 - Other detected languages are translated into your native language.
 - If Youdao cannot identify the source language, WordPing may show both directions with labeled results.
 - Results can include short definitions and alternative translations when available.
+- For a single word with dictionary meanings, choose **Show full entry** to see all supplied meanings, pronunciation, pinyin, exam labels, word forms, and any examples in a larger view.
 - If a translation fails for a word that has a dictionary entry, press Return on the offered link to open that entry in your browser.
 - For English–Chinese lookups that Youdao cannot translate, WordPing tries MyMemory and labels those results. If it has no translation, WordPing offers a link to the Youdao dictionary page.
 
@@ -60,6 +61,7 @@ wp bonjour
 - **⌥ Return:** Play Youdao's online pronunciation. With **Both** selected, it plays British followed by American.
 - **⌃ Return:** Save the word to your list.
 - **Shift:** Preview the full Youdao dictionary page with Quick Look.
+- **Return on Show full entry:** Open the word's detailed view in Alfred.
 
 ### WordPing commands
 

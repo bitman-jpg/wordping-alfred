@@ -1,6 +1,7 @@
 import KeylessYoudao, { WebTranslation } from './keyless-youdao';
 import Workflow, { Result } from './workflow/workflow';
 import { lookupMyMemory } from './mymemory';
+import { entryDetail } from './entry-detail';
 
 export class YoudaoResponseError extends Error {
   constructor(public code: number) {
@@ -44,6 +45,9 @@ export function lookupResults(data: WebTranslation, query: string): Result[] {
     results.push({ title: clean, subtitle, arg: clean, pronounce: query, quicklookurl: url });
   };
   add(translation, query);
+  const detail = entryDetail(data, query, translation);
+  if (detail) results.push({ title: `Show full entry for ${query}`,
+    subtitle: 'All available meanings and word details', arg: detail, pronounce: query, detail: true });
 
   // Dictionary detail is normally included for English↔Chinese words. Keep
   // every distinct meaning as a selectable Alfred result when it is present.
