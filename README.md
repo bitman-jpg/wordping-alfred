@@ -1,10 +1,10 @@
-# WordPing — Alfred translation and dictionary workflow for Mac
+# WordPing — Alfred 5 translation and dictionary workflow for Mac
 
-Translate words in Alfred, save vocabulary, and review it later.
+Look up a word in Alfred, save it, and practice it later. Translate selected text on your Mac without leaving the app you are reading.
 
-WordPing is an Alfred workflow for fast word lookup and translation on Mac. Translate in either direction between your native and learning languages, see dictionary definitions and pronunciation, then save words for spaced review. English is optional.
+WordPing is a free, open source Alfred 5 workflow for language learners who want translation, dictionary meanings, pronunciation, and vocabulary review in one place. Translate in either direction between your native and learning languages, then save words for spaced review. English is optional, and this source version needs no API key or account.
 
-For example, an English speaker learning French can look up `bonjour` in English or `hello` in French. A Chinese speaker learning English can look up `nasa` in Chinese or `你好` in English. WordPing offers 17 language choices; translation availability depends on Youdao.
+For example, an English speaker learning French can look up `bonjour` in English or `hello` in French. A Chinese speaker learning English can look up `nasa` in Chinese or `你好` in English. WordPing offers 17 language choices; translation availability depends on the enabled providers and language pair.
 
 ## Features
 
@@ -23,6 +23,26 @@ For example, an English speaker learning French can look up `bonjour` in English
 - Practice recall in either direction, with optional typed answers in reverse review.
 - Set an optional daily notification when saved words are due for review.
 
+## Coming from YoudaoTranslator?
+
+WordPing covers the core Alfred lookup actions in [YoudaoTranslator](https://github.com/wensonsmith/YoudaoTranslator): automatic translation direction, translating selected text with an Option hotkey, local and Youdao pronunciation, Return to copy, and Shift to preview a provider's page. WordPing also has recent lookups, a local saved-word list, and spaced review. YoudaoTranslator's README marks its wordbook, history, preview, and updater features as unfinished in V3; its older V2 may differ.
+
+The workflows are not identical:
+
+| YoudaoTranslator feature | WordPing status |
+| --- | --- |
+| Chinese–English and other language lookups | Supported, with configurable native and learning languages and multiple providers. |
+| Double-tap Option for selected text | Supported after setting the hotkey in Alfred. |
+| Local and Youdao online pronunciation; Return to copy | Supported. |
+| Recent lookup history and Shift web preview | Supported. |
+| Youdao wordbook | Saved words stay in WordPing; they do not sync with a Youdao account. |
+| `CamelCase` splitting | Not supported automatically; enter words with spaces. |
+| Automatic wrapping of long translations | Not supported as a separate action; use **⌘L** to read the full result in Alfred's Large Type view. |
+| Baidu translation API | Not supported; WordPing's Baidu provider supplies dictionary meanings for single words. |
+| In-workflow update command | Not supported; install a newer workflow version manually. |
+
+WordPing adds reverse recall, optional typed answers, daily review reminders, and vocabulary backup and export. It requires an Apple silicon Mac, Alfred 5.5 with Powerpack, and the macOS version listed below.
+
 ## Requirements
 
 - An Apple silicon Mac
@@ -33,11 +53,25 @@ For example, an English speaker learning French can look up `bonjour` in English
 
 ## Install
 
-1. Build this version with `sh scripts/build.sh`, then open the `.alfredworkflow` file in `release/` with Alfred. The current [public release](https://github.com/bitman-jpg/wordping-alfred/releases) uses Youdao AI Cloud credentials.
+1. Build this version with `sh scripts/build.sh`, then open the `.alfredworkflow` file in `release/` with Alfred. The current [public release](https://github.com/bitman-jpg/wordping-alfred/releases) is an older version that uses Youdao AI Cloud credentials.
 2. Choose your native and learning languages. English is the default learning language.
 3. Choose **American**, **British**, or **Both (British, then American)** for online pronunciation. American is the default.
 
-No API key or account is needed for this version.
+This source version needs no API key or account.
+
+## Common questions
+
+### Can I translate selected text with Alfred?
+
+Yes. Select text in another Mac app and use WordPing's Alfred hotkey to open its translation. [Set up the selected-text shortcut](#translate-selected-text) after installing the workflow.
+
+### Which languages does WordPing support?
+
+You can choose from 17 native and learning language options, including English, Simplified and Traditional Chinese, Japanese, Korean, French, German, and Spanish. You can also set a direction for a lookup, such as `wp es>zh trabajo`. Translation results depend on the available providers and language pair.
+
+### Does WordPing need an API key?
+
+This source version does not need an API key or account. The current public release is older and uses Youdao AI Cloud credentials. [Build this version](#install) to use the keyless workflow.
 
 ## Look up and translate
 

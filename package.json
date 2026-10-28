@@ -1,7 +1,8 @@
 {
   "name": "wordping-alfred",
   "version": "0.12.3",
-  "description": "Fast Youdao translation and word lookup for Alfred",
+  "description": "Alfred 5 translator and dictionary for language learners, with saved words and spaced review",
+  "keywords": ["alfred", "alfred-workflow", "translation", "dictionary", "language-learning", "spaced-repetition"],
   "main": "src/index.ts",
   "scripts": {
     "build": "sh scripts/build.sh",
