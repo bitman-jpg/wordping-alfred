@@ -148,6 +148,8 @@ function firstItem(output: string, search = ''): any {
   }
 }
 
+const commandIcon = (name: string) => ({ path: `assets/${name}.png` });
+
 function removeModifier(query: string, returnTo: 'saved' | 'review' | 'reverse'): any {
   const command = `~remove:${encodeURIComponent(query)}`;
   return {
@@ -177,6 +179,7 @@ function savedOutput(entries: VocabularyEntry[], search = ''): string {
     title: search ? `No saved words matching “${search}”` : 'No saved words',
     subtitle: search ? 'Search a different word or translation' : 'Look up a word and press Control-Return to save it',
     valid: false,
+    icon: commandIcon('saved'),
   });
   return JSON.stringify({ items });
 }
@@ -187,7 +190,7 @@ function exportAction(): any {
     subtitle: 'Current pair for spreadsheets; no review progress',
     arg: '~export',
     valid: true,
-    icon: { path: 'assets/translate.png' },
+    icon: commandIcon('export'),
   };
 }
 
@@ -201,7 +204,7 @@ function restoreAction(path: string): any {
     subtitle: 'Add missing entries; keep existing saved words and progress',
     arg: `~restore:${encodeURIComponent(path)}`,
     valid: true,
-    icon: { path: 'assets/translate.png' },
+    icon: commandIcon('restore'),
   };
 }
 
@@ -217,26 +220,26 @@ function clearAction(): any {
 
 function commandMenu(): string {
   return JSON.stringify({ items: [
-    { title: 'Saved words…', subtitle: 'Review, browse, reminders, and files', autocomplete: ':words', valid: false },
-    { title: 'Clear recent lookups', subtitle: 'Delete local lookup history', autocomplete: ':clear', valid: false },
+    { title: 'Saved words…', subtitle: 'Review, browse, reminders, and files', autocomplete: ':words', valid: false, icon: commandIcon('saved') },
+    clearAction(),
   ] });
 }
 
 function savedWordsMenu(dueCount: number, reverseDueCount: number): string {
   return JSON.stringify({ items: [
-    { title: `Review saved words (${dueCount} due)`, subtitle: 'Practice due words in a short session', autocomplete: ':review', valid: false },
-    { title: `Review in reverse (${reverseDueCount} due)`, subtitle: 'See the translation; type or recall the saved word', autocomplete: ':reverse', valid: false },
-    { title: 'Browse saved words', subtitle: 'Search the words you have saved', autocomplete: ':saved', valid: false },
-    { title: 'Daily review reminder', subtitle: 'Get notified when reviews are due', autocomplete: ':remind', valid: false },
-    { title: 'Manage saved words…', subtitle: 'Back up, restore, or export your list', autocomplete: ':files', valid: false },
+    { title: `Review saved words (${dueCount} due)`, subtitle: 'Practice due words in a short session', autocomplete: ':review', valid: false, icon: commandIcon('review') },
+    { title: `Review in reverse (${reverseDueCount} due)`, subtitle: 'See the translation; type or recall the saved word', autocomplete: ':reverse', valid: false, icon: commandIcon('reverse') },
+    { title: 'Browse saved words', subtitle: 'Search the words you have saved', autocomplete: ':saved', valid: false, icon: commandIcon('browse') },
+    { title: 'Daily review reminder', subtitle: 'Get notified when reviews are due', autocomplete: ':remind', valid: false, icon: commandIcon('remind') },
+    { title: 'Manage saved words…', subtitle: 'Back up, restore, or export your list', autocomplete: ':files', valid: false, icon: commandIcon('files') },
   ] });
 }
 
 function filesMenu(): string {
   return JSON.stringify({ items: [
-    { title: 'Back up saved words (JSON)', subtitle: 'All pairs and review progress; can be restored', autocomplete: ':backup', valid: false },
-    { title: 'Restore saved words (JSON)', subtitle: 'Merge a backup; keep existing entries', autocomplete: ':restore', valid: false },
-    { title: 'Export saved words (CSV)', subtitle: 'Current pair for spreadsheets; no review progress', autocomplete: ':export', valid: false },
+    { title: 'Back up saved words (JSON)', subtitle: 'All pairs and review progress; can be restored', autocomplete: ':backup', valid: false, icon: commandIcon('backup') },
+    { title: 'Restore saved words (JSON)', subtitle: 'Merge a backup; keep existing entries', autocomplete: ':restore', valid: false, icon: commandIcon('restore') },
+    { title: 'Export saved words (CSV)', subtitle: 'Current pair for spreadsheets; no review progress', autocomplete: ':export', valid: false, icon: commandIcon('export') },
   ] });
 }
 
@@ -258,13 +261,13 @@ function reminderMenu(time?: string, requested = ''): string {
   if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(requested)) items.push({
     title: `Remind me daily at ${requested}`,
     subtitle: 'Notify only when saved words are due',
-    arg: `~remind:${requested}`, valid: true,
+    arg: `~remind:${requested}`, valid: true, icon: commandIcon('remind'),
   });
-  else if (requested) items.push({ title: 'Use a time in HH:MM format, such as 09:00', valid: false });
+  else if (requested) items.push({ title: 'Use a time in HH:MM format, such as 09:00', valid: false, icon: commandIcon('remind') });
   else items.push({ title: time ? `Reminder set for ${time}` : 'Daily reminder is off',
     subtitle: time ? 'Press Return to refresh the schedule, or type a new time' : 'Type wp :remind HH:MM to set a local time',
-    arg: time ? `~remind:${time}` : undefined, valid: Boolean(time) });
-  if (time) items.push({ title: 'Turn off daily reminder', arg: '~remind:off', valid: true });
+    arg: time ? `~remind:${time}` : undefined, valid: Boolean(time), icon: commandIcon('remind') });
+  if (time) items.push({ title: 'Turn off daily reminder', arg: '~remind:off', valid: true, icon: commandIcon('remind') });
   return JSON.stringify({ items });
 }
 
@@ -291,7 +294,7 @@ function reviewPromptOutput(entry: VocabularyEntry, state: ReviewSessionState): 
     subtitle: `${state.completed + 1} of ${state.total}${retry ? ' · Second try' : ''} · ${reverse ? 'Type an answer or Return to reveal' : 'Return to reveal · ⌘ Return to pronounce'}`,
     autocomplete: reverse ? ':reverse-reveal' : `:review ${entry.query}`,
     valid: false,
-    icon: firstItem(entry.output).icon || { path: 'assets/translate.png' },
+    icon: commandIcon(reverse ? 'reverse' : 'review'),
     mods: {
       ...(!reverse ? { cmd: {
         subtitle: `Speak locally: ${entry.query}`,
@@ -323,12 +326,14 @@ function reviewSummary(state: ReviewSessionState, dueCount: number, nextDue?: nu
       title: `Session complete · ${state.total} ${state.total === 1 ? 'word' : 'words'}`,
       subtitle: `${remembered} recalled first try · ${state.recovered} recovered · ${state.unresolved} still due`,
       valid: false,
+      icon: commandIcon('review'),
     },
     {
       title: dueCount ? `Start another session · ${dueCount} due` : 'All caught up',
       subtitle: dueCount ? 'Review up to 10 more words' : nextDueMessage(nextDue),
       arg: dueCount ? `~next:${state.mode === 'reverse' ? 'reverse' : 'review'}` : undefined,
       valid: dueCount > 0,
+      icon: commandIcon(state.mode === 'reverse' ? 'reverse' : 'review'),
     },
   ] });
 }
@@ -390,6 +395,7 @@ function reverseAnswerOutput(answer: string, entry: VocabularyEntry): string {
     subtitle: 'Return to compare with the saved word',
     autocomplete: `:reverse-check:${encodeURIComponent(answer)}`,
     valid: false,
+    icon: commandIcon('reverse'),
     mods: { ctrl: removeModifier(entry.query, 'reverse') },
   }] });
 }
@@ -619,7 +625,7 @@ async function main(): Promise<void> {
         console.log(JSON.stringify({ items: [{
           title: 'Back up saved words (JSON) to Downloads',
           subtitle: 'All language pairs and progress; replaces the previous backup',
-          arg: '~backup', valid: true,
+          arg: '~backup', valid: true, icon: commandIcon('backup'),
         }] }));
         return;
       }
@@ -634,7 +640,7 @@ async function main(): Promise<void> {
           console.log(JSON.stringify({ items: [{
             title: 'Backup file not found',
             subtitle: supplied ? 'Check the path after wp :restore' : 'Place WordPing Vocabulary Backup.json in Downloads',
-            valid: false,
+            valid: false, icon: commandIcon('restore'),
           }] }));
         }
         return;
