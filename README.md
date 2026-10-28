@@ -86,7 +86,7 @@ wp es>zh trabajo
 
 To choose the direction yourself, put `source>destination` before the text. For example, `wp es>zh trabajo` looks up Spanish `trabajo` in Simplified Chinese. `wp es>cn trabajo` works too: `zh` and `cn` both mean Simplified Chinese here. Use `tw` for Traditional Chinese, such as `wp en>tw hello`; `zh-TW` also works. Other codes follow the language choices in WordPing’s configuration (`en`, `es`, `fr`, `ja`, and so on). A manual direction is used exactly as entered; providers do not reverse it when they return no result. Lookups without a prefix continue using automatic direction selection.
 
-For long translations, WordPing shows a short preview and a **Read full translation** row. Press Return on that row to read wrapped text, or select the provider result and press **Cmd+L (⌘L)** for Alfred's Large Type view. Return on the provider result still copies the complete translation.
+When the translated result itself exceeds about 100 display columns, WordPing adds a **Read full translation** row. Press Return on that row to read wrapped text, or select the provider result and press **Cmd+L (⌘L)** for Alfred's Large Type view. Shorter results, such as “I missed the train because I left home too late this morning,” fit in the provider row and do not get an extra row. Return on the provider result always copies the complete translation.
 
 For English words, WordPing also shows macOS spelling corrections and word completions. For example, type `wp terestrial`, then select **Did you mean “terrestrial”?** and press **Tab** to look up the corrected word. Suggestions also work while you are typing; they keep a manual language prefix such as `en>zh `.
 
