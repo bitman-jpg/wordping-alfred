@@ -100,7 +100,7 @@ For English words, WordPing also shows macOS spelling corrections and word compl
 - WordPing uses the native and learning language pair. Script detection selects a direction for Chinese, Japanese, Korean, Russian, Arabic, Hindi, and Thai. For ambiguous Latin-script words, it starts with learning → native, then tries native → learning when a provider returns no translation.
 - Youdao and Wiktionary can provide dictionary meanings. For English–Chinese and Chinese–English words, Iciba and Baidu return word meanings directly in Alfred. Apple Translation supplies an on-device result when a language model for the pair is installed. MyMemory supplies a translation-memory result for the chosen language pair. Its matches are translations, not dictionary senses.
 - If Youdao's translation endpoint rejects an English–Chinese word, WordPing checks Youdao's dictionary entry for an exact headword before leaving the Youdao row empty.
-- Shift previews the selected web provider's word page. Iciba uses its exact word page, such as `https://www.iciba.com/word?w=rebuke`; Baidu uses `https://dict.baidu.com/s?wd=rebuke` for a matching headword. MyMemory opens its matching language-pair page. Apple's Shift link opens its translation help page.
+- Shift previews the selected web provider's word page. Iciba uses its exact word page, such as `https://www.iciba.com/word?w=rebuke`; Baidu uses `https://dict.baidu.com/s?wd=rebuke` for a matching headword. MyMemory opens its matching language-pair page. Apple Translation is on-device and has no query-specific page to preview.
 - Dictionary providers group meanings that share a part of speech. Meanings fill the result title and continue in the subtitle when needed. Return copies all meanings; Shift opens the provider's page for more detail.
 - A muted outline icon identifies each provider. Subtitles use short direction labels, such as `es→zh`; Traditional Chinese appears as `zh-TW`.
 - If no provider returns a result, Alfred shows **No dictionary result**.
@@ -113,7 +113,7 @@ For English words, WordPing also shows macOS spelling corrections and word compl
 - **Hold ⌥ Option:** Show available UK and US phonetics or pinyin on Youdao results, and phonetics on Iciba results, without replacing meanings in the normal subtitle.
 - **⌥ Return:** Play Youdao's online pronunciation. With **Both** selected, it plays British followed by American.
 - **⌃ Return:** Save the word to your list.
-- **Shift:** Preview the selected provider's website with Quick Look.
+- **Shift:** Preview the selected web provider's lookup page with Quick Look. Apple Translation has no web preview.
 
 ### WordPing commands
 

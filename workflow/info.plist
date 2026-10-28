@@ -913,7 +913,7 @@ An internet connection is required for new lookups. Recent lookups are stored lo
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.12.7</string>
+	<string>0.12.8</string>
 	<key>webaddress</key>
 	<string>https://github.com/bitman-jpg/wordping-alfred</string>
 </dict>

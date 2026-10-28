@@ -20,8 +20,7 @@ export async function lookupApple(word: string, from: string, to: string): Promi
     const translation = String(JSON.parse(output).translation || '').trim();
     if (!translation || translation.toLocaleLowerCase() === word.toLocaleLowerCase()) return [];
     return [{ title: translation, subtitle: `Apple · ${from} → ${to}`,
-      arg: translation, pronounce: word, source: 'Apple Translation',
-      quicklookurl: 'https://support.apple.com/guide/mac-help/mchldd8b3c15/mac' }];
+      arg: translation, pronounce: word, source: 'Apple Translation' }];
   } catch { return []; }
   finally { clearTimeout(timeout); }
 }

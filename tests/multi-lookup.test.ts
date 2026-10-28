@@ -166,10 +166,12 @@ assert(forced.join(',') === 'es>zh-CHS', 'manual direction should never retry th
 const appleResult = await lookupAll('hello', 'zh-CHS', 'zh-CHS', 'en', '',
   providerOrder('apple'), async () => {}, {
     apple: async (from, to) => [{ title: '你好', subtitle: `Apple Translation · ${from} → ${to}`,
-      arg: '你好', variables: { wordping_source: 'Apple Translation' } }],
+      arg: '你好', quicklookurl: 'https://support.apple.com/guide/mac-help/mchldd8b3c15/mac',
+      variables: { wordping_source: 'Apple Translation' } }],
   });
 assert(appleResult.items.length === 1 && appleResult.items[0].title === '你好'
   && appleResult.items[0].subtitle === 'en→zh'
+  && appleResult.items[0].quicklookurl === ''
   && appleResult.providerStatus?.[0]?.outcome === 'result',
   'Apple should provide a direct Alfred result alongside dictionary providers');
 
