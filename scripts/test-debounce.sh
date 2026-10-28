@@ -49,7 +49,8 @@ with open(os.path.join(root, 'translations.json'), 'w') as handle:
         'query': 'beat', 'language': 'zh-CHS',
         'output': json.dumps({'variables': {'wordping_provider_order':
             'youdao,iciba,baidu,wiktionary,apple,mymemory',
-            'wordping_subtitle_version': 2},
+            'wordping_subtitle_version': 2,
+            'wordping_lookup_version': 1},
             'items': [{'title': '击败', 'arg': '击败'}]}),
         'updatedAt': 1,
     }]}, handle)

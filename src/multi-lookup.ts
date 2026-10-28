@@ -1,10 +1,11 @@
-import Translator from './translator';
+import Translator, { YoudaoResponseError } from './translator';
 import { dictionaryItems, wiktionaryDictionary } from './dictionaries';
 import { ProviderName, providersFor } from './provider-order';
 import { icibaDictionary } from './iciba-dictionary';
 import { baiduDictionary } from './baidu-dictionary';
 import { lookupApple } from './apple-translate';
 import { lookupMyMemory } from './mymemory';
+import { youdaoDictionary } from './youdao-dictionary';
 
 export interface LookupProgress {
   query: string;
@@ -125,7 +126,12 @@ export async function lookupAll(
   const run = async (name: ProviderName, from: string, to: string): Promise<any[]> => {
     if (overrides?.[name]) return overrides[name]!(from, to);
     if (name === 'youdao') {
-      const output = await new Translator(native, learning, sessionPath).translate(query);
+      let output: string;
+      try { output = await new Translator(native, learning, sessionPath).translate(query); }
+      catch (error) {
+        if (!(error instanceof YoudaoResponseError) || error.code !== 50) throw error;
+        return dictionaryItems(await youdaoDictionary(query, from, to), query);
+      }
       const items = JSON.parse(output).items || [];
       if (!items.some((item: any) => item.valid !== false
         && !String(item.arg || '').startsWith('# WordPing entry: ')

@@ -662,6 +662,7 @@ async function main(): Promise<void> {
     const cached = await cache.get(word, languageScope);
     if (cached && JSON.parse(cached).variables?.wordping_provider_order === orderKey
       && JSON.parse(cached).variables?.wordping_subtitle_version === 2
+      && JSON.parse(cached).variables?.wordping_lookup_version === 1
       && !isEchoedTranslation(word, nativeLanguage, cached)) {
       try { await tjs.remove(lookupStatePath(word, languageScope)); } catch {}
       console.log(clearPendingLookup(cached));
@@ -694,7 +695,8 @@ async function main(): Promise<void> {
     const progress = await lookupAll(word, languageScope, nativeLanguage, learningLanguage, sessionPath, order);
     const output = lookupOutput(progress);
     if (progress.items.length) await cache.put(word, languageScope, JSON.stringify({
-      variables: { wordping_provider_order: orderKey, wordping_subtitle_version: 2 }, items: progress.items }));
+      variables: { wordping_provider_order: orderKey, wordping_subtitle_version: 2,
+        wordping_lookup_version: 1 }, items: progress.items }));
     console.log(output);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
