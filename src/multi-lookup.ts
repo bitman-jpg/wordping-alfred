@@ -40,6 +40,21 @@ function displayWidth(value: string): number {
     + (/[\u2e80-\u9fff\uf900-\ufaff\uff01-\uff60]/.test(character) ? 2 : 1), 0);
 }
 
+function preview(value: string, maximum: number): { shown: string; rest: string } {
+  let width = 0;
+  let end = 0;
+  for (const character of value) {
+    const next = width + displayWidth(character);
+    if (next > maximum) break;
+    width = next;
+    end += character.length;
+  }
+  if (end === value.length) return { shown: value, rest: '' };
+  const lastSpace = value.slice(0, end).lastIndexOf(' ');
+  if (lastSpace > end / 2) end = lastSpace;
+  return { shown: value.slice(0, end).trimEnd() + '…', rest: value.slice(end).trimStart() };
+}
+
 function partLabel(value: string): string {
   const part = value.trim();
   const labels: Record<string, string> = {
@@ -97,7 +112,9 @@ export function oneItemPerProvider(items: any[], provider?: ProviderName): any[]
     prominent.push(meaning);
   }
   const overflow = renderMeanings(meanings.slice(prominent.length), separator);
-  first.title = renderMeanings(prominent, separator);
+  const main = renderMeanings(prominent, separator);
+  const mainPreview = preview(main, 64);
+  first.title = mainPreview.shown;
   first.arg = combined;
   first.text = { ...(first.text || {}), copy: combined, largetype: combined };
   if (first.mods?.ctrl?.variables?.wordping_choice) {
@@ -112,8 +129,19 @@ export function oneItemPerProvider(items: any[], provider?: ProviderName): any[]
   const pair = direction ? `${shortLanguage(direction[1])}→${shortLanguage(direction[2])}` : '';
   const providerInfo = provider ? labels[provider] + (pair ? ` · ${pair}` : '')
     : String(first.subtitle || '');
-  first.subtitle = providerInfo + (overflow ? ` · ${overflow}` : '');
-  return [first];
+  const remaining = [mainPreview.rest, overflow].filter(Boolean).join(separator);
+  const needsFullView = Boolean(remaining) && displayWidth(combined) > 100;
+  const subtitlePreview = preview(remaining, needsFullView ? 48 : 100);
+  first.subtitle = providerInfo + (remaining ? ` · ${subtitlePreview.shown}` : '')
+    + (needsFullView ? ' · Full text below' : '');
+  if (!needsFullView) return [first];
+  return [first, {
+    title: `Read full ${provider ? labels[provider] + ' ' : ''}translation`,
+    subtitle: 'Press Return for wrapped text · Esc to return to results',
+    arg: `# WordPing entry: Full translation\n\n${combined}`,
+    valid: true,
+    icon: { path: 'assets/translate.png' },
+  }];
 }
 
 export async function lookupAll(

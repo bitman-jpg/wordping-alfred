@@ -100,6 +100,19 @@ assert(consent.subtitle.startsWith('Youdao · v. 赞同，准许，同意')
   && consent.mods.ctrl.variables.wordping_choice === consent.arg,
   'Youdao should group matching parts of speech and show overflow without repeated metadata');
 
+const longTranslation = 'This is a longer translation that should remain readable even when Alfred cannot fit the entire sentence into a single result line. It continues with enough context to require a wrapped view.';
+const longRows = oneItemPerProvider([{
+  title: longTranslation, subtitle: 'Apple · en → fr', arg: longTranslation,
+  text: { copy: longTranslation },
+}], 'apple');
+assert(longRows.length === 2 && longRows[0].title.endsWith('…')
+  && longRows[0].subtitle.includes('Full text below')
+  && longRows[0].arg === longTranslation && longRows[0].text.copy === longTranslation
+  && longRows[0].text.largetype === longTranslation
+  && longRows[1].arg.startsWith('# WordPing entry: ')
+  && longRows[1].arg.includes(longTranslation),
+  'long translations should have a short preview and a full wrapped view without losing copy text');
+
 const calls: string[] = [];
 const updates: string[][] = [];
 let finishYoudao: (items: any[]) => void = () => {};

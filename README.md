@@ -2,7 +2,7 @@
 
 Look up a word in Alfred, save it, and practice it later. Translate selected text on your Mac without leaving the app you are reading.
 
-WordPing is a free, open source Alfred 5 workflow for language learners who want translation, dictionary meanings, pronunciation, and vocabulary review in one place. Translate in either direction between your native and learning languages, then save words for spaced review. English is optional, and this source version needs no API key or account.
+WordPing is a free, open source Alfred 5 workflow for language learners who want translation, dictionary meanings, pronunciation, and vocabulary review in one place. Translate in either direction between your native and learning languages, then save words for spaced review. English is optional, and no API key or account is needed.
 
 For example, an English speaker learning French can look up `bonjour` in English or `hello` in French. A Chinese speaker learning English can look up `nasa` in Chinese or `你好` in English. WordPing offers 17 language choices; translation availability depends on the enabled providers and language pair.
 
@@ -12,7 +12,7 @@ For example, an English speaker learning French can look up `bonjour` in English
 - Translate between your chosen languages in both directions.
 - Translate other detected languages into your native language.
 - Show translations, short definitions, and alternatives when available.
-- See one result per responding provider in Alfred, with its meanings in the main line and any overflow immediately below.
+- See one main result per responding provider in Alfred, with a full-text view for long translations.
 - Copy translations with one key.
 - Hear local or online pronunciation.
 - Choose American, British, or both pronunciations.
@@ -37,7 +37,7 @@ The workflows are not identical:
 | Recent lookup history and Shift web preview | Supported. |
 | Youdao wordbook | Saved words stay in WordPing; they do not sync with a Youdao account. |
 | `CamelCase` splitting | Not supported automatically; enter words with spaces. |
-| Automatic wrapping of long translations | Not supported as a separate action; use **⌘L** to read the full result in Alfred's Large Type view. |
+| Automatic wrapping of long translations | Long results have a short preview and a selectable full-text view. **⌘L** also shows the full result. |
 | Baidu translation API | Not supported; WordPing's Baidu provider supplies dictionary meanings for single words. |
 | In-workflow update command | Not supported; install a newer workflow version manually. |
 
@@ -53,11 +53,11 @@ WordPing adds reverse recall, optional typed answers, daily review reminders, an
 
 ## Install
 
-1. Build this version with `sh scripts/build.sh`, then open the `.alfredworkflow` file in `release/` with Alfred. The current [public release](https://github.com/bitman-jpg/wordping-alfred/releases) is an older version that uses Youdao AI Cloud credentials.
+1. Download the latest `.alfredworkflow` from [GitHub Releases](https://github.com/bitman-jpg/wordping-alfred/releases/latest) and open it with Alfred. To build from source, run `sh scripts/build.sh` and open the file created in `release/`.
 2. Choose your native and learning languages. English is the default learning language.
 3. Choose **American**, **British**, or **Both (British, then American)** for online pronunciation. American is the default.
 
-This source version needs no API key or account.
+No API key or account is needed.
 
 ## Common questions
 
@@ -71,7 +71,7 @@ You can choose from 17 native and learning language options, including English, 
 
 ### Does WordPing need an API key?
 
-This source version does not need an API key or account. The current public release is older and uses Youdao AI Cloud credentials. [Build this version](#install) to use the keyless workflow.
+No. The current release and source version use keyless lookups. [Install WordPing](#install) to start translating.
 
 ## Look up and translate
 
@@ -86,7 +86,7 @@ wp es>zh trabajo
 
 To choose the direction yourself, put `source>destination` before the text. For example, `wp es>zh trabajo` looks up Spanish `trabajo` in Simplified Chinese. `wp es>cn trabajo` works too: `zh` and `cn` both mean Simplified Chinese here. Use `tw` for Traditional Chinese, such as `wp en>tw hello`; `zh-TW` also works. Other codes follow the language choices in WordPing’s configuration (`en`, `es`, `fr`, `ja`, and so on). A manual direction is used exactly as entered; providers do not reverse it when they return no result. Lookups without a prefix continue using automatic direction selection.
 
-If a provider's meanings run past Alfred's list width, select that result and press **Cmd+L (⌘L)** to read the complete entry in Alfred's Large Type view.
+For long translations, WordPing shows a short preview and a **Read full translation** row. Press Return on that row to read wrapped text, or select the provider result and press **Cmd+L (⌘L)** for Alfred's Large Type view. Return on the provider result still copies the complete translation.
 
 For English words, WordPing also shows macOS spelling corrections and word completions. For example, type `wp terestrial`, then select **Did you mean “terrestrial”?** and press **Tab** to look up the corrected word. Suggestions also work while you are typing; they keep a manual language prefix such as `en>zh `.
 
