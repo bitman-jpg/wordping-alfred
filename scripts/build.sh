@@ -23,6 +23,7 @@ cp assets/icon.png dist/icon.png
 cp assets/*.png dist/assets/
 rm -rf dist/assets/dictionaries
 cp workflow/info.plist dist/info.plist
+python3 scripts/embed-release-notes.py "docs/releases/v${release_version}.md" dist/info.plist
 mkdir -p dist/scripts
 cp scripts/reminders.sh dist/scripts/reminders.sh
 cp scripts/start-lookup.sh dist/scripts/start-lookup.sh

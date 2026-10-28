@@ -118,7 +118,7 @@ For English words, WordPing also shows macOS spelling corrections and word compl
 ### WordPing commands
 
 - Type `wp :` to see **Saved words…**, **Check for WordPing update**, and **Clear recent lookups**. Choose **Saved words…** (`wp :words`) for review, browse, reminders, and files; choose **Manage saved words…** for backup, restore, and export.
-- Type `wp :update` to check the latest GitHub release. If a newer version is available, press Return to download its Apple silicon workflow and open it in Alfred, then complete Alfred's installation prompt. Your WordPing settings and saved words remain in Alfred's workflow data.
+- Type `wp :update` to check the latest GitHub release. If a newer version is available, press Return to download its Apple silicon workflow and open it in Alfred. The import window shows that version's release notes above the setup guide; complete Alfred's installation prompt to upgrade. Your WordPing settings and saved words remain in Alfred's workflow data.
 - The colon distinguishes a command from a lookup: `wp review` searches for “review,” while `wp :review` starts a review. Direct commands such as `wp :review` still work.
 - Type an unrecognized colon command to look it up as ordinary text.
 
