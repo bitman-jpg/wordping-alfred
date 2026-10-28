@@ -52,6 +52,12 @@ assert(output.items[0].quicklookurl.endsWith('/beat'), 'lookup should keep Shift
 assert(calls.join(',') === 'auto>zh-CHS', 'detected English should use the website response directly');
 
 calls = [];
+reply = () => result('工作', 'es2zh-CHS');
+output = JSON.parse(await translator.translate('trabajo', false, { from: 'es', to: 'zh-CHS' }));
+assert(output.items[0].title === '工作' && calls.join(',') === 'es>zh-CHS',
+  'manual direction should bypass website auto detection');
+
+calls = [];
 reply = () => ({ ...result('Hello', 'zh-CHS2en', { ce: { word: {
   phone: 'nǐ hǎo', 'return-phrase': '你好', trs: [{ '#text': 'Hello', '#tran': '你好' }],
 } } }), translateResult: [[{ tgt: 'Hello', src: '你好', srcPronounce: 'nĭhăo' }]] });

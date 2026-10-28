@@ -34,6 +34,10 @@ WORDPING_DEBOUNCE=1 wordping_pending_query=bea nativeLanguage=zh-CHS learningLan
   alfred_workflow_cache="$test_dir" alfred_workflow_data="$test_dir" \
   ./runtime/tjs run "$test_dir/index.js" beat >"$test_dir/changed.json"
 
+WORDPING_DEBOUNCE=1 nativeLanguage=zh-CHS learningLanguage=en \
+  alfred_workflow_cache="$test_dir" alfred_workflow_data="$test_dir" \
+  ./runtime/tjs run "$test_dir/index.js" 'es>cn trabajo' >"$test_dir/manual-pending.json"
+
 python3 - "$test_dir" <<'PY'
 import json, os, sys
 root = sys.argv[1]
@@ -44,6 +48,9 @@ for name in ('first', 'changed'):
     assert output['variables']['wordping_pending_query'] == 'beat', name
     assert output['items'][0]['valid'] is False, name
 assert not os.path.exists(os.path.join(root, 'website-session.json'))
+with open(os.path.join(root, 'manual-pending.json')) as handle:
+    manual = json.load(handle)
+assert manual['variables']['wordping_pending_query'] == 'es>cn trabajo'
 with open(os.path.join(root, 'translations.json'), 'w') as handle:
     json.dump({'version': 21, 'entries': [{
         'query': 'beat', 'language': 'zh-CHS',
@@ -53,6 +60,14 @@ with open(os.path.join(root, 'translations.json'), 'w') as handle:
             'wordping_lookup_version': 1},
             'items': [{'title': '击败', 'arg': '击败'}]}),
         'updatedAt': 1,
+    }, {
+        'query': 'trabajo', 'language': 'manual:es>zh-CHS',
+        'output': json.dumps({'variables': {'wordping_provider_order':
+            'youdao,iciba,baidu,wiktionary,apple,mymemory',
+            'wordping_subtitle_version': 2, 'wordping_lookup_version': 1},
+            'items': [{'title': '工作', 'arg': '工作', 'mods': {'ctrl': {
+                'arg': '~save:trabajo', 'variables': {'wordping_command': '~save:trabajo'}}}}]}),
+        'updatedAt': 2,
     }]}, handle)
 PY
 
@@ -67,6 +82,34 @@ with open(sys.argv[1]) as handle:
 assert 'rerun' not in output
 assert output['items'][0]['title']=='击败'
 assert output['variables']['wordping_pending_query']==''
+PY
+
+WORDPING_DEBOUNCE=1 nativeLanguage=zh-CHS learningLanguage=en \
+  alfred_workflow_cache="$test_dir" alfred_workflow_data="$test_dir" \
+  ./runtime/tjs run "$test_dir/index.js" 'es>cn trabajo' >"$test_dir/manual-cached.json"
+
+python3 - "$test_dir/manual-cached.json" <<'PY'
+import json,sys
+with open(sys.argv[1]) as handle:
+    output=json.load(handle)
+assert output['items'][0]['title']=='工作'
+command=output['items'][0]['mods']['ctrl']['arg']
+assert command=='~save:trabajo|manual%3Aes%3Ezh-CHS'
+assert output['items'][0]['mods']['ctrl']['variables']['wordping_command']==command
+PY
+
+nativeLanguage=zh-CHS learningLanguage=en \
+  alfred_workflow_cache="$test_dir" alfred_workflow_data="$test_dir" \
+  ./runtime/tjs run "$test_dir/index.js" '~save:trabajo|manual%3Aes%3Ezh-CHS' >"$test_dir/manual-saved.json"
+
+python3 - "$test_dir/manual-saved.json" "$test_dir/vocabulary.json" <<'PY'
+import json,sys
+with open(sys.argv[1]) as handle:
+    output=handle.read()
+assert 'Saved' in output
+with open(sys.argv[2]) as handle:
+    saved=json.load(handle)
+assert 'trabajo' in json.dumps(saved, ensure_ascii=False)
 PY
 
 echo 'Debounced lookup and immediate cache tests passed'

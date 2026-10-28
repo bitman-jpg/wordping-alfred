@@ -47,7 +47,10 @@ Open Alfred and type `wp` followed by a word or phrase:
 wp hello
 wp 你好
 wp bonjour
+wp es>zh trabajo
 ```
+
+To choose the direction yourself, put `source>destination` before the text. For example, `wp es>zh trabajo` looks up Spanish `trabajo` in Simplified Chinese. `wp es>cn trabajo` works too: `zh` and `cn` both mean Simplified Chinese here. Use `tw` for Traditional Chinese, such as `wp en>tw hello`; `zh-TW` also works. Other codes follow the language choices in WordPing’s configuration (`en`, `es`, `fr`, `ja`, and so on). A manual direction is used exactly as entered; providers do not reverse it when they return no result. Lookups without a prefix continue using automatic direction selection.
 
 If a provider's meanings run past Alfred's list width, select that result and press **Cmd+L (⌘L)** to read the complete entry in Alfred's Large Type view.
 

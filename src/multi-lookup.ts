@@ -6,6 +6,7 @@ import { baiduDictionary } from './baidu-dictionary';
 import { lookupApple } from './apple-translate';
 import { lookupMyMemory } from './mymemory';
 import { youdaoDictionary } from './youdao-dictionary';
+import { LanguageDirection } from './query';
 
 export interface LookupProgress {
   query: string;
@@ -120,14 +121,15 @@ export async function lookupAll(
   order: ProviderName[],
   onUpdate: (progress: LookupProgress) => Promise<void> = async () => {},
   overrides?: Partial<Record<ProviderName, (from: string, to: string) => Promise<any[]>>>,
+  direction?: LanguageDirection,
 ): Promise<LookupProgress> {
-  const pair = lookupDirection(query, native, learning);
+  const pair = direction || lookupDirection(query, native, learning);
   const names = providersFor(query, order);
   const run = async (name: ProviderName, from: string, to: string): Promise<any[]> => {
     if (overrides?.[name]) return overrides[name]!(from, to);
     if (name === 'youdao') {
       let output: string;
-      try { output = await new Translator(native, learning, sessionPath).translate(query); }
+      try { output = await new Translator(native, learning, sessionPath).translate(query, false, direction); }
       catch (error) {
         if (!(error instanceof YoudaoResponseError) || error.code !== 50) throw error;
         return dictionaryItems(await youdaoDictionary(query, from, to), query);
@@ -164,10 +166,11 @@ export async function lookupAll(
       try { items = await run(name, pair.from, pair.to); }
       catch (error) {
         if (name === 'youdao') throw error;
+        if (direction) throw error;
         triedReverse = true;
         items = await run(name, pair.to, pair.from);
       }
-      if (!items.length && name !== 'youdao' && !triedReverse) items = await run(name, pair.to, pair.from);
+      if (!items.length && name !== 'youdao' && !triedReverse && !direction) items = await run(name, pair.to, pair.from);
     } catch (error) {
       failed = true;
       progress.errors.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);

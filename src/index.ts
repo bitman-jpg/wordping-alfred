@@ -86,6 +86,17 @@ function lookupStatePath(query: string, language: string): string {
   return `${cachePath().replace(/translations\.json$/, '')}lookup-${md5(`${language}\0${query.toLocaleLowerCase()}`)}.json`;
 }
 
+function manualSaveActions(output: string, scope: string): string {
+  const data = JSON.parse(output);
+  for (const item of data.items || []) {
+    const ctrl = item.mods?.ctrl;
+    if (!ctrl || typeof ctrl.arg !== 'string' || !ctrl.arg.startsWith('~save:')) continue;
+    ctrl.arg += `|${encodeURIComponent(scope)}`;
+    if (ctrl.variables?.wordping_command) ctrl.variables.wordping_command = ctrl.arg;
+  }
+  return JSON.stringify(data);
+}
+
 async function readLookupState(path: string): Promise<LookupProgress | undefined> {
   try {
     const data = JSON.parse(new TextDecoder().decode(await tjs.readFile(path)));
@@ -441,7 +452,8 @@ async function main(): Promise<void> {
     const cache = new TranslationCache(cachePath(), Math.min(500, Math.max(1, historyLimit)));
     const vocabulary = new Vocabulary(`${dataDirectory()}/vocabulary.json`);
     const reviewSession = new ReviewSession(reviewSessionPath(languageScope));
-    const { word, commandMode } = parseLookupInput(rawInput);
+    const { word, commandMode, direction } = parseLookupInput(rawInput);
+    const lookupScope = direction ? `manual:${direction.from}>${direction.to}` : languageScope;
     const internalCommand = rawInput.trim().startsWith('~');
 
     if (internalCommand && word === '~reminder-check') {
@@ -462,9 +474,11 @@ async function main(): Promise<void> {
     }
 
     if (internalCommand && word.startsWith('~save:')) {
-      const query = decodeURIComponent(word.slice(6));
-      const current = await readLookupState(lookupStatePath(query, languageScope));
-      const output = await cache.get(query, languageScope, true)
+      const [encodedQuery, encodedScope] = word.slice(6).split('|', 2);
+      const query = decodeURIComponent(encodedQuery);
+      const sourceScope = encodedScope ? decodeURIComponent(encodedScope) : languageScope;
+      const current = await readLookupState(lookupStatePath(query, sourceScope));
+      const output = await cache.get(query, sourceScope, true)
         || (current?.items.length ? JSON.stringify({ items: current.items }) : undefined);
       if (!output) throw new Error('Look up the word again before saving it');
       const selected = tjs.env.wordping_choice;
@@ -656,48 +670,58 @@ async function main(): Promise<void> {
     }
 
     if (!word) {
+      if (direction) {
+        console.log(JSON.stringify({ items: [{ title: `Type text after ${direction.from}>${direction.to}`,
+          subtitle: 'Example: wp es>zh trabajo', valid: false }] }));
+        return;
+      }
       console.log(historyOutput(await cache.recent(languageScope)));
       return;
     }
-    const cached = await cache.get(word, languageScope);
+    const cached = await cache.get(word, lookupScope);
     if (cached && JSON.parse(cached).variables?.wordping_provider_order === orderKey
       && JSON.parse(cached).variables?.wordping_subtitle_version === 2
       && JSON.parse(cached).variables?.wordping_lookup_version === 1
       && !isEchoedTranslation(word, nativeLanguage, cached)) {
-      try { await tjs.remove(lookupStatePath(word, languageScope)); } catch {}
-      console.log(clearPendingLookup(cached));
+      try { await tjs.remove(lookupStatePath(word, lookupScope)); } catch {}
+      const output = clearPendingLookup(cached);
+      console.log(direction ? manualSaveActions(output, lookupScope) : output);
       return;
     }
-    if (tjs.env.WORDPING_DEBOUNCE === '1' && tjs.env.wordping_pending_query !== word) {
-      console.log(pendingLookup(word));
+    const pendingQuery = direction ? rawInput.trim() : word;
+    if (tjs.env.WORDPING_DEBOUNCE === '1' && tjs.env.wordping_pending_query !== pendingQuery) {
+      console.log(pendingLookup(pendingQuery));
       return;
     }
 
     const sessionPath = cachePath().replace(/translations\.json$/, 'website-session.json');
     if (tjs.env.alfred_workflow_bundleid) {
-      const path = lookupStatePath(word, languageScope);
+      const path = lookupStatePath(word, lookupScope);
       let state = await readLookupState(path);
       if (!state || !Array.isArray(state.providerStatus)
         || state.order !== orderKey || Date.now() - state.startedAt > 120000) {
-        state = { query: word, language: languageScope, startedAt: Date.now(),
+        state = { query: word, language: lookupScope, startedAt: Date.now(),
           order: orderKey, completed: 0, expected: providersFor(word, order).length,
           items: [], errors: [], providerStatus: [] };
         await tjs.makeDir(cachePath().slice(0, cachePath().lastIndexOf('/')), { recursive: true });
         await tjs.writeFile(path, JSON.stringify(state));
         const starter = decodeURIComponent(new URL('./scripts/start-lookup.sh', import.meta.url).pathname);
-        await tjs.spawn(['/bin/sh', starter, word, languageScope, nativeLanguage, learningLanguage,
-          sessionPath, path, cachePath(), String(Math.min(500, Math.max(1, historyLimit))), orderKey],
+        await tjs.spawn(['/bin/sh', starter, word, lookupScope, nativeLanguage, learningLanguage,
+          sessionPath, path, cachePath(), String(Math.min(500, Math.max(1, historyLimit))), orderKey,
+          direction?.from || '', direction?.to || ''],
           { stdout: 'ignore', stderr: 'ignore' }).wait();
       }
-      console.log(lookupOutput(state));
+      const output = lookupOutput(state);
+      console.log(direction ? manualSaveActions(output, lookupScope) : output);
       return;
     }
-    const progress = await lookupAll(word, languageScope, nativeLanguage, learningLanguage, sessionPath, order);
+    const progress = await lookupAll(word, lookupScope, nativeLanguage, learningLanguage, sessionPath, order,
+      undefined, undefined, direction);
     const output = lookupOutput(progress);
-    if (progress.items.length) await cache.put(word, languageScope, JSON.stringify({
+    if (progress.items.length) await cache.put(word, lookupScope, JSON.stringify({
       variables: { wordping_provider_order: orderKey, wordping_subtitle_version: 2,
         wordping_lookup_version: 1 }, items: progress.items }));
-    console.log(output);
+    console.log(direction ? manualSaveActions(output, lookupScope) : output);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.log(JSON.stringify({ variables: { wordping_pending_query: '' }, items: [{ title: 'WordPing lookup failed', subtitle: message, valid: false }] }));

@@ -76,8 +76,12 @@ export default class Translator {
     this.lookup = lookup || provider.lookup.bind(provider);
   }
 
-  async translate(query: string, dictionaryOnly = false): Promise<string> {
+  async translate(query: string, dictionaryOnly = false, explicitDirection?: { from: string; to: string }): Promise<string> {
     const word = normalizeInput(query);
+    if (explicitDirection) {
+      const response = await this.lookup(word, explicitDirection.from, explicitDirection.to);
+      return new Workflow().compose(lookupResults(response, word, dictionaryOnly), word).output();
+    }
     const detected = await this.lookup(word, 'auto', this.nativeLanguage);
     if (detected.code === 50) throw new YoudaoResponseError(50);
     const pair = detected.code === 0 ? direction(detected) : undefined;

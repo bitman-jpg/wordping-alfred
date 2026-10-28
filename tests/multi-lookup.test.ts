@@ -142,6 +142,13 @@ const reverseResult = await lookupAll('hello', 'en|fr', 'en', 'fr', '',
 assert(reverse.join(',') === 'fr>en,en>fr' && reverseResult.items[0].title === 'bonjour',
   'ambiguous Latin words should try the other configured direction before moving on');
 
+const forced: string[] = [];
+await lookupAll('trabajo', 'manual:es>zh-CHS', 'en', 'fr', '',
+  providerOrder('mymemory'), async () => {}, {
+    mymemory: async (from, to) => { forced.push(`${from}>${to}`); return []; },
+  }, { from: 'es', to: 'zh-CHS' });
+assert(forced.join(',') === 'es>zh-CHS', 'manual direction should never retry the reverse pair');
+
 const appleResult = await lookupAll('hello', 'zh-CHS', 'zh-CHS', 'en', '',
   providerOrder('apple'), async () => {}, {
     apple: async (from, to) => [{ title: '你好', subtitle: `Apple Translation · ${from} → ${to}`,
