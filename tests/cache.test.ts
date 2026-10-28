@@ -33,6 +33,35 @@ assert((await cache.recent('zh-CHS'))[0].query === 'Hello', 'cached lookup shoul
 assert((await cache.recent('fr')).length === 0, 'history should be separated by target language');
 await cache.clear();
 assert((await cache.recent('zh-CHS')).length === 0, 'clear should remove all cached lookups');
+await tjs.writeFile(`${directory}/nested/translations.json`, JSON.stringify({ version: 4, entries: [
+  { query: 'old', language: 'zh-CHS', output: '{"items":[{"title":"旧"}]}', updatedAt: 1 },
+] }));
+assert(await cache.get('old', 'zh-CHS') === undefined, 'old single-source cache should refresh on lookup');
+assert((await cache.recent('zh-CHS'))[0].query === 'old', 'old recent lookups should remain visible');
+assert(await cache.get('old', 'zh-CHS', true) !== undefined, 'old result should remain available for saving');
+await tjs.writeFile(`${directory}/nested/translations.json`, JSON.stringify({ version: 5, entries: [
+  { query: 'bank', language: 'zh-CHS', output: '{"items":[{"title":"Wiktionary definitions for bank"}]}', updatedAt: 2 },
+] }));
+assert(await cache.get('bank', 'zh-CHS') === undefined,
+  'old cached dictionary rows should refresh instead of resurfacing');
+assert((await cache.recent('zh-CHS'))[0].query === 'bank',
+  'refreshing old dictionary rows should preserve recent lookup history');
+await tjs.writeFile(`${directory}/nested/translations.json`, JSON.stringify({ version: 6, entries: [
+  { query: '你好', language: 'zh-CHS', output: '{"items":[{"title":"hello; hi","variables":{"wordping_source":"CC-CEDICT"}}]}', updatedAt: 3 },
+] }));
+assert(await cache.get('你好', 'zh-CHS') === undefined,
+  'cached local dictionary results should refresh after removing local packs');
+await tjs.writeFile(`${directory}/nested/translations.json`, JSON.stringify({ version: 8, entries: [
+  { query: 'rheumatic', language: 'zh-CHS', output: '{"items":[{"title":"风湿性","variables":{"wordping_source":"Apple Translation"}}]}', updatedAt: 4 },
+] }));
+assert(await cache.get('rheumatic', 'zh-CHS') === undefined,
+  'cached hidden Apple fallback should refresh under the explicit provider order');
+await tjs.writeFile(`${directory}/nested/translations.json`, JSON.stringify({ version: 13, entries: [
+  { query: 'rebuke', language: 'zh-CHS', output: '{"items":[{"title":"责备","variables":{"wordping_source":"Alibaba"}}]}', updatedAt: 5 },
+] }));
+assert(await cache.get('rebuke', 'zh-CHS') === undefined
+  && (await cache.recent('zh-CHS'))[0].legacy === true,
+  'cached translation-only provider results should refresh after their removal');
 await tjs.remove(directory, { recursive: true });
 
 const vocabularyDirectory = await tjs.makeTempDir('/tmp/wordping-vocabulary-tests-XXXXXX');

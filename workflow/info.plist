@@ -455,7 +455,7 @@ esac</string>
 				<integer>102</integer>
 				<key>script</key>
 				<string>if [[ -n "${alfred_workflow_cache:-}" ]]; then
-  /bin/rm -f "$alfred_workflow_cache/translations.json"
+  /bin/rm -f "$alfred_workflow_cache/translations.json" "$alfred_workflow_cache"/lookup-*.json
 fi
 
 /usr/bin/osascript -e 'tell application id "com.runningwithcrayons.Alfred" to search "wp "'</string>
@@ -519,8 +519,8 @@ fi
 				<integer>2</integer>
 				<key>queuemode</key>
 				<integer>2</integer>
-				<key>runningsubtext</key>
-				<string>Looking up with Youdao…</string>
+			<key>runningsubtext</key>
+			<string>Checking providers…</string>
 				<key>script</key>
 				<string>if [ -z "$1" ]; then
   /usr/bin/nohup ./runtime/tjs run ./warmup.js &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;
@@ -655,7 +655,7 @@ esac</string>
 2. Choose your online pronunciation accent.
 3. Use the `wp` keyword followed by a word or phrase.
 
-An internet connection is required for new lookups. Recent lookups are stored locally. If Youdao rejects an English–Chinese lookup with code 50, WordPing tries Apple Translation on this Mac first, then MyMemory's keyless translation API if Apple Translation is unavailable.</string>
+An internet connection is required for new lookups. Recent lookups are stored locally. WordPing queries Youdao, Iciba, Baidu, and Wiktionary for dictionary results and shows one item per responding provider.</string>
 	<key>uidata</key>
 	<dict>
 		<key>284F6AAD-8FE7-44A6-AAE4-62A0F8BEE779</key>
@@ -874,6 +874,23 @@ An internet connection is required for new lookups. Recent lookups are stored lo
 			<key>config</key>
 			<dict>
 				<key>default</key>
+				<string>youdao,iciba,baidu,wiktionary,apple,mymemory</string>
+				<key>placeholder</key>
+				<string>youdao,iciba,baidu,wiktionary,apple,mymemory</string>
+				<key>required</key><false/>
+				<key>trim</key><true/>
+			</dict>
+			<key>description</key>
+			<string>Comma-separated providers to query together. Results appear as each responds. Remove a name to disable it.</string>
+			<key>label</key>
+			<string>Providers</string>
+			<key>type</key><string>textfield</string>
+			<key>variable</key><string>providerOrder</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
 				<string>0</string>
 				<key>pairs</key>
 				<array>
@@ -896,7 +913,7 @@ An internet connection is required for new lookups. Recent lookups are stored lo
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.8.7</string>
+	<string>0.12.2</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>

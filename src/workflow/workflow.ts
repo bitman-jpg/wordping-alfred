@@ -7,6 +7,8 @@ export interface Result {
   pronounce: string;
   quicklookurl?: string;
   detail?: boolean;
+  source?: string;
+  partOfSpeech?: string;
 }
 
 class Workflow {
@@ -16,13 +18,15 @@ class Workflow {
   compose(results: Result[], query?: string): this {
     this.results = results.map(r => {
       if (r.detail) {
-        return new Item().setTitle(r.title)
+        const item = new Item().setTitle(r.title)
           .setSubtitle(r.subtitle)
           .setArg(r.arg)
           .setIcon('assets/translate.png')
           .result();
+        if (r.source) item.variables = { wordping_source: r.source };
+        return item;
       }
-      return new Item().setTitle(r.title)
+      const item = new Item().setTitle(r.title)
       .setSubtitle(r.subtitle)
       .setArg(r.arg)
       .setIcon('assets/translate.png')
@@ -32,11 +36,16 @@ class Workflow {
         'Save word',
         query ? `~save:${encodeURIComponent(query)}` : r.arg,
         true,
-        query ? { wordping_command: `~save:${encodeURIComponent(query)}` } : undefined,
+        query ? { wordping_command: `~save:${encodeURIComponent(query)}`, wordping_choice: r.title } : undefined,
       )
       .setCopy(r.title)
       .setQuicklookurl(r.quicklookurl)
       .result();
+      if (r.source || r.partOfSpeech) item.variables = {
+        ...(r.source ? { wordping_source: r.source } : {}),
+        ...(r.partOfSpeech ? { wordping_pos: r.partOfSpeech } : {}),
+      };
+      return item;
     });
 
     return this;

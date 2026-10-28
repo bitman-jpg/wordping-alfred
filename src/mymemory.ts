@@ -11,6 +11,17 @@ interface MemoryResponse {
   matches?: MemoryMatch[];
 }
 
+const languageNames: Record<string, string> = {
+  en: 'English', 'zh-CHS': 'Chinese (Simplified)', 'zh-CHT': 'Chinese (Traditional)',
+  ja: 'Japanese', ko: 'Korean', fr: 'French', de: 'German', es: 'Spanish',
+  pt: 'Portuguese', it: 'Italian', ru: 'Russian', ar: 'Arabic', hi: 'Hindi',
+  id: 'Indonesian', nl: 'Dutch', th: 'Thai', vi: 'Vietnamese',
+};
+
+function apiLanguage(code: string): string {
+  return code === 'zh-CHS' ? 'zh-CN' : code === 'zh-CHT' ? 'zh-TW' : code;
+}
+
 function plainText(value: string): string {
   return value.replace(/<[^>]*>/g, '')
     .replace(/&#(\d+);/g, (_, number) => String.fromCodePoint(Number(number)))
@@ -20,31 +31,41 @@ function plainText(value: string): string {
     .trim();
 }
 
+export function memoryWordPage(word: string, from: string, to: string): string {
+  const segment = (value: string) => encodeURIComponent(value.trim().replace(/\s+/g, '-'));
+  return `https://mymemory.translated.net/en/${segment(languageNames[from] || from)}`
+    + `/${segment(languageNames[to] || to)}/${segment(word)}`;
+}
+
 export function memoryResults(data: MemoryResponse, word: string, from: string, to: string): Result[] {
   if (data.responseStatus !== 200) return [];
-  const url = `https://dict.youdao.com/w/${encodeURIComponent(word)}/`;
-  const results: Result[] = [];
   const seen = new Set<string>();
+  const translations: string[] = [];
   const add = (value?: string) => {
-    const title = plainText(value || '');
-    if (!title || title.toLocaleLowerCase() === word.toLocaleLowerCase() || seen.has(title.toLocaleLowerCase())) return;
-    seen.add(title.toLocaleLowerCase());
-    results.push({ title, subtitle: `MyMemory fallback · ${from} → ${to}`, arg: title,
-      pronounce: word, quicklookurl: url });
+    const translation = plainText(value || '');
+    const key = translation.toLocaleLowerCase();
+    if (translation && key !== word.toLocaleLowerCase() && !seen.has(key)) {
+      seen.add(key);
+      translations.push(translation);
+    }
   };
-  const exact = (data.matches || []).filter((match) => plainText(match.segment || '') === word);
-  const caseVariant = (data.matches || []).filter((match) =>
-    plainText(match.segment || '').toLocaleLowerCase() === word.toLocaleLowerCase()
-    && plainText(match.segment || '') !== word);
-  for (const match of [...exact, ...caseVariant]) add(match.translation);
-  add(data.responseData?.translatedText);
-  return results;
+  for (const match of data.matches || []) {
+    if (plainText(match.segment || '').toLocaleLowerCase() === word.toLocaleLowerCase()) {
+      add(match.translation);
+    }
+  }
+  if (!translations.length) add(data.responseData?.translatedText);
+  return translations.slice(0, 4).map((title) => ({
+    title, subtitle: `MyMemory · ${from} → ${to}`, arg: title,
+    pronounce: word, source: 'MyMemory', quicklookurl: memoryWordPage(word, from, to),
+  }));
 }
 
 export async function lookupMyMemory(word: string, from: string, to: string): Promise<Result[]> {
   if (new TextEncoder().encode(word).length > 500) return [];
   const url = new URL('https://api.mymemory.translated.net/get');
-  url.search = new URLSearchParams({ q: word, langpair: `${from}|${to}` }).toString();
+  url.search = new URLSearchParams({ q: word,
+    langpair: `${apiLanguage(from)}|${apiLanguage(to)}` }).toString();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {

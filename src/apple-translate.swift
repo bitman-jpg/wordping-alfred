@@ -8,12 +8,8 @@ private struct Output: Encodable {
 @main
 struct AppleTranslate {
     static func main() async {
-        guard CommandLine.arguments.count == 4 else {
-            exit(2)
-        }
-        guard #available(macOS 26.0, *) else {
-            exit(2)
-        }
+        guard CommandLine.arguments.count == 4 else { exit(2) }
+        guard #available(macOS 26.0, *) else { exit(2) }
 
         let source = Locale.Language(identifier: language(CommandLine.arguments[1]))
         let target = Locale.Language(identifier: language(CommandLine.arguments[2]))
@@ -39,7 +35,8 @@ struct AppleTranslate {
         }
 
         do {
-            let translated = try await session.translate(text).targetText.trimmingCharacters(in: .whitespacesAndNewlines)
+            let translated = try await session.translate(text).targetText
+                .trimmingCharacters(in: .whitespacesAndNewlines)
             guard !translated.isEmpty else { exit(4) }
             let output = try JSONEncoder().encode(Output(translation: translated))
             FileHandle.standardOutput.write(output)

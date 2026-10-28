@@ -10,6 +10,7 @@ interface IItem {
   icon?: any;
   mods?: any;
   text?: string;
+  variables?: Record<string, string>;
 }
 
 class Item {

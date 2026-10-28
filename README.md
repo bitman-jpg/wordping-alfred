@@ -12,11 +12,12 @@ For example, an English speaker learning French can look up `bonjour` in English
 - Translate between your chosen languages in both directions.
 - Translate other detected languages into your native language.
 - Show translations, short definitions, and alternatives when available.
+- See one result per responding provider in Alfred, with its meanings in the main line and any overflow immediately below.
 - Copy translations with one key.
 - Hear local or online pronunciation.
 - Choose American, British, or both pronunciations.
 - Translate text selected in other Mac applications.
-- Preview the full Youdao dictionary page with Quick Look.
+- Preview the selected provider's page with Quick Look.
 - Reopen recent lookups.
 - Save words to your own list and review them when due.
 - Practice recall in either direction, with optional typed answers in reverse review.
@@ -26,8 +27,9 @@ For example, an English speaker learning French can look up `bonjour` in English
 
 - An Apple silicon Mac
 - Alfred 5.5 or newer with the Powerpack
-- An internet connection for new lookups
-- Xcode Command Line Tools if building from source
+- An internet connection for web lookups
+- macOS 26 or newer with installed language models for optional Apple Translation results
+- Xcode Command Line Tools if building from source (for the Apple Translation helper)
 
 ## Install
 
@@ -47,23 +49,29 @@ wp 你好
 wp bonjour
 ```
 
+If a provider's meanings run past Alfred's list width, select that result and press **Cmd+L (⌘L)** to read the complete entry in Alfred's Large Type view.
+
 - A word in your learning language is translated into your native language; a word in your native language goes the other way.
 - Other detected languages are translated into your native language.
 - If Youdao cannot identify the source language, WordPing may show both directions with labeled results.
 - Results can include short definitions and alternative translations when available.
-- For a single word with dictionary meanings, choose **Show full entry** to see all supplied meanings, pronunciation, pinyin, exam labels, word forms, and any examples in a larger view.
-- If a translation fails for a word that has a dictionary entry, press Return on the offered link to open that entry in your browser.
-- For English–Chinese lookups that Youdao cannot translate, WordPing first tries Apple's on-device Translation framework on macOS 26 or newer when its language models are installed. If Apple Translation is unavailable, WordPing tries MyMemory. The result is labeled with its provider; if neither translates it, WordPing offers a link to the Youdao dictionary page.
-- On macOS 26 or newer, manage downloaded language models in **System Settings → General → Language & Region → Translation Languages**. Apple Intelligence may already provide a model for your language pair.
+- WordPing queries every provider named under **Providers** in its Alfred configuration at the same time. One row per provider appears as each responds; meanings fill the main line first and continue in the subtitle when needed. Remove a name to disable it. Iciba, Baidu, and Wiktionary are for single words only.
+- The default provider list includes `apple` and `mymemory`. WordPing updates the previous default list automatically. If Alfred preserves another custom **Providers** list, add either name to enable that provider.
+- WordPing uses the native and learning language pair. Script detection selects a direction for Chinese, Japanese, Korean, Russian, Arabic, Hindi, and Thai. For ambiguous Latin-script words, it starts with learning → native, then tries native → learning when a provider returns no translation.
+- Youdao and Wiktionary can provide dictionary meanings. For English–Chinese and Chinese–English words, Iciba and Baidu return word meanings directly in Alfred. Apple Translation supplies an on-device result when a language model for the pair is installed. MyMemory supplies a translation-memory result for the chosen language pair. Its matches are translations, not dictionary senses.
+- Shift previews the selected web provider's word page. Iciba uses its exact word page, such as `https://www.iciba.com/word?w=rebuke`; Baidu uses `https://dict.baidu.com/s?wd=rebuke` for a matching headword. MyMemory opens its matching language-pair page. Apple's Shift link opens its translation help page.
+- Dictionary providers group meanings that share a part of speech. Meanings fill the result title and continue in the subtitle when needed; the subtitle also identifies the provider. Return copies all meanings; Shift opens the provider's page for more detail.
+- Subtitles use short source and direction labels, such as `Apple · es→zh`. Traditional Chinese appears as `zh-TW`.
+- If no provider returns a result, Alfred shows **No dictionary result**.
 
 ### Actions on a lookup result
 
-- **Return:** Copy the selected translation.
+- **Return:** Copy the displayed meanings.
+- **Cmd+L (⌘L):** Read the selected provider's complete meanings in Alfred's Large Type view.
 - **⌘ Return:** Speak the word with a Mac voice.
 - **⌥ Return:** Play Youdao's online pronunciation. With **Both** selected, it plays British followed by American.
 - **⌃ Return:** Save the word to your list.
-- **Shift:** Preview the full Youdao dictionary page with Quick Look.
-- **Return on Show full entry:** Open the word's detailed view in Alfred.
+- **Shift:** Preview the selected provider's website with Quick Look.
 
 ### WordPing commands
 
@@ -155,10 +163,11 @@ To receive a macOS notification when WordPing detects possible session expiry, o
 
 ## Privacy
 
-- WordPing sends lookup text to Youdao's website translation service. For an English–Chinese lookup rejected with code 50, it first tries Apple Translation on the Mac. If that is unavailable, it sends the text to MyMemory's translation API. No API credentials are used.
+- WordPing sends lookup text to every enabled web provider in parallel. Wiktionary uses FreeDictionaryAPI.com. Apple Translation runs on-device. No API credentials are used.
 - Recent lookup text and results are stored locally. Use `wp :clear` to delete them.
 - Saved words and review progress are stored in Alfred's workflow data directory.
 - JSON backups contain saved words and review progress, but no credentials.
+- Dictionary data attribution and licenses are in [THIRD_PARTY_DICTIONARIES.md](THIRD_PARTY_DICTIONARIES.md).
 
 ## Support WordPing
 

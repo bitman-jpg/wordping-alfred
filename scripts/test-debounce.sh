@@ -45,9 +45,12 @@ for name in ('first', 'changed'):
     assert output['items'][0]['valid'] is False, name
 assert not os.path.exists(os.path.join(root, 'website-session.json'))
 with open(os.path.join(root, 'translations.json'), 'w') as handle:
-    json.dump({'version': 4, 'entries': [{
+    json.dump({'version': 21, 'entries': [{
         'query': 'beat', 'language': 'zh-CHS',
-        'output': json.dumps({'items': [{'title': '击败', 'arg': '击败'}]}),
+        'output': json.dumps({'variables': {'wordping_provider_order':
+            'youdao,iciba,baidu,wiktionary,apple,mymemory',
+            'wordping_subtitle_version': 2},
+            'items': [{'title': '击败', 'arg': '击败'}]}),
         'updatedAt': 1,
     }]}, handle)
 PY

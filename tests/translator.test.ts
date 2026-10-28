@@ -1,6 +1,5 @@
 import Translator, { lookupResults } from '../src/translator';
 import { WebTranslation } from '../src/keyless-youdao';
-import { memoryResults } from '../src/mymemory';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) throw new Error(message);
@@ -46,6 +45,8 @@ assert(Object.keys(output.items[1].mods || {}).length === 0,
   'detail action should not copy or pronounce its Markdown argument');
 assert(output.items.some((item: any) => item.title === '敲，击，打'), 'dictionary meanings should be selectable');
 assert(output.items.some((item: any) => item.title === '节拍'), 'noun meanings should be included');
+assert(output.items.find((item: any) => item.title === '节拍').variables.wordping_pos === 'n.',
+  'Youdao should retain the meaning’s part of speech');
 assert(output.items[0].mods.ctrl.arg === '~save:beat', 'lookup should keep the save action');
 assert(output.items[0].quicklookurl.endsWith('/beat'), 'lookup should keep Shift preview');
 assert(calls.join(',') === 'auto>zh-CHS', 'detected English should use the website response directly');
@@ -97,26 +98,15 @@ assert(!lookupResults(result('hello', 'en2zh-CHS', { ec: { word: { trs: [
   { pos: 'n.', tran: '例子' },
 ] } } }), 'two words').some((item) => item.detail), 'phrases should keep their compact results');
 
-const memory = memoryResults({ responseStatus: 200, matches: [
-  { segment: '<g>Rheumatic</g>', translation: '<g>风湿病</g>' },
-  { segment: 'rheumatic', translation: '风湿性' },
-  { segment: 'rheumatic fever', translation: '风湿热' },
-], responseData: { translatedText: '<g>风湿病</g>' } }, 'rheumatic', 'en', 'zh-CN');
-assert(memory.length === 2 && memory[0].title === '风湿性' && memory[1].title === '风湿病',
-  'fallback should prefer exact text and exclude unrelated matches');
-
 let failedWebsiteCalls = 0;
 translator = new Translator('zh-CHS', 'en', '', async () => {
   failedWebsiteCalls++;
   return { code: 50 };
-}, async (_word, from, to) => {
-  assert(from === 'en' && to === 'zh-CN', 'failed English lookup should use English to Chinese fallback');
-  return memory;
 });
-output = JSON.parse(await translator.translate('rheumatic'));
-assert(output.items[0].title === '风湿性' && output.items[0].subtitle.includes('MyMemory'),
-  'code 50 should show labeled fallback translations in Alfred');
-assert(output.items[0].mods.ctrl.arg === '~save:rheumatic', 'fallback should retain saving');
+let failed = false;
+try { await translator.translate('rheumatic'); }
+catch { failed = true; }
+assert(failed, 'code 50 should not fall back to translation-only services');
 assert(failedWebsiteCalls === 1, 'code 50 should skip a website retry known to fail');
 
 console.log('Keyless translator tests passed');

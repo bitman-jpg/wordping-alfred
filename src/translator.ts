@@ -1,6 +1,5 @@
 import KeylessYoudao, { WebTranslation } from './keyless-youdao';
 import Workflow, { Result } from './workflow/workflow';
-import { lookupFallback } from './apple-translate';
 import { entryDetail } from './entry-detail';
 
 export class YoudaoResponseError extends Error {
@@ -30,21 +29,21 @@ function sourceIsNative(source: string, native: string, learning: string): boole
     && !learning.toLocaleLowerCase().startsWith('zh-');
 }
 
-export function lookupResults(data: WebTranslation, query: string): Result[] {
+export function lookupResults(data: WebTranslation, query: string, dictionaryOnly = false): Result[] {
   if (data.code !== 0) throw new YoudaoResponseError(data.code);
   const translation = (data.translateResult || []).flat().map((item) => item.tgt || '').join('').trim();
-  if (!translation) throw new Error('Youdao website returned no translation');
+  if (!translation && !dictionaryOnly) throw new Error('Youdao website returned no translation');
   const url = `https://www.youdao.com/w/${encodeURIComponent(query)}`;
   const results: Result[] = [];
   const seen = new Set<string>();
-  const add = (title: string, subtitle: string) => {
+  const add = (title: string, subtitle: string, partOfSpeech?: string) => {
     const clean = title.trim();
-    const key = clean.toLocaleLowerCase();
+    const key = `${String(partOfSpeech || '').toLocaleLowerCase()}\0${clean.toLocaleLowerCase()}`;
     if (!clean || seen.has(key)) return;
     seen.add(key);
-    results.push({ title: clean, subtitle, arg: clean, pronounce: query, quicklookurl: url });
+    results.push({ title: clean, subtitle, arg: clean, pronounce: query, quicklookurl: url, partOfSpeech });
   };
-  add(translation, query);
+  if (!dictionaryOnly) add(translation, query);
   const detail = entryDetail(data, query, translation);
   if (detail) results.push({ title: `Show full entry for ${query}`,
     subtitle: 'All available meanings and word details', arg: detail, pronounce: query, detail: true });
@@ -53,25 +52,17 @@ export function lookupResults(data: WebTranslation, query: string): Result[] {
   // every distinct meaning as a selectable Alfred result when it is present.
   for (const entry of data.dictResult?.ec?.word?.trs || []) {
     for (const meaning of String(entry.tran || '').split(/[；;]\s*/)) {
-      add(meaning, `${entry.pos || 'Meaning'} · ${query}`);
+      add(meaning, `${entry.pos || 'Meaning'} · ${query}`, entry.pos);
     }
   }
   for (const entry of data.dictResult?.ce?.word?.trs || []) {
-    add(String(entry['#text'] || ''), `${query} · ${entry['#tran'] || 'Dictionary meaning'}`);
+    add(String(entry['#text'] || ''), `${query} · ${entry['#tran'] || 'Dictionary meaning'}`,
+      entry.pos || entry['#pos']);
   }
   return results;
 }
 
 type Lookup = (word: string, from: string, to: string) => Promise<WebTranslation>;
-type FallbackLookup = (word: string, from: string, to: string) => Promise<Result[]>;
-
-function englishChinesePair(native: string, learning: string, word: string): { from: string; to: string } | undefined {
-  const chinese = [native, learning].find((language) => language === 'zh-CHS' || language === 'zh-CHT');
-  if (!chinese || (native !== 'en' && learning !== 'en')) return undefined;
-  const from = /[\u3400-\u9fff]/.test(word) ? (chinese === 'zh-CHT' ? 'zh-TW' : 'zh-CN') : 'en';
-  return { from, to: from === 'en' ? (chinese === 'zh-CHT' ? 'zh-TW' : 'zh-CN') : 'en' };
-}
-
 export default class Translator {
   private lookup: Lookup;
 
@@ -80,42 +71,26 @@ export default class Translator {
     private learningLanguage: string = 'en',
     sessionPath = '',
     lookup?: Lookup,
-    private fallbackLookup: FallbackLookup = lookupFallback,
   ) {
     const provider = new KeylessYoudao(sessionPath);
     this.lookup = lookup || provider.lookup.bind(provider);
   }
 
-  async translate(query: string): Promise<string> {
+  async translate(query: string, dictionaryOnly = false): Promise<string> {
     const word = normalizeInput(query);
-    try {
-      const detected = await this.lookup(word, 'auto', this.nativeLanguage);
-      // An explicit English↔Chinese retry repeats code 50 on the website.
-      // Go straight to the existing fallback after one failed website request.
-      if (detected.code === 50 && englishChinesePair(this.nativeLanguage, this.learningLanguage, word)) {
-        throw new YoudaoResponseError(50);
-      }
-      const pair = detected.code === 0 ? direction(detected) : undefined;
-      const source = pair?.source || this.learningLanguage;
-      const target = sourceIsNative(source, this.nativeLanguage, this.learningLanguage)
-        ? this.learningLanguage : this.nativeLanguage;
-      let response = pair && sameLanguage(pair.target, target)
-        ? detected : await this.lookup(word, source, target);
-      const translated = (response.translateResult || []).flat().map((item) => item.tgt || '').join('').trim();
-      if (response === detected && sameLanguage(translated, word)) {
-        const explicit = await this.lookup(word, source, target);
-        if (explicit.code === 0) response = explicit;
-      }
-      return new Workflow().compose(lookupResults(response, word), word).output();
-    } catch (error) {
-      if (!(error instanceof YoudaoResponseError) || error.code !== 50) throw error;
-      const pair = englishChinesePair(this.nativeLanguage, this.learningLanguage, word);
-      if (!pair) throw error;
-      try {
-        const results = await this.fallbackLookup(word, pair.from, pair.to);
-        if (results.length) return new Workflow().compose(results, word).output();
-      } catch { /* The dictionary page remains available if both fallback providers fail. */ }
-      throw error;
+    const detected = await this.lookup(word, 'auto', this.nativeLanguage);
+    if (detected.code === 50) throw new YoudaoResponseError(50);
+    const pair = detected.code === 0 ? direction(detected) : undefined;
+    const source = pair?.source || this.learningLanguage;
+    const target = sourceIsNative(source, this.nativeLanguage, this.learningLanguage)
+      ? this.learningLanguage : this.nativeLanguage;
+    let response = pair && sameLanguage(pair.target, target)
+      ? detected : await this.lookup(word, source, target);
+    const translated = (response.translateResult || []).flat().map((item) => item.tgt || '').join('').trim();
+    if (response === detected && sameLanguage(translated, word)) {
+      const explicit = await this.lookup(word, source, target);
+      if (explicit.code === 0) response = explicit;
     }
+    return new Workflow().compose(lookupResults(response, word, dictionaryOnly), word).output();
   }
 }

@@ -1,15 +1,18 @@
 declare var tjs: any;
 
-import Translator, { YoudaoResponseError } from './translator';
 import TranslationCache, { CacheEntry, isEchoedTranslation } from './cache';
 import Vocabulary, { VocabularyEntry, nextReviewDays, searchSavedEntries } from './vocabulary';
 import { parseLookupInput } from './query';
 import ReviewSession, { ReviewMode, ReviewSessionState } from './review-session';
+import { lookupAll, LookupProgress } from './multi-lookup';
+import { DEFAULT_PROVIDER_ORDER, providerOrder, providersFor } from './provider-order';
+import md5 from './libs/md5';
 
 interface WorkflowSettings {
   nativeLanguage: string;
   learningLanguage: string;
   historyLimit: number;
+  providerOrder: string;
 }
 
 async function readPlist(path: string): Promise<Record<string, any>> {
@@ -33,6 +36,7 @@ async function workflowSettings(): Promise<WorkflowSettings> {
     nativeLanguage: tjs.env.nativeLanguage || '',
     learningLanguage: tjs.env.learningLanguage || '',
     historyLimit: Number.parseInt(tjs.env.historyLimit || '', 10),
+    providerOrder: tjs.env.providerOrder || '',
   };
   if (environment.nativeLanguage && environment.learningLanguage) {
     return {
@@ -40,6 +44,7 @@ async function workflowSettings(): Promise<WorkflowSettings> {
       nativeLanguage: environment.nativeLanguage || 'zh-CHS',
       learningLanguage: environment.learningLanguage || 'en',
       historyLimit: Number.isFinite(environment.historyLimit) ? environment.historyLimit : 100,
+      providerOrder: environment.providerOrder || DEFAULT_PROVIDER_ORDER,
     };
   }
 
@@ -58,6 +63,7 @@ async function workflowSettings(): Promise<WorkflowSettings> {
     nativeLanguage: environment.nativeLanguage || saved.nativeLanguage || legacy.nativeLanguage || 'zh-CHS',
     learningLanguage: environment.learningLanguage || saved.learningLanguage || legacy.learningLanguage || 'en',
     historyLimit: environment.historyLimit || Number.parseInt(saved.historyLimit || legacy.historyLimit || '100', 10) || 100,
+    providerOrder: environment.providerOrder || saved.providerOrder || legacy.providerOrder || DEFAULT_PROVIDER_ORDER,
   };
 }
 
@@ -76,12 +82,55 @@ function reviewSessionPath(language: string): string {
   return `${dataDirectory()}/review-session-${encodeURIComponent(language)}.json`;
 }
 
+function lookupStatePath(query: string, language: string): string {
+  return `${cachePath().replace(/translations\.json$/, '')}lookup-${md5(`${language}\0${query.toLocaleLowerCase()}`)}.json`;
+}
+
+async function readLookupState(path: string): Promise<LookupProgress | undefined> {
+  try {
+    const data = JSON.parse(new TextDecoder().decode(await tjs.readFile(path)));
+    return typeof data.startedAt === 'number' && Array.isArray(data.items) ? data : undefined;
+  } catch { return undefined; }
+}
+
+function lookupOutput(state: LookupProgress): string {
+  const done = state.completed >= state.expected;
+  const items = [...state.items];
+  if (!done) {
+    const returned = (state.providerStatus || []).filter((item) => item.outcome === 'result').length;
+    const unavailable = (state.providerStatus || []).filter((item) => item.outcome !== 'result')
+      .map((item) => item.name);
+    items.push({ title: `Checking providers · ${state.completed}/${state.expected} checked · ${returned} with results`,
+      subtitle: unavailable.length ? `No result from: ${unavailable.join(', ')}`
+        : 'Results appear as each provider responds', valid: false });
+  }
+  if (done && !items.length) {
+    items.push({ title: 'No dictionary result',
+      subtitle: state.errors[0] || 'Try another word or check your connection', valid: false });
+  }
+  if (done && state.items.length && state.providerStatus?.length) {
+    const returned = state.providerStatus.filter((item) => item.outcome === 'result').length;
+    if (returned < state.expected) {
+      const missing = state.providerStatus.filter((item) => item.outcome !== 'result')
+        .map((item) => item.name);
+      items.push({ title: `${returned}/${state.expected} providers supplied results`,
+        subtitle: `No result from: ${missing.join(', ')}`, valid: false });
+    }
+  }
+  return JSON.stringify({ variables: { wordping_pending_query: done ? '' : state.query },
+    ...(done ? {} : { rerun: 0.2 }), items });
+}
+
 function firstItem(output: string, search = ''): any {
   try {
     const items = JSON.parse(output).items || [];
     return (search && items.find((item: any) =>
       typeof item.title === 'string' && item.title.toLocaleLowerCase().includes(search.toLocaleLowerCase())
-    )) || items[0] || {};
+    )) || items.find((item: any) => item.variables?.wordping_saved_choice === '1')
+      || items.find((item: any) => item.variables?.wordping_source === 'Youdao'
+        && !String(item.arg || '').startsWith('# WordPing entry: '))
+      || items.find((item: any) => item.valid !== false && !String(item.arg || '').startsWith('# WordPing entry: '))
+      || items[0] || {};
   } catch {
     return {};
   }
@@ -343,12 +392,14 @@ function historyOutput(entries: CacheEntry[]): string {
   }
 
   const items: any[] = entries.map((entry) => {
-    let first: any = {};
-    try {
-      first = JSON.parse(entry.output).items?.[0] || {};
-    } catch {
-      // A malformed entry remains visible but cannot be actioned.
-    }
+    if (entry.legacy) return {
+      title: entry.query,
+      subtitle: 'Previous lookup · Type this word to refresh its dictionary results',
+      autocomplete: entry.query,
+      valid: false,
+      icon: { path: 'assets/translate.png' },
+    };
+    const first = firstItem(entry.output);
     return {
       title: entry.query,
       subtitle: first.title ? `Recent translation: ${first.title}` : 'Recent lookup',
@@ -382,7 +433,9 @@ function pendingLookup(word: string): string {
 async function main(): Promise<void> {
   const rawInput = tjs.args[3] || '';
   try {
-    const { nativeLanguage, learningLanguage, historyLimit } = await workflowSettings();
+    const { nativeLanguage, learningLanguage, historyLimit, providerOrder: configuredOrder } = await workflowSettings();
+    const order = providerOrder(configuredOrder);
+    const orderKey = order.join(',');
     if (nativeLanguage === learningLanguage) throw new Error('Choose different native and learning languages in WordPing configuration');
     const languageScope = learningLanguage === 'en' ? nativeLanguage : `${nativeLanguage}|${learningLanguage}`;
     const cache = new TranslationCache(cachePath(), Math.min(500, Math.max(1, historyLimit)));
@@ -390,15 +443,6 @@ async function main(): Promise<void> {
     const reviewSession = new ReviewSession(reviewSessionPath(languageScope));
     const { word, commandMode } = parseLookupInput(rawInput);
     const internalCommand = rawInput.trim().startsWith('~');
-
-    if (internalCommand && word.startsWith('~dictionary:')) {
-      const query = decodeURIComponent(word.slice(12));
-      const url = `https://dict.youdao.com/w/${encodeURIComponent(query)}/`;
-      const opened = await tjs.spawn(['/usr/bin/open', url]).wait();
-      if (opened.exit_status !== 0) throw new Error('Could not open the Youdao dictionary page');
-      console.log(`Opened Youdao Dictionary for “${query}”.`);
-      return;
-    }
 
     if (internalCommand && word === '~reminder-check') {
       const count = (await vocabulary.due(languageScope)).length;
@@ -419,9 +463,17 @@ async function main(): Promise<void> {
 
     if (internalCommand && word.startsWith('~save:')) {
       const query = decodeURIComponent(word.slice(6));
-      const output = await cache.get(query, languageScope);
+      const current = await readLookupState(lookupStatePath(query, languageScope));
+      const output = await cache.get(query, languageScope, true)
+        || (current?.items.length ? JSON.stringify({ items: current.items }) : undefined);
       if (!output) throw new Error('Look up the word again before saving it');
-      await vocabulary.save(query, languageScope, output);
+      const selected = tjs.env.wordping_choice;
+      const data = JSON.parse(output);
+      if (selected) {
+        const item = data.items.find((entry: any) => entry.title === selected && !String(entry.arg || '').startsWith('# WordPing entry: '));
+        if (item) item.variables = { ...(item.variables || {}), wordping_saved_choice: '1' };
+      }
+      await vocabulary.save(query, languageScope, JSON.stringify(data));
       console.log(`Saved “${query}” for review.`);
       return;
     }
@@ -608,7 +660,10 @@ async function main(): Promise<void> {
       return;
     }
     const cached = await cache.get(word, languageScope);
-    if (cached && !isEchoedTranslation(word, nativeLanguage, cached)) {
+    if (cached && JSON.parse(cached).variables?.wordping_provider_order === orderKey
+      && JSON.parse(cached).variables?.wordping_subtitle_version === 2
+      && !isEchoedTranslation(word, nativeLanguage, cached)) {
+      try { await tjs.remove(lookupStatePath(word, languageScope)); } catch {}
       console.log(clearPendingLookup(cached));
       return;
     }
@@ -617,23 +672,31 @@ async function main(): Promise<void> {
       return;
     }
 
-    const translator = new Translator(nativeLanguage, learningLanguage, cachePath().replace(/translations\.json$/, 'website-session.json'));
-    const output = await translator.translate(word);
-    await cache.put(word, languageScope, output);
-    console.log(clearPendingLookup(output));
-  } catch (error) {
-    if (error instanceof YoudaoResponseError && error.code === 50) {
-      const { word } = parseLookupInput(rawInput);
-      const url = `https://dict.youdao.com/w/${encodeURIComponent(word)}/`;
-      console.log(JSON.stringify({ variables: { wordping_pending_query: '' }, items: [{
-        title: `Open “${word}” in Youdao Dictionary`,
-        subtitle: 'Website translation unavailable · Return opens its dictionary entry',
-        arg: `~dictionary:${encodeURIComponent(word)}`,
-        quicklookurl: url,
-        valid: true,
-      }] }));
+    const sessionPath = cachePath().replace(/translations\.json$/, 'website-session.json');
+    if (tjs.env.alfred_workflow_bundleid) {
+      const path = lookupStatePath(word, languageScope);
+      let state = await readLookupState(path);
+      if (!state || !Array.isArray(state.providerStatus)
+        || state.order !== orderKey || Date.now() - state.startedAt > 120000) {
+        state = { query: word, language: languageScope, startedAt: Date.now(),
+          order: orderKey, completed: 0, expected: providersFor(word, order).length,
+          items: [], errors: [], providerStatus: [] };
+        await tjs.makeDir(cachePath().slice(0, cachePath().lastIndexOf('/')), { recursive: true });
+        await tjs.writeFile(path, JSON.stringify(state));
+        const starter = decodeURIComponent(new URL('./scripts/start-lookup.sh', import.meta.url).pathname);
+        await tjs.spawn(['/bin/sh', starter, word, languageScope, nativeLanguage, learningLanguage,
+          sessionPath, path, cachePath(), String(Math.min(500, Math.max(1, historyLimit))), orderKey],
+          { stdout: 'ignore', stderr: 'ignore' }).wait();
+      }
+      console.log(lookupOutput(state));
       return;
     }
+    const progress = await lookupAll(word, languageScope, nativeLanguage, learningLanguage, sessionPath, order);
+    const output = lookupOutput(progress);
+    if (progress.items.length) await cache.put(word, languageScope, JSON.stringify({
+      variables: { wordping_provider_order: orderKey, wordping_subtitle_version: 2 }, items: progress.items }));
+    console.log(output);
+  } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.log(JSON.stringify({ variables: { wordping_pending_query: '' }, items: [{ title: 'WordPing lookup failed', subtitle: message, valid: false }] }));
   }
