@@ -36,12 +36,22 @@ export function lookupResults(data: WebTranslation, query: string, dictionaryOnl
   const url = `https://www.youdao.com/w/${encodeURIComponent(query)}`;
   const results: Result[] = [];
   const seen = new Set<string>();
+  const englishWord = data.dictResult?.ec?.word;
+  const chineseWord = data.dictResult?.ce?.word;
+  const headword = englishWord?.['return-phrase'] || chineseWord?.['return-phrase'];
+  const exactHeadword = !headword || String(headword).toLocaleLowerCase() === query.toLocaleLowerCase();
+  const phones = exactHeadword ? [
+    englishWord?.ukphone && `UK /${String(englishWord.ukphone).trim()}/`,
+    englishWord?.usphone && `US /${String(englishWord.usphone).trim()}/`,
+    chineseWord?.phone && `Pinyin ${String(chineseWord.phone).trim()}`,
+  ].filter(Boolean).join(' · ') : '';
   const add = (title: string, subtitle: string, partOfSpeech?: string) => {
     const clean = title.trim();
     const key = `${String(partOfSpeech || '').toLocaleLowerCase()}\0${clean.toLocaleLowerCase()}`;
     if (!clean || seen.has(key)) return;
     seen.add(key);
-    results.push({ title: clean, subtitle, arg: clean, pronounce: query, quicklookurl: url, partOfSpeech });
+    results.push({ title: clean, subtitle, arg: clean, pronounce: query, quicklookurl: url, partOfSpeech,
+      phonetics: phones || undefined });
   };
   if (!dictionaryOnly) add(translation, query);
   const detail = entryDetail(data, query, translation);

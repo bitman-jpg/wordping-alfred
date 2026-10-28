@@ -6,7 +6,8 @@ function assert(condition: boolean, message: string): void {
 
 function page(word: string, meanings: string[]): string {
   const data = { props: { pageProps: { initialReduxState: { word: { wordInfo: { baesInfo: {
-    word_name: word, symbols: [{ parts: [{ part: 'vt.', means: meanings }] }],
+    word_name: word, symbols: [{ ph_en: 'rɪˈbjuːk', ph_am: 'rɪˈbjuːk',
+      parts: [{ part: 'vt.', means: meanings }] }],
   } } } } } } };
   return `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(data)}</script>`;
 }
@@ -15,6 +16,7 @@ const results = icibaDictionaryResults(page('rebuke', ['非难，指责', '惩�
   'rebuke', 'en', 'zh-CHS');
 assert(results.length === 2 && results[0].title === '非难，指责'
   && results[0].partOfSpeech === 'vt.'
+  && results[0].phonetics === 'UK /rɪˈbjuːk/ · US /rɪˈbjuːk/'
   && results[0].subtitle.includes('Iciba dictionary')
   && results[0].quicklookurl === 'https://www.iciba.com/word?w=rebuke',
   'Iciba should return dictionary meanings and the exact word page');

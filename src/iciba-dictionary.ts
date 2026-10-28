@@ -15,6 +15,8 @@ export function icibaDictionaryResults(html: string, query: string, from: string
   if (String(info?.word_name || '').toLocaleLowerCase() !== query.toLocaleLowerCase()) return [];
   const rows: Result[] = [];
   for (const symbol of Array.isArray(info.symbols) ? info.symbols : []) {
+    const phonetics = [symbol?.ph_en && `UK /${String(symbol.ph_en).trim()}/`,
+      symbol?.ph_am && `US /${String(symbol.ph_am).trim()}/`].filter(Boolean).join(' · ');
     for (const part of Array.isArray(symbol.parts) ? symbol.parts : []) {
       for (const meaning of Array.isArray(part.means) ? part.means : []) {
         const title = String(meaning || '').trim();
@@ -22,6 +24,7 @@ export function icibaDictionaryResults(html: string, query: string, from: string
         const partOfSpeech = String(part.part || '').trim();
         rows.push({ title, subtitle: `Iciba dictionary · ${partOfSpeech} · ${from} → ${to}`,
           arg: title, pronounce: query, source: 'Iciba', partOfSpeech,
+          phonetics: phonetics || undefined,
           quicklookurl: wordPage(query) });
         if (rows.length >= 8) return rows;
       }

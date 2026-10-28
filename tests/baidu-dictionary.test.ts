@@ -23,7 +23,8 @@ assert(baiduWordPage('你好') === 'https://dict.baidu.com/s?wd=%E4%BD%A0%E5%A5%
 const compact = oneItemPerProvider(dictionaryItems(results, 'rebuke'), 'baidu');
 assert(compact.length === 1 && compact[0].title.includes('制止，阻止')
   && compact[0].arg.includes('n. 责备 / 斥责，训斥')
-  && compact[0].subtitle.startsWith('Baidu · en→zh')
+  && compact[0].subtitle.startsWith('en→zh')
+  && compact[0].icon.path === 'assets/provider-baidu.png'
   && !compact[0].subtitle.includes('meanings'),
   'Baidu meanings should occupy the main line of one Alfred row');
 const sameWordAcrossParts = oneItemPerProvider(dictionaryItems(baiduDictionaryResults({ errno: 0,

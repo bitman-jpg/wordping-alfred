@@ -12,9 +12,10 @@ For example, an English speaker learning French can look up `bonjour` in English
 - Translate between your chosen languages in both directions.
 - Translate other detected languages into your native language.
 - Show translations, short definitions, and alternatives when available.
-- See one result per responding provider in Alfred, with a **⌘L** hint for long translations.
+- See one result per responding provider, identified by its icon, with a **⌘L** hint for long translations.
 - Copy translations with one key.
 - Hear local or online pronunciation.
+- Hold **⌥ Option** to see phonetics when a dictionary provides them.
 - Choose American, British, or both pronunciations.
 - Translate text selected in other Mac applications.
 - Preview the selected provider's page with Quick Look.
@@ -94,14 +95,14 @@ For English words, WordPing also shows macOS spelling corrections and word compl
 - Other detected languages are translated into your native language.
 - If Youdao cannot identify the source language, WordPing may show both directions with labeled results.
 - Results can include short definitions and alternative translations when available.
-- WordPing queries every provider named under **Providers** in its Alfred configuration at the same time. One row per provider appears as each responds; meanings fill the main line first and continue in the subtitle when needed. Remove a name to disable it. Iciba, Baidu, and Wiktionary are for single words only.
+- WordPing queries every provider named under **Providers** in its Alfred configuration at the same time. One row per provider appears as each responds, identified by its icon; meanings fill the main line first and continue in the subtitle when needed. Remove a name to disable it. Iciba, Baidu, and Wiktionary are for single words only.
 - The default provider list includes `apple` and `mymemory`. WordPing updates the previous default list automatically. If Alfred preserves another custom **Providers** list, add either name to enable that provider.
 - WordPing uses the native and learning language pair. Script detection selects a direction for Chinese, Japanese, Korean, Russian, Arabic, Hindi, and Thai. For ambiguous Latin-script words, it starts with learning → native, then tries native → learning when a provider returns no translation.
 - Youdao and Wiktionary can provide dictionary meanings. For English–Chinese and Chinese–English words, Iciba and Baidu return word meanings directly in Alfred. Apple Translation supplies an on-device result when a language model for the pair is installed. MyMemory supplies a translation-memory result for the chosen language pair. Its matches are translations, not dictionary senses.
 - If Youdao's translation endpoint rejects an English–Chinese word, WordPing checks Youdao's dictionary entry for an exact headword before leaving the Youdao row empty.
 - Shift previews the selected web provider's word page. Iciba uses its exact word page, such as `https://www.iciba.com/word?w=rebuke`; Baidu uses `https://dict.baidu.com/s?wd=rebuke` for a matching headword. MyMemory opens its matching language-pair page. Apple's Shift link opens its translation help page.
-- Dictionary providers group meanings that share a part of speech. Meanings fill the result title and continue in the subtitle when needed; the subtitle also identifies the provider. Return copies all meanings; Shift opens the provider's page for more detail.
-- Subtitles use short source and direction labels, such as `Apple · es→zh`. Traditional Chinese appears as `zh-TW`.
+- Dictionary providers group meanings that share a part of speech. Meanings fill the result title and continue in the subtitle when needed. Return copies all meanings; Shift opens the provider's page for more detail.
+- The icon identifies the provider. Subtitles use short direction labels, such as `es→zh`; Traditional Chinese appears as `zh-TW`.
 - If no provider returns a result, Alfred shows **No dictionary result**.
 
 ### Actions on a lookup result
@@ -109,6 +110,7 @@ For English words, WordPing also shows macOS spelling corrections and word compl
 - **Return:** Copy the displayed meanings.
 - **Cmd+L (⌘L):** Read the selected provider's complete meanings in Alfred's Large Type view.
 - **⌘ Return:** Speak the word with a Mac voice.
+- **Hold ⌥ Option:** Show available UK and US phonetics or pinyin on Youdao results, and phonetics on Iciba results, without replacing meanings in the normal subtitle.
 - **⌥ Return:** Play Youdao's online pronunciation. With **Both** selected, it plays British followed by American.
 - **⌃ Return:** Save the word to your list.
 - **Shift:** Preview the selected provider's website with Quick Look.

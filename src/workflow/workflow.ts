@@ -9,6 +9,7 @@ export interface Result {
   detail?: boolean;
   source?: string;
   partOfSpeech?: string;
+  phonetics?: string;
 }
 
 class Workflow {
@@ -31,7 +32,9 @@ class Workflow {
       .setArg(r.arg)
       .setIcon('assets/translate.png')
       .setCmd('Speak locally: ' + r.pronounce, r.pronounce, true, 'assets/translate-say.png')
-      .setAlt('Play online pronunciation: ' + r.pronounce, r.pronounce, true, 'assets/translate-say.png')
+      .setAlt(r.phonetics ? `${r.phonetics} · Return to play online pronunciation`
+        : 'Play online pronunciation: ' + r.pronounce,
+      r.pronounce, true, 'assets/translate-say.png')
       .setCtrl(
         'Save word',
         query ? `~save:${encodeURIComponent(query)}` : r.arg,

@@ -5,10 +5,11 @@ function exactHeadword(value: any, query: string): boolean {
   return typeof headword === 'string' && headword.toLocaleLowerCase() === query.toLocaleLowerCase();
 }
 
-function result(query: string, translation: string, partOfSpeech = ''): Result {
+function result(query: string, translation: string, partOfSpeech = '', phonetics = ''): Result {
   return {
     title: translation, subtitle: `Youdao dictionary · ${partOfSpeech || 'meaning'}`,
     arg: translation, pronounce: query, partOfSpeech, source: 'Youdao',
+    phonetics: phonetics || undefined,
     quicklookurl: `https://www.youdao.com/w/${encodeURIComponent(query)}`,
   };
 }
@@ -18,6 +19,9 @@ export function youdaoDictionaryResults(data: any, query: string, from: string, 
   const entries = from === 'en' ? data?.ec?.word : data?.ce?.word;
   const word = Array.isArray(entries) ? entries.find((entry) => exactHeadword(entry, query)) : undefined;
   if (!word) return [];
+  const phonetics = [word.ukphone && `UK /${String(word.ukphone).trim()}/`,
+    word.usphone && `US /${String(word.usphone).trim()}/`,
+    word.phone && `Pinyin ${String(word.phone).trim()}`].filter(Boolean).join(' · ');
   const results: Result[] = [];
   const seen = new Set<string>();
   for (const entry of Array.isArray(word.trs) ? word.trs : []) {
@@ -31,7 +35,7 @@ export function youdaoDictionaryResults(data: any, query: string, from: string, 
         const key = `${part}\0${meaning.toLocaleLowerCase()}`;
         if (!meaning || seen.has(key)) continue;
         seen.add(key);
-        results.push(result(query, meaning, part));
+        results.push(result(query, meaning, part, phonetics));
       }
     }
   }

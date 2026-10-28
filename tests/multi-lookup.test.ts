@@ -39,10 +39,13 @@ assert(oneItemPerProvider(memory.map((item) => ({ title: item.title, subtitle: i
   quicklookurl: item.quicklookurl })), 'mymemory').length === 1,
   'MyMemory should occupy one Alfred row');
 assert(oneItemPerProvider(memory.map((item) => ({ title: item.title, subtitle: item.subtitle })),
-  'mymemory')[0].subtitle === 'MyMemory · en→zh',
-  'provider subtitles should use short names and language codes');
+  'mymemory')[0].subtitle === 'en→zh',
+  'provider icons should leave the subtitle for language direction');
+assert(oneItemPerProvider(memory.map((item) => ({ title: item.title, subtitle: item.subtitle })),
+  'mymemory')[0].icon.path === 'assets/provider-mymemory.png',
+  'MyMemory should use its provider icon');
 assert(oneItemPerProvider([{ title: 'translation', subtitle: 'Apple · es → zh-CHT' }],
-  'apple')[0].subtitle === 'Apple · es→zh-TW',
+  'apple')[0].subtitle === 'es→zh-TW',
   'traditional Chinese should remain distinguishable in a short subtitle');
 assert(memoryResults({ responseStatus: 200, responseData: { translatedText: 'hello' },
   matches: [{ segment: 'bonjour le monde', translation: 'hello world' }] },
@@ -75,9 +78,9 @@ const compact = oneItemPerProvider([
     text: { copy: '非难，指责' }, mods: { ctrl: { variables: { wordping_choice: '非难，指责' } } } },
   { title: '惩戒', arg: '惩戒', subtitle: 'Iciba dictionary' },
   { title: 'Show full entry', arg: '# WordPing entry: rebuke' },
-]);
+], 'iciba');
 assert(compact.length === 1 && compact[0].title === '非难，指责；惩戒'
-  && compact[0].subtitle === 'Iciba dictionary'
+  && compact[0].subtitle === ''
   && compact[0].arg === compact[0].title && compact[0].text.copy === compact[0].title
   && compact[0].text.largetype === compact[0].title
   && compact[0].mods.ctrl.variables.wordping_choice === compact[0].title
@@ -91,7 +94,7 @@ const consent = oneItemPerProvider([
     '【名】 （Consent）（美、法、荷）孔桑（人名）'].map((title, index) => ({ title,
       variables: { wordping_pos: index < 3 ? 'n.' : 'v.' } })),
 ], 'youdao')[0];
-assert(consent.subtitle.startsWith('Youdao · ⌘L to read full translation · v. 赞同，准许，同意')
+assert(consent.subtitle.startsWith('⌘L to read full translation · v. 赞同，准许，同意')
   && !consent.subtitle.includes('consent') && !consent.subtitle.includes('meanings')
   && consent.title.startsWith('n. 许可，允许 / 同意，赞同')
   && consent.arg.includes('v. 赞同，准许，同意')
@@ -166,7 +169,7 @@ const appleResult = await lookupAll('hello', 'zh-CHS', 'zh-CHS', 'en', '',
       arg: '你好', variables: { wordping_source: 'Apple Translation' } }],
   });
 assert(appleResult.items.length === 1 && appleResult.items[0].title === '你好'
-  && appleResult.items[0].subtitle === 'Apple · en→zh'
+  && appleResult.items[0].subtitle === 'en→zh'
   && appleResult.providerStatus?.[0]?.outcome === 'result',
   'Apple should provide a direct Alfred result alongside dictionary providers');
 

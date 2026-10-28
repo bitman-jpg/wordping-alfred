@@ -28,6 +28,8 @@ reply = () => ({ ...result('击败', 'en2zh-CHS', { ec: { exam_type: ['CET4', 'T
   translateResult: [[{ tgt: '击败', src: 'beat', tgtPronounce: 'jībài' }]] });
 let output = JSON.parse(await translator.translate('beat'));
 assert(output.items[0].title === '击败', 'translation should remain the first result');
+assert(output.items[0].mods.alt.subtitle === 'UK /biːt/ · US /biːt/ · Return to play online pronunciation',
+  'available phonetics should appear on the pronunciation modifier without another result row');
 assert(output.items[1].title === 'Show full entry for beat', 'single words with meanings should offer a detail view');
 assert(output.items[1].arg.includes('## Meanings') && output.items[1].arg.includes('敲，击，打'),
   'detail view should show all meanings');
@@ -63,6 +65,8 @@ reply = () => ({ ...result('Hello', 'zh-CHS2en', { ce: { word: {
 } } }), translateResult: [[{ tgt: 'Hello', src: '你好', srcPronounce: 'nĭhăo' }]] });
 output = JSON.parse(await translator.translate('你好'));
 assert(output.items[0].title === 'Hello', 'native language should translate to learning language');
+assert(output.items[0].mods.alt.subtitle.startsWith('Pinyin nǐ hǎo ·'),
+  'Chinese pinyin should appear on the pronunciation modifier when available');
 assert(output.items[1].arg.includes('Simplified Chinese → English')
   && output.items[1].arg.includes('Source pinyin:** nǐ hǎo'),
   'Chinese entries should show their detected direction and source pinyin');
@@ -99,6 +103,7 @@ const inflected = lookupResults(result('击打', 'en2zh-CHS', { ec: { word: {
 } } }), 'beating');
 assert(inflected[1].arg.includes('Dictionary headword:** beat'),
   'a normalized dictionary headword should appear when it differs from the lookup');
+assert(!inflected[0].phonetics, 'phonetics for a different dictionary headword should not label the query');
 
 assert(!lookupResults(result('hello', 'en2zh-CHS', { ec: { word: { trs: [
   { pos: 'n.', tran: '例子' },

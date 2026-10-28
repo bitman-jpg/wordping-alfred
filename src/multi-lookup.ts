@@ -121,19 +121,15 @@ export function oneItemPerProvider(items: any[], provider?: ProviderName): any[]
     first.mods = { ...first.mods, ctrl: { ...first.mods.ctrl,
       variables: { ...first.mods.ctrl.variables, wordping_choice: combined } } };
   }
-  const labels: Record<ProviderName, string> = {
-    youdao: 'Youdao', iciba: 'Iciba', baidu: 'Baidu', wiktionary: 'Wiktionary',
-    apple: 'Apple', mymemory: 'MyMemory',
-  };
   const direction = String(first.subtitle || '').match(/([a-zA-Z-]+)\s*→\s*([a-zA-Z-]+)/);
   const pair = direction ? `${shortLanguage(direction[1])}→${shortLanguage(direction[2])}` : '';
-  const providerInfo = provider ? labels[provider] + (pair ? ` · ${pair}` : '')
-    : String(first.subtitle || '');
+  if (provider) first.icon = { path: `assets/provider-${provider}.png` };
+  const providerInfo = provider ? pair : String(first.subtitle || '');
   const remaining = [mainPreview.rest, overflow].filter(Boolean).join(separator);
   const needsLargeTypeHint = Boolean(remaining) && displayWidth(combined) > 100;
   const subtitlePreview = preview(remaining, needsLargeTypeHint ? 48 : 100);
-  first.subtitle = providerInfo + (needsLargeTypeHint ? ' · ⌘L to read full translation' : '')
-    + (remaining ? ` · ${subtitlePreview.shown}` : '');
+  first.subtitle = [providerInfo, needsLargeTypeHint ? '⌘L to read full translation' : '',
+    remaining ? subtitlePreview.shown : ''].filter(Boolean).join(' · ');
   return [first];
 }
 
