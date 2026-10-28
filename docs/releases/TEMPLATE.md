@@ -1,5 +1,3 @@
-## English
-
 ### What's new
 
 - Describe the changes users will notice.
@@ -11,8 +9,6 @@
 ### Install
 
 Download the `.alfredworkflow` asset below and open it with Alfred.
-
-## 简体中文
 
 ### 更新内容
 
