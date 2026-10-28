@@ -8,6 +8,7 @@ import { lookupAll, lookupDirection, LookupProgress } from './multi-lookup';
 import { suggestionItems, wordSuggestions } from './word-suggestions';
 import { DEFAULT_PROVIDER_ORDER, providerOrder, providersFor } from './provider-order';
 import md5 from './libs/md5';
+import { compareVersions, latestRelease, openUpgrade } from './release-update';
 
 interface WorkflowSettings {
   nativeLanguage: string;
@@ -221,8 +222,27 @@ function clearAction(): any {
 function commandMenu(): string {
   return JSON.stringify({ items: [
     { title: 'Saved words…', subtitle: 'Review, browse, reminders, and files', autocomplete: ':words', valid: false, icon: commandIcon('saved') },
+    { title: 'Check for WordPing update', subtitle: 'Install the latest GitHub release', autocomplete: ':update', valid: false, icon: commandIcon('translate') },
     clearAction(),
   ] });
+}
+
+async function installedVersion(): Promise<string> {
+  const path = decodeURIComponent(new URL('./info.plist', import.meta.url).pathname);
+  const version = (await readPlist(path)).version;
+  if (typeof version !== 'string') throw new Error('Cannot read installed WordPing version');
+  return version;
+}
+
+async function updateMenu(): Promise<string> {
+  const current = await installedVersion();
+  const release = await latestRelease();
+  const newer = compareVersions(release.version, current) > 0;
+  return JSON.stringify({ items: [{
+    title: newer ? `Upgrade WordPing ${current} → ${release.version}` : `WordPing ${current} is up to date`,
+    subtitle: newer ? 'Press Return to download and open the release in Alfred' : 'Latest GitHub release is already installed',
+    arg: newer ? '~update' : undefined, valid: newer, icon: commandIcon('translate'),
+  }] });
 }
 
 function savedWordsMenu(dueCount: number, reverseDueCount: number): string {
@@ -463,6 +483,11 @@ async function main(): Promise<void> {
     const lookupScope = direction ? `manual:${direction.from}>${direction.to}` : languageScope;
     const internalCommand = rawInput.trim().startsWith('~');
 
+    if (internalCommand && word === '~update') {
+      console.log(await openUpgrade(await installedVersion()));
+      return;
+    }
+
     if (internalCommand && word === '~reminder-check') {
       const count = (await vocabulary.due(languageScope)).length;
       if (count) {
@@ -569,6 +594,10 @@ async function main(): Promise<void> {
       }
       if (command === 'files') {
         console.log(filesMenu());
+        return;
+      }
+      if (command === 'update') {
+        console.log(await updateMenu());
         return;
       }
       if (command === 'saved') {
@@ -737,7 +766,14 @@ async function main(): Promise<void> {
     console.log(direction ? manualSaveActions(output, lookupScope) : output);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.log(JSON.stringify({ variables: { wordping_pending_query: '' }, items: [{ title: 'WordPing lookup failed', subtitle: message, valid: false }] }));
+    if (rawInput.trim() === '~update') {
+      console.log(`WordPing update failed: ${message}`);
+      return;
+    }
+    console.log(JSON.stringify({ variables: { wordping_pending_query: '' }, items: [{
+      title: rawInput.trim() === ':update' ? 'WordPing update check failed' : 'WordPing lookup failed',
+      subtitle: message, valid: false,
+    }] }));
   }
 }
 

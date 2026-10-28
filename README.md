@@ -40,7 +40,7 @@ The workflows are not identical:
 | `CamelCase` splitting | Not supported automatically; enter words with spaces. |
 | Automatic wrapping of long translations | Long results have a short preview and a **⌘L** hint to show the full result in Alfred's Large Type view. |
 | Baidu translation API | Not supported; WordPing's Baidu provider supplies dictionary meanings for single words. |
-| In-workflow update command | Not supported; install a newer workflow version manually. |
+| In-workflow update command | Type `wp :update` to check GitHub Releases and open a newer workflow in Alfred. |
 
 WordPing adds reverse recall, optional typed answers, daily review reminders, and vocabulary backup and export. It requires an Apple silicon Mac, Alfred 5.5 with Powerpack, and the macOS version listed below.
 
@@ -117,7 +117,8 @@ For English words, WordPing also shows macOS spelling corrections and word compl
 
 ### WordPing commands
 
-- Type `wp :` to see **Saved words…** and **Clear recent lookups**. Choose **Saved words…** (`wp :words`) for review, browse, reminders, and files; choose **Manage saved words…** for backup, restore, and export.
+- Type `wp :` to see **Saved words…**, **Check for WordPing update**, and **Clear recent lookups**. Choose **Saved words…** (`wp :words`) for review, browse, reminders, and files; choose **Manage saved words…** for backup, restore, and export.
+- Type `wp :update` to check the latest GitHub release. If a newer version is available, press Return to download its Apple silicon workflow and open it in Alfred, then complete Alfred's installation prompt. Your WordPing settings and saved words remain in Alfred's workflow data.
 - The colon distinguishes a command from a lookup: `wp review` searches for “review,” while `wp :review` starts a review. Direct commands such as `wp :review` still work.
 - Type an unrecognized colon command to look it up as ordinary text.
 

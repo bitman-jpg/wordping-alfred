@@ -20,7 +20,8 @@ node - "$command_menu" "$words_menu" "$files_menu" <<'JS'
 const assert = require('node:assert/strict');
 const items = JSON.parse(process.argv[2]).items;
 assert.equal(items[0].autocomplete, ':words');
-assert.equal(items[1].arg, '__wordping_clear__');
+assert.equal(items[1].autocomplete, ':update');
+assert.equal(items[2].arg, '__wordping_clear__');
 assert.equal(items[0].title, 'Saved words…');
 const words = JSON.parse(process.argv[3]).items;
 assert.deepEqual(words.map((item) => item.autocomplete),
