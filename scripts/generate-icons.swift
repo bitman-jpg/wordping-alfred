@@ -28,6 +28,7 @@ let tiles = [
     Tile(name: "backup", symbol: "square.and.arrow.up.fill", start: color(0x3969D9), end: color(0x20A5DD)),
     Tile(name: "restore", symbol: "square.and.arrow.down.fill", start: color(0x3B79CE), end: color(0x28B9A7)),
     Tile(name: "export", symbol: "tablecells.fill", start: color(0x168FBA), end: color(0x18B88F)),
+    Tile(name: "update", symbol: "arrow.triangle.2.circlepath", start: color(0x078B91), end: color(0x3BC6A5)),
 ]
 
 func draw(_ tile: Tile, size: Int) throws {

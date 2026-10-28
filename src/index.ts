@@ -222,7 +222,7 @@ function clearAction(): any {
 function commandMenu(): string {
   return JSON.stringify({ items: [
     { title: 'Saved words…', subtitle: 'Review, browse, reminders, and files', autocomplete: ':words', valid: false, icon: commandIcon('saved') },
-    { title: 'Check for WordPing update', subtitle: 'Install the latest GitHub release', autocomplete: ':update', valid: false, icon: commandIcon('translate') },
+    { title: 'Check for WordPing update', subtitle: 'Install the latest GitHub release', autocomplete: ':update', valid: false, icon: commandIcon('update') },
     clearAction(),
   ] });
 }
@@ -241,7 +241,7 @@ async function updateMenu(): Promise<string> {
   return JSON.stringify({ items: [{
     title: newer ? `Upgrade WordPing ${current} → ${release.version}` : `WordPing ${current} is up to date`,
     subtitle: newer ? 'Press Return to download and open the release in Alfred' : 'Latest GitHub release is already installed',
-    arg: newer ? '~update' : undefined, valid: newer, icon: commandIcon('translate'),
+    arg: newer ? '~update' : undefined, valid: newer, icon: commandIcon('update'),
   }] });
 }
 
