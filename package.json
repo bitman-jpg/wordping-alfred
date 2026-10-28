@@ -1,6 +1,6 @@
 {
   "name": "wordping-alfred",
-  "version": "0.12.4",
+  "version": "0.12.5",
   "description": "Alfred 5 translator and dictionary for language learners, with saved words and spaced review",
   "keywords": ["alfred", "alfred-workflow", "translation", "dictionary", "language-learning", "spaced-repetition"],
   "main": "src/index.ts",

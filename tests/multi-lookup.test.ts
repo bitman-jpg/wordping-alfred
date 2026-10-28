@@ -91,7 +91,7 @@ const consent = oneItemPerProvider([
     '【名】 （Consent）（美、法、荷）孔桑（人名）'].map((title, index) => ({ title,
       variables: { wordping_pos: index < 3 ? 'n.' : 'v.' } })),
 ], 'youdao')[0];
-assert(consent.subtitle.startsWith('Youdao · v. 赞同，准许，同意')
+assert(consent.subtitle.startsWith('Youdao · ⌘L to read full translation · v. 赞同，准许，同意')
   && !consent.subtitle.includes('consent') && !consent.subtitle.includes('meanings')
   && consent.title.startsWith('n. 许可，允许 / 同意，赞同')
   && consent.arg.includes('v. 赞同，准许，同意')
@@ -105,13 +105,11 @@ const longRows = oneItemPerProvider([{
   title: longTranslation, subtitle: 'Apple · en → fr', arg: longTranslation,
   text: { copy: longTranslation },
 }], 'apple');
-assert(longRows.length === 2 && longRows[0].title.endsWith('…')
-  && longRows[0].subtitle.includes('Full text below')
+assert(longRows.length === 1 && longRows[0].title.endsWith('…')
+  && longRows[0].subtitle.includes('⌘L to read full translation')
   && longRows[0].arg === longTranslation && longRows[0].text.copy === longTranslation
-  && longRows[0].text.largetype === longTranslation
-  && longRows[1].arg.startsWith('# WordPing entry: ')
-  && longRows[1].arg.includes(longTranslation),
-  'long translations should have a short preview and a full wrapped view without losing copy text');
+  && longRows[0].text.largetype === longTranslation,
+  'long translations should stay in one row with a Large Type hint and complete copy text');
 
 const calls: string[] = [];
 const updates: string[][] = [];

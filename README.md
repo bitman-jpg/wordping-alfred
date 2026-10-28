@@ -12,7 +12,7 @@ For example, an English speaker learning French can look up `bonjour` in English
 - Translate between your chosen languages in both directions.
 - Translate other detected languages into your native language.
 - Show translations, short definitions, and alternatives when available.
-- See one main result per responding provider in Alfred, with a full-text view for long translations.
+- See one result per responding provider in Alfred, with a **⌘L** hint for long translations.
 - Copy translations with one key.
 - Hear local or online pronunciation.
 - Choose American, British, or both pronunciations.
@@ -37,7 +37,7 @@ The workflows are not identical:
 | Recent lookup history and Shift web preview | Supported. |
 | Youdao wordbook | Saved words stay in WordPing; they do not sync with a Youdao account. |
 | `CamelCase` splitting | Not supported automatically; enter words with spaces. |
-| Automatic wrapping of long translations | Long results have a short preview and a selectable full-text view. **⌘L** also shows the full result. |
+| Automatic wrapping of long translations | Long results have a short preview and a **⌘L** hint to show the full result in Alfred's Large Type view. |
 | Baidu translation API | Not supported; WordPing's Baidu provider supplies dictionary meanings for single words. |
 | In-workflow update command | Not supported; install a newer workflow version manually. |
 
@@ -86,7 +86,7 @@ wp es>zh trabajo
 
 To choose the direction yourself, put `source>destination` before the text. For example, `wp es>zh trabajo` looks up Spanish `trabajo` in Simplified Chinese. `wp es>cn trabajo` works too: `zh` and `cn` both mean Simplified Chinese here. Use `tw` for Traditional Chinese, such as `wp en>tw hello`; `zh-TW` also works. Other codes follow the language choices in WordPing’s configuration (`en`, `es`, `fr`, `ja`, and so on). A manual direction is used exactly as entered; providers do not reverse it when they return no result. Lookups without a prefix continue using automatic direction selection.
 
-When the translated result itself exceeds about 100 display columns, WordPing adds a **Read full translation** row. Press Return on that row to read wrapped text, or select the provider result and press **Cmd+L (⌘L)** for Alfred's Large Type view. Shorter results, such as “I missed the train because I left home too late this morning,” fit in the provider row and do not get an extra row. Return on the provider result always copies the complete translation.
+When the translated result itself exceeds about 100 display columns, its provider row shows **⌘L to read full translation**. Press **Cmd+L (⌘L)** to see the complete result in Alfred's Large Type view. Return on the provider result always copies the complete translation.
 
 For English words, WordPing also shows macOS spelling corrections and word completions. For example, type `wp terestrial`, then select **Did you mean “terrestrial”?** and press **Tab** to look up the corrected word. Suggestions also work while you are typing; they keep a manual language prefix such as `en>zh `.
 

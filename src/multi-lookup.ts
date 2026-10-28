@@ -130,18 +130,11 @@ export function oneItemPerProvider(items: any[], provider?: ProviderName): any[]
   const providerInfo = provider ? labels[provider] + (pair ? ` · ${pair}` : '')
     : String(first.subtitle || '');
   const remaining = [mainPreview.rest, overflow].filter(Boolean).join(separator);
-  const needsFullView = Boolean(remaining) && displayWidth(combined) > 100;
-  const subtitlePreview = preview(remaining, needsFullView ? 48 : 100);
-  first.subtitle = providerInfo + (remaining ? ` · ${subtitlePreview.shown}` : '')
-    + (needsFullView ? ' · Full text below' : '');
-  if (!needsFullView) return [first];
-  return [first, {
-    title: `Read full ${provider ? labels[provider] + ' ' : ''}translation`,
-    subtitle: 'Press Return for wrapped text · Esc to return to results',
-    arg: `# WordPing entry: Full translation\n\n${combined}`,
-    valid: true,
-    icon: { path: 'assets/translate.png' },
-  }];
+  const needsLargeTypeHint = Boolean(remaining) && displayWidth(combined) > 100;
+  const subtitlePreview = preview(remaining, needsLargeTypeHint ? 48 : 100);
+  first.subtitle = providerInfo + (needsLargeTypeHint ? ' · ⌘L to read full translation' : '')
+    + (remaining ? ` · ${subtitlePreview.shown}` : '');
+  return [first];
 }
 
 export async function lookupAll(
