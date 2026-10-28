@@ -17,6 +17,8 @@ fi
 swiftc -O -parse-as-library -target arm64-apple-macosx26.0 src/apple-translate.swift -o dist/runtime/apple-translate
 swiftc -O -target arm64-apple-macosx26.0 src/word-suggestions.swift -o dist/runtime/word-suggestions
 mkdir -p dist/assets
+sh scripts/render-provider-icons.sh
+rm -f dist/assets/provider-*.png
 cp assets/icon.png dist/icon.png
 cp assets/*.png dist/assets/
 rm -rf dist/assets/dictionaries

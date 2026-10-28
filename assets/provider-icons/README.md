@@ -1,0 +1,1 @@
+The Apple outline adapts the [Simple Icons Apple path](https://github.com/simple-icons/simple-icons/blob/develop/icons/apple.svg), released under [CC0 1.0](https://github.com/simple-icons/simple-icons/blob/develop/LICENSE.md). The other provider outlines are original WordPing artwork.

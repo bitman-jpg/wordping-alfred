@@ -14,7 +14,7 @@ async function main(): Promise<void> {
   await tjs.writeFile(statePath, JSON.stringify(progress));
   if (progress.items.length) {
     await new TranslationCache(cachePath, Number(maximum) || 100).put(query, language, JSON.stringify({
-      variables: { wordping_provider_order: order.join(','), wordping_subtitle_version: 4,
+      variables: { wordping_provider_order: order.join(','), wordping_subtitle_version: 5,
         wordping_lookup_version: 1 }, items: progress.items }));
   }
 }

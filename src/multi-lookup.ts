@@ -123,7 +123,7 @@ export function oneItemPerProvider(items: any[], provider?: ProviderName): any[]
   }
   const direction = String(first.subtitle || '').match(/([a-zA-Z-]+)\s*→\s*([a-zA-Z-]+)/);
   const pair = direction ? `${shortLanguage(direction[1])}→${shortLanguage(direction[2])}` : '';
-  if (provider) first.icon = { path: `assets/provider-${provider}.png` };
+  if (provider) first.icon = { path: `assets/provider-muted-${provider}.png` };
   const providerInfo = provider ? pair : String(first.subtitle || '');
   const remaining = [mainPreview.rest, overflow].filter(Boolean).join(separator);
   const needsLargeTypeHint = Boolean(remaining) && displayWidth(combined) > 100;

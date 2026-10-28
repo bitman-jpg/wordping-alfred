@@ -42,7 +42,7 @@ assert(oneItemPerProvider(memory.map((item) => ({ title: item.title, subtitle: i
   'mymemory')[0].subtitle === 'en→zh',
   'provider icons should leave the subtitle for language direction');
 assert(oneItemPerProvider(memory.map((item) => ({ title: item.title, subtitle: item.subtitle })),
-  'mymemory')[0].icon.path === 'assets/provider-mymemory.png',
+  'mymemory')[0].icon.path === 'assets/provider-muted-mymemory.png',
   'MyMemory should use its provider icon');
 assert(oneItemPerProvider([{ title: 'translation', subtitle: 'Apple · es → zh-CHT' }],
   'apple')[0].subtitle === 'es→zh-TW',

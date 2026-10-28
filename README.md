@@ -12,7 +12,7 @@ For example, an English speaker learning French can look up `bonjour` in English
 - Translate between your chosen languages in both directions.
 - Translate other detected languages into your native language.
 - Show translations, short definitions, and alternatives when available.
-- See one result per responding provider, identified by its icon, with a **⌘L** hint for long translations.
+- See one result per responding provider, identified by a subtle outline icon, with a **⌘L** hint for long translations.
 - Copy translations with one key.
 - Hear local or online pronunciation.
 - Hold **⌥ Option** to see phonetics when a dictionary provides them.
@@ -102,7 +102,7 @@ For English words, WordPing also shows macOS spelling corrections and word compl
 - If Youdao's translation endpoint rejects an English–Chinese word, WordPing checks Youdao's dictionary entry for an exact headword before leaving the Youdao row empty.
 - Shift previews the selected web provider's word page. Iciba uses its exact word page, such as `https://www.iciba.com/word?w=rebuke`; Baidu uses `https://dict.baidu.com/s?wd=rebuke` for a matching headword. MyMemory opens its matching language-pair page. Apple's Shift link opens its translation help page.
 - Dictionary providers group meanings that share a part of speech. Meanings fill the result title and continue in the subtitle when needed. Return copies all meanings; Shift opens the provider's page for more detail.
-- The icon identifies the provider. Subtitles use short direction labels, such as `es→zh`; Traditional Chinese appears as `zh-TW`.
+- A muted outline icon identifies each provider. Subtitles use short direction labels, such as `es→zh`; Traditional Chinese appears as `zh-TW`.
 - If no provider returns a result, Alfred shows **No dictionary result**.
 
 ### Actions on a lookup result

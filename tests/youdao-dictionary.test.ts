@@ -17,7 +17,7 @@ assert(result.length === 1 && result[0].title === '[植] 单性生殖，[胚] �
   'the Youdao dictionary fallback should recover an exact English headword with its part of speech');
 const row = oneItemPerProvider(dictionaryItems(result, 'parthenogenesis'), 'youdao')[0];
 assert(row.title === 'n. [植] 单性生殖，[胚] 孤雌生殖' && row.subtitle === ''
-  && row.icon.path === 'assets/provider-youdao.png'
+  && row.icon.path === 'assets/provider-muted-youdao.png'
   && row.mods.alt.subtitle.startsWith('UK /ˌpɑːθənəʊˈdʒenɪsɪs/'),
   'the fallback should render as one normal Youdao row');
 assert(youdaoDictionaryResults(response, 'another', 'en', 'zh-CHS').length === 0,
