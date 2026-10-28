@@ -54,6 +54,8 @@ To choose the direction yourself, put `source>destination` before the text. For 
 
 If a provider's meanings run past Alfred's list width, select that result and press **Cmd+L (⌘L)** to read the complete entry in Alfred's Large Type view.
 
+For English words, WordPing also shows macOS spelling corrections and word completions. For example, type `wp terestrial`, then select **Did you mean “terrestrial”?** and press **Tab** to look up the corrected word. Suggestions also work while you are typing; they keep a manual language prefix such as `en>zh `.
+
 - A word in your learning language is translated into your native language; a word in your native language goes the other way.
 - Other detected languages are translated into your native language.
 - If Youdao cannot identify the source language, WordPing may show both directions with labeled results.

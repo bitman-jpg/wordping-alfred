@@ -15,6 +15,7 @@ if ! command -v swiftc >/dev/null 2>&1; then
   exit 1
 fi
 swiftc -O -parse-as-library -target arm64-apple-macosx26.0 src/apple-translate.swift -o dist/runtime/apple-translate
+swiftc -O -target arm64-apple-macosx26.0 src/word-suggestions.swift -o dist/runtime/word-suggestions
 mkdir -p dist/assets
 cp assets/icon.png assets/translate.png assets/translate-say.png dist/assets/
 rm -rf dist/assets/dictionaries

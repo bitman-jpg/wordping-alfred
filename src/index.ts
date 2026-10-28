@@ -4,7 +4,8 @@ import TranslationCache, { CacheEntry, isEchoedTranslation } from './cache';
 import Vocabulary, { VocabularyEntry, nextReviewDays, searchSavedEntries } from './vocabulary';
 import { parseLookupInput } from './query';
 import ReviewSession, { ReviewMode, ReviewSessionState } from './review-session';
-import { lookupAll, LookupProgress } from './multi-lookup';
+import { lookupAll, lookupDirection, LookupProgress } from './multi-lookup';
+import { suggestionItems, wordSuggestions } from './word-suggestions';
 import { DEFAULT_PROVIDER_ORDER, providerOrder, providersFor } from './provider-order';
 import md5 from './libs/md5';
 
@@ -104,7 +105,7 @@ async function readLookupState(path: string): Promise<LookupProgress | undefined
   } catch { return undefined; }
 }
 
-function lookupOutput(state: LookupProgress): string {
+function lookupOutput(state: LookupProgress, hints: any[] = []): string {
   const done = state.completed >= state.expected;
   const items = [...state.items];
   if (!done) {
@@ -129,7 +130,7 @@ function lookupOutput(state: LookupProgress): string {
     }
   }
   return JSON.stringify({ variables: { wordping_pending_query: done ? '' : state.query },
-    ...(done ? {} : { rerun: 0.2 }), items });
+    ...(done ? {} : { rerun: 0.2 }), items: [...hints, ...items] });
 }
 
 function firstItem(output: string, search = ''): any {
@@ -433,11 +434,11 @@ function clearPendingLookup(output: string): string {
   return JSON.stringify(data);
 }
 
-function pendingLookup(word: string): string {
+function pendingLookup(word: string, hints: any[] = []): string {
   return JSON.stringify({
     variables: { wordping_pending_query: word },
     rerun: 0.5,
-    items: [{ title: `Looking up “${word}”…`, subtitle: 'Translation starts after typing pauses', valid: false }],
+    items: [...hints, { title: `Looking up “${word}”…`, subtitle: 'Translation starts after typing pauses', valid: false }],
   });
 }
 
@@ -678,6 +679,10 @@ async function main(): Promise<void> {
       console.log(historyOutput(await cache.recent(languageScope)));
       return;
     }
+    const sourceLanguage = direction?.from || lookupDirection(word, nativeLanguage, learningLanguage).from;
+    const hintPrefix = rawInput.trim().slice(0, -word.length);
+    const hints = !commandMode && !internalCommand
+      ? suggestionItems(word, hintPrefix, await wordSuggestions(word, sourceLanguage)) : [];
     const cached = await cache.get(word, lookupScope);
     if (cached && JSON.parse(cached).variables?.wordping_provider_order === orderKey
       && JSON.parse(cached).variables?.wordping_subtitle_version === 2
@@ -685,12 +690,14 @@ async function main(): Promise<void> {
       && !isEchoedTranslation(word, nativeLanguage, cached)) {
       try { await tjs.remove(lookupStatePath(word, lookupScope)); } catch {}
       const output = clearPendingLookup(cached);
-      console.log(direction ? manualSaveActions(output, lookupScope) : output);
+      const data = JSON.parse(direction ? manualSaveActions(output, lookupScope) : output);
+      data.items.unshift(...hints);
+      console.log(JSON.stringify(data));
       return;
     }
     const pendingQuery = direction ? rawInput.trim() : word;
     if (tjs.env.WORDPING_DEBOUNCE === '1' && tjs.env.wordping_pending_query !== pendingQuery) {
-      console.log(pendingLookup(pendingQuery));
+      console.log(pendingLookup(pendingQuery, hints));
       return;
     }
 
@@ -711,13 +718,13 @@ async function main(): Promise<void> {
           direction?.from || '', direction?.to || ''],
           { stdout: 'ignore', stderr: 'ignore' }).wait();
       }
-      const output = lookupOutput(state);
+      const output = lookupOutput(state, hints);
       console.log(direction ? manualSaveActions(output, lookupScope) : output);
       return;
     }
     const progress = await lookupAll(word, lookupScope, nativeLanguage, learningLanguage, sessionPath, order,
       undefined, undefined, direction);
-    const output = lookupOutput(progress);
+    const output = lookupOutput(progress, hints);
     if (progress.items.length) await cache.put(word, lookupScope, JSON.stringify({
       variables: { wordping_provider_order: orderKey, wordping_subtitle_version: 2,
         wordping_lookup_version: 1 }, items: progress.items }));
