@@ -1,242 +1,179 @@
-# WordPing — Alfred 5 translation and dictionary workflow for Mac
+[简体中文](README.md) | [English](README.en.md)
 
-Look up a word in Alfred, save it, and practice it later. Translate selected text on your Mac without leaving the app you are reading.
+# WordPing — Mac 上的 Alfred 翻译与词典工作流
 
-WordPing is a free, open source Alfred 5 workflow for language learners who want translation, dictionary meanings, pronunciation, and vocabulary review in one place. Translate in either direction between your native and learning languages, then save words for spaced review. English is optional, and no API key or account is needed.
+在 Alfred 中查词、翻译选中文字，一屏对照有道、爱词霸、百度、MyMemory、Apple 翻译和维基词典的结果，无需申请 API 密钥。听发音、收藏生词，再通过间隔复习巩固记忆。两分钟上手；点击下方视频查看演示。
 
-For example, an English speaker learning French can look up `bonjour` in English or `hello` in French. A Chinese speaker learning English can look up `nasa` in Chinese or `你好` in English. WordPing offers 17 language choices; translation availability depends on the enabled providers and language pair.
+## 两分钟上手
 
-## Features
+1. 从 [GitHub Releases 下载最新版 WordPing 工作流](https://github.com/bitman-jpg/wordping-alfred/releases/latest)，用 Alfred 5.5 或更新版本打开。需要 Powerpack 和 Apple 芯片 Mac；在线查询需要联网。
+2. 首次安装时，选择**母语**和**学习语言**，再选择在线发音的**美音**、**英音**或**两者**。之后可以在 Alfred 设置中修改。
+3. 打开 Alfred，输入 `wp hello`（也可以换成正在学习的词）。选中结果后按 **Return**，即可复制完整译文。
+4. 遇到想记住的词，在结果上按 **⌃ Return** 收藏。输入 `wp :review` 开始复习。
 
-- Choose your native and learning languages instead of being locked to English.
-- Translate between your chosen languages in both directions.
-- Translate other detected languages into your native language.
-- Show translations, short definitions, and alternatives when available.
-- See one result per responding provider, identified by a subtle outline icon, with a **⌘L** hint for long translations.
-- Copy translations with one key.
-- Hear local or online pronunciation.
-- Hold **⌥ Option** to see phonetics when a dictionary provides them.
-- Choose American, British, or both pronunciations.
-- Translate text selected in other Mac applications.
-- Preview the selected provider's page with Quick Look.
-- Reopen recent lookups.
-- Save words to your own list and review them when due.
-- Practice recall in either direction, with optional typed answers in reverse review.
-- Set an optional daily notification when saved words are due for review.
+https://github.com/user-attachments/assets/1d244843-a647-483a-9f07-dd7ef6c483ba
 
-## Coming from YoudaoTranslator?
+*演示：设置 WordPing（14 秒）。*
 
-WordPing covers the core Alfred lookup actions in [YoudaoTranslator](https://github.com/wensonsmith/YoudaoTranslator): automatic translation direction, translating selected text with an Option hotkey, local and Youdao pronunciation, Return to copy, and Shift to preview a provider's page. WordPing also has recent lookups, a local saved-word list, and spaced review. YoudaoTranslator's README marks its wordbook, history, preview, and updater features as unfinished in V3; its older V2 may differ.
+## 查词与翻译选中的文字
 
-The workflows are not identical:
+输入 `wp `，再输入单词、短语或句子。每个有结果的翻译来源会显示一行。可用结果取决于语言组合及翻译来源。
 
-| YoudaoTranslator feature | WordPing status |
+https://github.com/user-attachments/assets/0a491372-d726-4364-9c34-8f7b99369a07
+
+*演示：查找单词（10 秒）。*
+
+若要翻译其他 Mac 应用中的文字，先选中文字，再使用 WordPing 的 Alfred 快捷键。要设置演示中的**连按两次 ⌥ Option**：在 Alfred 设置中打开 WordPing，双击 **Hotkey Trigger**，将快捷键设为连按两次 Option，并将 **Argument** 设为 **Selection in macOS**。如果 Alfred 无法读取选中的文字，请在**系统设置 → 隐私与安全性 → 辅助功能**中允许 Alfred。
+
+只输入 `wp` 可重新打开最近查过的内容。输入 `wp :clear` 可清除查询历史。
+
+## 查询结果的更多操作
+
+选中某个来源的结果后，可以使用这些按键：
+
+| 按键 | 操作 |
 | --- | --- |
-| Chinese–English and other language lookups | Supported, with configurable native and learning languages and multiple providers. |
-| Double-tap Option for selected text | Supported after setting the hotkey in Alfred. |
-| Local and Youdao online pronunciation; Return to copy | Supported. |
-| Recent lookup history and Shift web preview | Supported. |
-| Youdao wordbook | Saved words stay in WordPing; they do not sync with a Youdao account. |
-| `CamelCase` splitting | Not supported automatically; enter words with spaces. |
-| Automatic wrapping of long translations | Long results have a short preview and a **⌘L** hint to show the full result in Alfred's Large Type view. |
-| Baidu translation API | Not supported; WordPing's Baidu provider supplies dictionary meanings for single words. |
-| In-workflow update command | Type `wp :update` to check GitHub Releases and open a newer workflow in Alfred. |
+| **Return** | 复制完整译文或释义。 |
+| **⌘L** | 在 Alfred 的大字视图中阅读较长的译文。 |
+| **⌘ Return** | 用 Mac 系统语音朗读原词。 |
+| **⌥ Return** | 播放在线发音；若选择“两者”，会先播放英音，再播放美音。 |
+| 按住 **⌥ Option** | 词典提供音标或拼音时，显示这些信息。 |
+| 按住 **Shift** | 用 Quick Look 预览所选在线来源的页面。 |
+| **⌃ Return** | 收藏这个词，供日后复习。 |
 
-WordPing adds reverse recall, optional typed answers, daily review reminders, and vocabulary backup and export. It requires an Apple silicon Mac, Alfred 5.5 with Powerpack, and the macOS version listed below.
+https://github.com/user-attachments/assets/b208655d-feaa-46a4-8ddd-1e5c57dc83f2
 
-## Requirements
+*演示：浏览多个来源的结果和预览页面（41 秒）。*
 
-- An Apple silicon Mac
-- Alfred 5.5 or newer with the Powerpack
-- An internet connection for web lookups
-- macOS 26 or newer with installed language models for optional Apple Translation results
-- Xcode Command Line Tools if building from source (for the Apple Translation helper)
+较长的译文会在结果行中缩写，并显示 **⌘L** 提示。按 **⌘L** 查看全文；即使结果行被缩写，按 **Return** 仍会复制全文。
 
-## Install
+https://github.com/user-attachments/assets/4fd0375c-6b61-46b1-a19d-8b1c3799c46b
 
-1. Download the latest `.alfredworkflow` from [GitHub Releases](https://github.com/bitman-jpg/wordping-alfred/releases/latest) and open it with Alfred. To build from source, run `sh scripts/build.sh` and open the file created in `release/`.
-2. Choose your native and learning languages. English is the default learning language.
-3. Choose **American**, **British**, or **Both (British, then American)** for online pronunciation. American is the default.
+*演示：阅读完整译文（10 秒）。*
 
-No API key or account is needed.
+### 听发音、看音标
 
-## Common questions
+播放下面的发音演示时，请点击播放器的扬声器图标**取消静音**，才能听到视频里的发音。
 
-### Can I translate selected text with Alfred?
+**⌘ Return：Mac 系统语音**
 
-Yes. Select text in another Mac app and use WordPing's Alfred hotkey to open its translation. [Set up the selected-text shortcut](#translate-selected-text) after installing the workflow.
+https://github.com/user-attachments/assets/b191c27a-92c3-4d1b-af0c-6f7128a0f524
 
-### Which languages does WordPing support?
+**⌥ Return：在线发音**（选择“两者”时先播放英音，再播放美音）
 
-You can choose from 17 native and learning language options, including English, Simplified and Traditional Chinese, Japanese, Korean, French, German, and Spanish. You can also set a direction for a lookup, such as `wp es>zh trabajo`. Translation results depend on the available providers and language pair.
+https://github.com/user-attachments/assets/fe029d76-f937-4c53-827a-3d9470723b69
 
-### Does WordPing need an API key?
+**按住 ⌥ Option：查看音标或拼音**
 
-No. The current release and source version use keyless lookups. [Install WordPing](#install) to start translating.
+https://github.com/user-attachments/assets/6b8fc2d0-d67a-4984-bf68-c6933692bd7e
 
-## Look up and translate
+只有词典提供音标时才会显示。在线发音会使用你在工作流设置中选择的口音。
 
-Open Alfred and type `wp` followed by a word or phrase:
+## 选择翻译方向
 
-```text
-wp hello
-wp 你好
-wp bonjour
-wp es>zh trabajo
-```
+WordPing 默认根据你设置的**母语**和**学习语言**选择方向：输入学习语言时译成母语，输入母语时译成学习语言；输入其他语言时尽量译成母语。例如，母语设为中文、学习语言设为英语时，查询中文“你说啥”会得到英语结果，图中标为 `zh→en`。
 
-To choose the direction yourself, put `source>destination` before the text. For example, `wp es>zh trabajo` looks up Spanish `trabajo` in Simplified Chinese. `wp es>cn trabajo` works too: `zh` and `cn` both mean Simplified Chinese here. Use `tw` for Traditional Chinese, such as `wp en>tw hello`; `zh-TW` also works. Other codes follow the language choices in WordPing’s configuration (`en`, `es`, `fr`, `ja`, and so on). A manual direction is used exactly as entered; providers do not reverse it when they return no result. Lookups without a prefix continue using automatic direction selection.
+![输入中文时默认译成英语的查询结果](demo-clips/3%20tranlation%20learning%20language%20to%20native%20language.png)
 
-When the translated result itself exceeds about 100 display columns, its provider row shows **⌘L to read full translation**. Press **Cmd+L (⌘L)** to see the complete result in Alfred's Large Type view. Return on the provider result always copies the complete translation.
+如果想使用不同于默认设置的方向，例如**直接把英语译成韩语**，就在查询文字前加 `来源语言>目标语言`：`wp en>ko awesome`。也可以输入 `wp es>zh trabajo`，把西班牙语译成简体中文。`zh` 表示简体中文，`tw` 或 `zh-TW` 表示繁体中文。手动指定后，即使某个来源没有结果，WordPing 也不会自动反转方向。
 
-For English words, WordPing also shows macOS spelling corrections and word completions. For example, type `wp terestrial`, then select **Did you mean “terrestrial”?** and press **Tab** to look up the corrected word. Suggestions also work while you are typing; they keep a manual language prefix such as `en>zh `.
+![手动指定英语到韩语的翻译方向](demo-clips/5-change%20direction.png)
 
-- A word in your learning language is translated into your native language; a word in your native language goes the other way.
-- Other detected languages are translated into your native language.
-- If Youdao cannot identify the source language, WordPing may show both directions with labeled results.
-- Results can include short definitions and alternative translations when available.
-- WordPing queries every provider named under **Providers** in its Alfred configuration at the same time. One row per provider appears as each responds, identified by its icon; meanings fill the main line first and continue in the subtitle when needed. Remove a name to disable it. Iciba, Baidu, and Wiktionary are for single words only.
-- The default provider list includes `apple` and `mymemory`. WordPing updates the previous default list automatically. If Alfred preserves another custom **Providers** list, add either name to enable that provider.
-- WordPing uses the native and learning language pair. Script detection selects a direction for Chinese, Japanese, Korean, Russian, Arabic, Hindi, and Thai. For ambiguous Latin-script words, it starts with learning → native, then tries native → learning when a provider returns no translation.
-- Youdao and Wiktionary can provide dictionary meanings. For English–Chinese and Chinese–English words, Iciba and Baidu return word meanings directly in Alfred. Apple Translation supplies an on-device result when a language model for the pair is installed. MyMemory supplies a translation-memory result for the chosen language pair. Its matches are translations, not dictionary senses.
-- If Youdao's translation endpoint rejects an English–Chinese word, WordPing checks Youdao's dictionary entry for an exact headword before leaving the Youdao row empty.
-- Shift previews the selected web provider's word page. Iciba uses its exact word page, such as `https://www.iciba.com/word?w=rebuke`; Baidu uses `https://dict.baidu.com/s?wd=rebuke` for a matching headword. MyMemory opens its matching language-pair page. Apple Translation is on-device and has no query-specific page to preview.
-- Dictionary providers group meanings that share a part of speech. Meanings fill the result title and continue in the subtitle when needed. Return copies all meanings; Shift opens the provider's page for more detail.
-- A muted outline icon identifies each provider. Subtitles use short direction labels, such as `es→zh`; Traditional Chinese appears as `zh-TW`.
-- If no provider returns a result, Alfred shows **No dictionary result**.
+## 建立自己的单词本
 
-### Actions on a lookup result
+在查询结果上按 **⌃ Return**，收藏单词和译文。再次收藏同一个词会重置复习进度，并让它立即进入待复习列表。
 
-- **Return:** Copy the displayed meanings.
-- **Cmd+L (⌘L):** Read the selected provider's complete meanings in Alfred's Large Type view.
-- **⌘ Return:** Speak the word with a Mac voice.
-- **Hold ⌥ Option:** Show available UK and US phonetics or pinyin on Youdao results, and phonetics on Iciba results, without replacing meanings in the normal subtitle.
-- **⌥ Return:** Play Youdao's online pronunciation. With **Both** selected, it plays British followed by American.
-- **⌃ Return:** Save the word to your list.
-- **Shift:** Preview the selected web provider's lookup page with Quick Look. Apple Translation has no web preview.
+![按 Control Return 收藏单词](demo-clips/7%20save%20a%20word.png)
 
-### WordPing commands
+输入 `wp :words` 打开单词本菜单，或直接输入 `wp :saved` 浏览。接着输入文字，即可同时搜索单词和译文。在已收藏的词上按 **⌃ Return**，会永久删除该词。
 
-- Type `wp :` to see **Saved words…**, **Check for WordPing update**, and **Clear recent lookups**. Choose **Saved words…** (`wp :words`) for review, browse, reminders, and files; choose **Manage saved words…** for backup, restore, and export.
-- Type `wp :update` to check the latest GitHub release. If a newer version is available, press Return to download its Apple silicon workflow and open it in Alfred. The import window shows that version's release notes above the setup guide; complete Alfred's installation prompt to upgrade. Your WordPing settings and saved words remain in Alfred's workflow data.
-- The colon distinguishes a command from a lookup: `wp review` searches for “review,” while `wp :review` starts a review. Direct commands such as `wp :review` still work.
-- Type an unrecognized colon command to look it up as ordinary text.
+**浏览已收藏单词：** `wp :saved`
 
-## Translate selected text
+https://github.com/user-attachments/assets/2eb44974-f001-41d5-91dc-ca06d14f2d2c
 
-Select text in Safari, Notes, a PDF reader, or another Mac app, then double-tap **⌥ Option** to open its translation.
+**搜索单词和译文：** `wp :saved 关键词`
 
-Set up the hotkey after installing WordPing:
+https://github.com/user-attachments/assets/40a15341-9836-4a47-9531-badf475ea13d
 
-1. Open WordPing in Alfred Preferences and double-click its **Hotkey Trigger**.
-2. Set **Hotkey** to double-tap **⌥ Option**.
-3. Set **Argument** to **Selection in macOS**.
-4. Check that the Hotkey Trigger is connected to the translation **Script Filter**.
+## 利用几分钟复习
 
-- To disable selected-text translation, clear the shortcut in the Hotkey Trigger.
-- If WordPing cannot read selected text, allow Alfred under **System Settings → Privacy & Security → Accessibility**.
+输入 `wp :review`，开始或继续复习，每轮最多 10 个到期的词。先回想词义，再按 **Return** 显示译文，然后选择 **Got it**（记住了）或 **Missed it**（没记住）。揭晓前可按 **⌘ Return** 听发音。本轮答错的词会在轮末再出现一次。连续记住时，之后的复习间隔依次为 1、3、7、14、30、60 天。
 
-## Recent lookups
+https://github.com/user-attachments/assets/0dc6dc62-4e04-4a8f-a981-d7224f7ee651
 
-- Open Alfred and type `wp` alone to browse recent lookups.
-- Opening `wp` prepares the translator in the background. No lookup text is sent until you enter one.
-- Repeating a lookup shows the saved result. Alfred waits 500 ms after typing stops before running the lookup script.
-- Change the maximum number of saved lookups in the workflow configuration.
-- To delete local lookup history, type `wp :clear` and press Return on **Clear recent lookups…**.
+*演示：复习单词（21 秒）。*
 
-To receive a macOS notification when WordPing detects possible session expiry, open its configuration in Alfred and set **Developer mode** to **On**. It is off by default. Diagnostic events are saved at `~/Library/Caches/com.runningwithcrayons.Alfred/Workflow Data/com.bitman.wordping/website-session-key-events.json`; the file keeps the latest 200 events.
+想从译文反过来回忆原词，输入 `wp :reverse`。看到译文后，输入一个空格和你的答案，再在 **Check** 上按 **Return**；你可以接受或修改建议的评分。也可以直接按 **Return** 显示原词，自行评分。正向和反向复习共用同一套复习计划。
 
-## Saved words
+https://github.com/user-attachments/assets/6373069b-21b5-488e-8e45-259051ffa239
 
-### Save and find words
+*演示：反向复习（26 秒）。*
 
-- Press **⌃ Return** on a lookup result to save it. Saving an existing word resets its review progress and makes it due now.
-- Type `wp :saved` to browse your saved words.
-- Type `wp :saved` followed by text to search saved words and their translations.
-- Press **⌃ Return** on a word in the saved words or review view to remove it permanently.
+想每天收到提醒，输入 `wp :remind 09:00`；时间采用本地 24 小时制。只有单词到期时，WordPing 才会发送通知。输入 `wp :remind` 可查看或关闭提醒。
 
-### Review translations
+https://github.com/user-attachments/assets/0113bbbb-82af-4a66-a4ce-e50864644901
 
-1. Type `wp :review` to start or resume a session of up to 10 due words.
-2. Read the saved word. Press **⌘ Return** to hear it without revealing the translation.
-3. Press Return to reveal its translation.
-4. Press Return again for **Got it**, or press Down then Return for **Missed it**. The translations remain below these choices.
+*演示：设置复习提醒（17 秒）。*
 
-- Alfred shows the next word and your progress after each grade.
-- At the end, the summary offers another batch if more words are due.
-- If none are due, WordPing shows the next review date and time. The **Saved words…** menu shows the due count.
+## 备份和导出单词
 
-### Review in reverse
+输入 `wp :files`，可以看到三个单词本操作：
 
-1. Type `wp :reverse` to see a translation and recall the saved word.
-2. Type a space and your answer after `:reverse`, then press Return on **Check**.
-3. A match puts **Got it** first; a different answer puts **Missed it** first. Press Return to accept that grade, or choose the other grade.
+| 命令 | 作用 |
+| --- | --- |
+| `wp :backup` | 在“下载”文件夹创建可恢复的 JSON 备份，包含所有语言组合和复习进度。同名的旧备份会被覆盖。 |
+| `wp :restore` | 从“下载”文件夹的 `WordPing Vocabulary Backup.json` 合并单词，保留已有单词和进度。也可以在 `:restore` 后输入备份文件的完整路径。 |
+| `wp :export` | 在“下载”文件夹创建当前语言组合的 CSV 文件，不包含复习进度。 |
 
-- For a quick self-graded card, press Return on the initial prompt to reveal the saved word without typing.
-- Both review directions use the same saved words and review schedule.
+https://github.com/user-attachments/assets/83b68931-c1c7-4955-8cb7-286e9a068cb3
 
-### Review schedule
+*演示：打开单词管理菜单（6 秒）。*
 
-- Each **Got it** schedules the next review after 1, 3, 7, 14, 30, then 60 days as you keep succeeding.
-- A missed word returns once at the end of the session. If missed again, it remains due for a future session.
+## 更新与其他实用功能
 
-### Daily reminder
+输入 `wp :update` 检查 GitHub Releases。如果有新版本，按 **Return** 下载并打开 Alfred 的安装窗口。工作流设置和已收藏单词会保留在 Alfred 的数据目录中。
 
-- Type `wp :remind 09:00` to set a daily reminder at 9:00 AM local time. Use any 24-hour `HH:MM` time.
-- WordPing notifies you only when words are due; the notification tells you to open `wp :review`.
-- Type `wp :remind` to see the current time, refresh the schedule, or turn the reminder off. Reminders are off until you set one.
-- Reminders use `~/Library/LaunchAgents/com.bitman.wordping.review.plist`. If your Mac is asleep at the scheduled time, macOS runs the job when it wakes.
+https://github.com/user-attachments/assets/da6b321b-c97d-4db4-8254-377ce1943fbc
 
-### Back up saved words
+*演示：更新 WordPing（28 秒）。*
 
-- Type `wp :backup` to save a complete JSON backup in Downloads.
-- It includes all language pairs, translations, and review progress.
-- The file is named `WordPing Vocabulary Backup.json`. A new backup replaces the previous one, so move or rename older copies you want to keep.
+- 英文单词拼错时，可选中 **Did you mean…?** 建议，按 **Tab** 改用正确拼写查询。
+- 输入 `wp :`，可直接查看可用命令，不必记住每个命令。
+- 在 Alfred 的工作流设置中，可选择启用哪些翻译来源，以及保留多少条最近查询。有些词典只支持单个词。
 
-### Restore saved words
+### 可选的 Apple 翻译
 
-- Copy the JSON backup to Downloads on another Mac, type `wp :restore`, and press Return.
-- Restore adds missing entries while keeping existing saved words and progress.
-- For a file elsewhere, type `wp :restore /path/to/backup.json`.
+若想使用设备端的 Apple 翻译结果，需要 macOS 26 或更新版本，并在**系统设置 → 通用 → 语言与地区 → 翻译语言**中下载这两个语言。WordPing 只使用已安装的语言，不会弹出下载提示。如果尚未安装，对应的 Apple 结果不会显示，其他来源仍可返回结果。安装已发布的工作流不需要 Xcode 或命令行工具。
 
-### Export saved words
+## 隐私与数据
 
-- Type `wp :export` to create a CSV in Downloads for spreadsheets or flashcard apps.
-- The CSV includes words, translations, and saved dates for the current language pair. It does not include review progress.
+WordPing 会把查询文字发送给已启用的在线来源。维基词典结果通过 FreeDictionaryAPI.com 获取；Apple 翻译在设备上运行。最近查询、已收藏单词和复习进度保存在 Alfred 的本地工作流数据中。JSON 备份包含单词和复习进度，不包含账号凭据。词典数据的署名和许可见 [THIRD_PARTY_DICTIONARIES.md](THIRD_PARTY_DICTIONARIES.md)。
 
-## Privacy
+## 支持 WordPing
 
-- WordPing sends lookup text to every enabled web provider in parallel. Wiktionary uses FreeDictionaryAPI.com. Apple Translation runs on-device. No API credentials are used.
-- Recent lookup text and results are stored locally. Use `wp :clear` to delete them.
-- Saved words and review progress are stored in Alfred's workflow data directory.
-- JSON backups contain saved words and review progress, but no credentials.
-- Dictionary data attribution and licenses are in [THIRD_PARTY_DICTIONARIES.md](THIRD_PARTY_DICTIONARIES.md).
+欢迎在 [GitHub Issues](https://github.com/bitman-jpg/wordping-alfred/issues) 提问、报告问题或提出改进建议。
 
-## Support WordPing
-
-If WordPing helps you, consider supporting its continued development.
-
-Choose a payment method below. For WeChat Pay or Alipay, scan the corresponding QR code:
+如果 WordPing 对你有帮助，可以考虑支持后续开发。选择以下方式；微信支付或支付宝可扫描二维码：
 
 <table>
   <tr>
     <th>PayPal</th>
-    <th>WeChat Pay</th>
-    <th>Alipay</th>
+    <th>微信支付</th>
+    <th>支付宝</th>
   </tr>
   <tr>
     <td align="center">
       <a href="https://www.paypal.com/donate/?hosted_button_id=BD9KXXA9NFBHC">
-        <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate with PayPal">
+        <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="通过 PayPal 支持 WordPing">
       </a>
     </td>
-    <td><img src="assets/donate/wechat-pay.png" width="220" alt="Support WordPing with WeChat Pay"></td>
-    <td><img src="assets/donate/alipay-small.png" width="220" alt="Support WordPing with Alipay"></td>
+    <td><img src="assets/donate/wechat-pay.png" width="220" alt="通过微信支付支持 WordPing"></td>
+    <td><img src="assets/donate/alipay-small.png" width="220" alt="通过支付宝支持 WordPing"></td>
   </tr>
 </table>
 
-Thank you for supporting independent open source software.
+感谢你支持独立开源项目。
 
-## License
+## 许可证
 
-WordPing is available under the [MIT License](LICENSE).
+WordPing 采用 [MIT 许可证](LICENSE)。
