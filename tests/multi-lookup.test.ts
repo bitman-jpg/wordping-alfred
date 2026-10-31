@@ -158,7 +158,8 @@ const reverseResult = await lookupAll('hello', 'en|fr', 'en', 'fr', '',
       return from === 'en' ? [{ title: 'bonjour' }] : [];
     },
   });
-assert(reverse.join(',') === 'fr>en,en>fr' && reverseResult.items[0].title === 'bonjour',
+assert(reverse.join(',') === 'fr>en,en>fr' && reverseResult.items[0].title === 'bonjour'
+  && reverseResult.items[0].subtitle === 'en→fr',
   'ambiguous Latin words should try the other configured direction before moving on');
 
 const forced: string[] = [];
@@ -175,9 +176,31 @@ const appleResult = await lookupAll('hello', 'zh-CHS', 'zh-CHS', 'en', '',
       variables: { wordping_source: 'Apple Translation' } }],
   });
 assert(appleResult.items.length === 1 && appleResult.items[0].title === '你好'
-  && appleResult.items[0].subtitle === 'en→zh'
+  && appleResult.items[0].subtitle === ''
   && appleResult.items[0].quicklookurl === ''
   && appleResult.providerStatus?.[0]?.outcome === 'result',
   'Apple should provide a direct Alfred result alongside dictionary providers');
+
+const chineseResult = await lookupAll('你好', 'zh-CHS', 'zh-CHS', 'en', '',
+  ['youdao'], async () => {}, {
+    youdao: async () => [{ title: 'hello', subtitle: 'Youdao · meaning' }],
+  });
+assert(chineseResult.items[0].subtitle === 'zh→en',
+  'reverse lookups should show direction even when provider metadata omits it');
+
+const manualResult = await lookupAll('trabajo', 'manual:es>zh-CHT', 'zh-CHS', 'en', '',
+  ['apple'], async () => {}, {
+    apple: async () => [{ title: '工作' }],
+  }, { from: 'es', to: 'zh-CHT' });
+assert(manualResult.items[0].subtitle === 'es→zh-TW',
+  'other language pairs should show the requested direction');
+
+const frenchResult = await lookupAll('bonjour', 'en|fr', 'en', 'fr', '',
+  ['mymemory'], async () => {}, {
+    mymemory: async () => [{ title: longTranslation, subtitle: 'MyMemory · fr → en' }],
+  });
+assert(frenchResult.items[0].subtitle.startsWith('⌘L to read full translation · ')
+  && !frenchResult.items[0].subtitle.includes('fr→en'),
+  'configured default pairs should leave subtitles for overflow and the full translation hint');
 
 console.log('Ordered provider tests passed');

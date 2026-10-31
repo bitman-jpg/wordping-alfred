@@ -80,7 +80,9 @@ function renderMeanings(meanings: { text: string; parts: string[] }[], separator
   }).join('');
 }
 
-export function oneItemPerProvider(items: any[], provider?: ProviderName): any[] {
+export function oneItemPerProvider(
+  items: any[], provider?: ProviderName, subtitleDirection?: LanguageDirection | null,
+): any[] {
   const usable = items.filter((item) => item?.valid !== false
     && typeof item?.title === 'string' && item.title.trim()
     && !String(item.arg || '').startsWith('# WordPing entry: '));
@@ -122,7 +124,11 @@ export function oneItemPerProvider(items: any[], provider?: ProviderName): any[]
       variables: { ...first.mods.ctrl.variables, wordping_choice: combined } } };
   }
   const direction = String(first.subtitle || '').match(/([a-zA-Z-]+)\s*→\s*([a-zA-Z-]+)/);
-  const pair = direction ? `${shortLanguage(direction[1])}→${shortLanguage(direction[2])}` : '';
+  // null hides the default direction; undefined preserves provider metadata.
+  const shownDirection = subtitleDirection === undefined
+    ? direction && { from: direction[1], to: direction[2] } : subtitleDirection;
+  const pair = shownDirection
+    ? `${shortLanguage(shownDirection.from)}→${shortLanguage(shownDirection.to)}` : '';
   if (provider) first.icon = { path: `assets/provider-muted-${provider}.png` };
   if (provider === 'apple') first.quicklookurl = '';
   const providerInfo = provider ? pair : String(first.subtitle || '');
@@ -179,6 +185,7 @@ export async function lookupAll(
   let write = Promise.resolve();
   await Promise.all(names.map(async (name) => {
     let items: any[] = [];
+    let resultDirection = pair;
     let triedReverse = false;
     let failed = false;
     try {
@@ -187,14 +194,19 @@ export async function lookupAll(
         if (name === 'youdao') throw error;
         if (direction) throw error;
         triedReverse = true;
-        items = await run(name, pair.to, pair.from);
+        resultDirection = { from: pair.to, to: pair.from };
+        items = await run(name, resultDirection.from, resultDirection.to);
       }
-      if (!items.length && name !== 'youdao' && !triedReverse && !direction) items = await run(name, pair.to, pair.from);
+      if (!items.length && name !== 'youdao' && !triedReverse && !direction) {
+        resultDirection = { from: pair.to, to: pair.from };
+        items = await run(name, resultDirection.from, resultDirection.to);
+      }
     } catch (error) {
       failed = true;
       progress.errors.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
     }
-    items = oneItemPerProvider(items, name);
+    const isDefaultDirection = resultDirection.from === learning && resultDirection.to === native;
+    items = oneItemPerProvider(items, name, isDefaultDirection ? null : resultDirection);
     providerItems.set(name, items);
     progress.items = names.flatMap((provider) => providerItems.get(provider) || []);
     progress.providerStatus!.push({ name, outcome: items.length ? 'result' : failed ? 'error' : 'empty', count: items.length });

@@ -721,7 +721,7 @@ async function main(): Promise<void> {
       ? suggestionItems(word, hintPrefix, await wordSuggestions(word, sourceLanguage)) : [];
     const cached = await cache.get(word, lookupScope);
     if (cached && JSON.parse(cached).variables?.wordping_provider_order === orderKey
-      && JSON.parse(cached).variables?.wordping_subtitle_version === 6
+      && JSON.parse(cached).variables?.wordping_subtitle_version === 7
       && JSON.parse(cached).variables?.wordping_lookup_version === 3
       && !isEchoedTranslation(word, nativeLanguage, cached)) {
       try { await tjs.remove(lookupStatePath(word, lookupScope)); } catch {}
@@ -762,7 +762,7 @@ async function main(): Promise<void> {
       undefined, undefined, direction);
     const output = lookupOutput(progress, hints);
     if (progress.items.length) await cache.put(word, lookupScope, JSON.stringify({
-      variables: { wordping_provider_order: orderKey, wordping_subtitle_version: 6,
+      variables: { wordping_provider_order: orderKey, wordping_subtitle_version: 7,
         wordping_lookup_version: 3 }, items: progress.items }));
     console.log(await preparePreviews(direction ? manualSaveActions(output, lookupScope) : output, cachePath().replace(/translations\.json$/, '')));
   } catch (error) {
