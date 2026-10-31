@@ -11,6 +11,15 @@
 3. 打开 Alfred，输入 `wp hello`（也可以换成正在学习的词）。选中结果后按 **Return**，即可复制完整译文。
 4. 遇到想记住的词，在结果上按 **⌃ Return** 收藏。输入 `wp :review` 开始复习。
 
+如果 macOS 提示 **Apple 无法验证“tjs”是否包含恶意软件**，请点击**完成**关闭提示。WordPing 检测到可能的安全拦截后，会自动打开**隐私与安全性**（同一个运行程序仅自动打开一次）。如果设置未打开，请前往**系统设置 → 隐私与安全性**。向下滚动到**安全性**，为“tjs”点击**仍要打开**并按提示确认，然后重试 `wp hello`。如果没有看到**仍要打开**，请先再次运行 `wp hello`，再重新打开设置。仅批准从 WordPing 官方发布页下载的工作流。
+
+<table>
+  <tr>
+    <td valign="top"><img src="demo-clips/tjs-security-warning.png" alt="macOS 提示无法验证 tjs，点击“完成”后按上方说明操作" width="320"></td>
+    <td valign="top"><img src="demo-clips/tjs-allow-anyway.png" alt="在隐私与安全性中为 tjs 点击“仍要允许”（Allow Anyway）" width="640"></td>
+  </tr>
+</table>
+
 https://github.com/user-attachments/assets/1d244843-a647-483a-9f07-dd7ef6c483ba
 
 *演示：设置 WordPing（14 秒）。*

@@ -9,6 +9,8 @@ for test_file in tests/*.test.ts; do
   rm -f "$test_bundle"
 done
 
+python3 tests/security-setup.test.py
+
 sh scripts/test-review-ui.sh
 sh scripts/test-debounce.sh
 sh scripts/test-reminders.sh

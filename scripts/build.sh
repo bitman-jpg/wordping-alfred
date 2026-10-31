@@ -27,6 +27,7 @@ python3 scripts/embed-release-notes.py "docs/releases/v${release_version}.md" di
 mkdir -p dist/scripts
 cp scripts/reminders.sh dist/scripts/reminders.sh
 cp scripts/start-lookup.sh dist/scripts/start-lookup.sh
+cp scripts/lookup.sh dist/scripts/lookup.sh
 rm -f dist/scripts/provider-bridge.py
 cp LICENSE dist/LICENSE
 cp THIRD_PARTY_DICTIONARIES.md dist/THIRD_PARTY_DICTIONARIES.md

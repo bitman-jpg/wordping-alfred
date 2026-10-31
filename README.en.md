@@ -11,6 +11,15 @@ Look up a word, hear it, save it, and review it later, all from Alfred. Get resu
 3. Open Alfred and type `wp hello` (or a word in your learning language). Press **Return** on a result to copy its full translation.
 4. Press **⌃ Return** on a result you want to remember. Type `wp :review` to practice it.
 
+If macOS says **Apple could not verify “tjs”**, dismiss the warning with **Done**. WordPing automatically opens **Privacy & Security** after a likely security block, once per bundled runtime. If it does not open, go to **System Settings → Privacy & Security**. Scroll down to **Security**, click **Open Anyway** for “tjs”, and confirm when prompted. Then retry `wp hello`. If **Open Anyway** is missing, try `wp hello` again before reopening Settings. Only approve a workflow downloaded from the official WordPing release page.
+
+<table>
+  <tr>
+    <td valign="top"><img src="demo-clips/tjs-security-warning.png" alt="macOS warning that tjs could not be verified; click Done, then follow the instructions above" width="320"></td>
+    <td valign="top"><img src="demo-clips/tjs-allow-anyway.png" alt="Privacy & Security showing the Allow Anyway button for tjs" width="640"></td>
+  </tr>
+</table>
+
 https://github.com/user-attachments/assets/1d244843-a647-483a-9f07-dd7ef6c483ba
 
 *Watch: configure WordPing (14 seconds).*
