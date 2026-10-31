@@ -8,6 +8,7 @@ mkdir -p dist/runtime release
 ./runtime/tjs bundle --minify src/index.ts dist/index.js
 ./runtime/tjs bundle --minify src/multi-worker.ts dist/multi-worker.js
 ./runtime/tjs bundle --minify src/warmup.ts dist/warmup.js
+./runtime/tjs bundle --minify src/preview-server.ts dist/preview-server.js
 cp runtime/tjs dist/runtime/tjs
 rm -rf dist/python
 if ! command -v swiftc >/dev/null 2>&1; then
@@ -28,6 +29,8 @@ mkdir -p dist/scripts
 cp scripts/reminders.sh dist/scripts/reminders.sh
 cp scripts/start-lookup.sh dist/scripts/start-lookup.sh
 cp scripts/lookup.sh dist/scripts/lookup.sh
+cp scripts/play-online.sh dist/scripts/play-online.sh
+cp scripts/start-preview.sh dist/scripts/start-preview.sh
 rm -f dist/scripts/provider-bridge.py
 cp LICENSE dist/LICENSE
 cp THIRD_PARTY_DICTIONARIES.md dist/THIRD_PARTY_DICTIONARIES.md

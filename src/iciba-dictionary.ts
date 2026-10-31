@@ -4,6 +4,16 @@ function wordPage(query: string): string {
   return `https://www.iciba.com/word?w=${encodeURIComponent(query)}`;
 }
 
+function audioURL(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !value) return undefined;
+  try {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol) || !url.hostname.endsWith('.iciba.com')) return undefined;
+    url.protocol = 'https:';
+    return url.href;
+  } catch { return undefined; }
+}
+
 export function icibaDictionaryResults(html: string, query: string, from: string, to: string): Result[] {
   if (!((from === 'en' && to === 'zh-CHS') || (from.startsWith('zh') && to === 'en'))) return [];
   const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([^<]+)<\/script>/);
@@ -25,6 +35,7 @@ export function icibaDictionaryResults(html: string, query: string, from: string
         rows.push({ title, subtitle: `Iciba dictionary · ${partOfSpeech} · ${from} → ${to}`,
           arg: title, pronounce: query, source: 'Iciba', partOfSpeech,
           phonetics: phonetics || undefined,
+          audioUK: audioURL(symbol.ph_en_mp3), audioUS: audioURL(symbol.ph_am_mp3),
           quicklookurl: wordPage(query) });
         if (rows.length >= 8) return rows;
       }

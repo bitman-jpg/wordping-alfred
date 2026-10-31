@@ -9,6 +9,7 @@ import { suggestionItems, wordSuggestions } from './word-suggestions';
 import { DEFAULT_PROVIDER_ORDER, providerOrder, providersFor } from './provider-order';
 import md5 from './libs/md5';
 import { compareVersions, latestRelease, openUpgrade } from './release-update';
+import { preparePreviews } from './preview-client';
 
 interface WorkflowSettings {
   nativeLanguage: string;
@@ -85,7 +86,7 @@ function reviewSessionPath(language: string): string {
 }
 
 function lookupStatePath(query: string, language: string): string {
-  return `${cachePath().replace(/translations\.json$/, '')}lookup-${md5(`${language}\0${query.toLocaleLowerCase()}`)}.json`;
+  return `${cachePath().replace(/translations\.json$/, '')}lookup-v2-${md5(`${language}\0${query.toLocaleLowerCase()}`)}.json`;
 }
 
 function manualSaveActions(output: string, scope: string): string {
@@ -711,7 +712,7 @@ async function main(): Promise<void> {
           subtitle: 'Example: wp es>zh trabajo', valid: false }] }));
         return;
       }
-      console.log(historyOutput(await cache.recent(languageScope)));
+      console.log(await preparePreviews(historyOutput(await cache.recent(languageScope)), cachePath().replace(/translations\.json$/, '')));
       return;
     }
     const sourceLanguage = direction?.from || lookupDirection(word, nativeLanguage, learningLanguage).from;
@@ -721,13 +722,13 @@ async function main(): Promise<void> {
     const cached = await cache.get(word, lookupScope);
     if (cached && JSON.parse(cached).variables?.wordping_provider_order === orderKey
       && JSON.parse(cached).variables?.wordping_subtitle_version === 6
-      && JSON.parse(cached).variables?.wordping_lookup_version === 1
+      && JSON.parse(cached).variables?.wordping_lookup_version === 2
       && !isEchoedTranslation(word, nativeLanguage, cached)) {
       try { await tjs.remove(lookupStatePath(word, lookupScope)); } catch {}
       const output = clearPendingLookup(cached);
       const data = JSON.parse(direction ? manualSaveActions(output, lookupScope) : output);
       data.items.unshift(...hints);
-      console.log(JSON.stringify(data));
+      console.log(await preparePreviews(JSON.stringify(data), cachePath().replace(/translations\.json$/, '')));
       return;
     }
     const pendingQuery = direction ? rawInput.trim() : word;
@@ -754,7 +755,7 @@ async function main(): Promise<void> {
           { stdout: 'ignore', stderr: 'ignore' }).wait();
       }
       const output = lookupOutput(state, hints);
-      console.log(direction ? manualSaveActions(output, lookupScope) : output);
+      console.log(await preparePreviews(direction ? manualSaveActions(output, lookupScope) : output, cachePath().replace(/translations\.json$/, '')));
       return;
     }
     const progress = await lookupAll(word, lookupScope, nativeLanguage, learningLanguage, sessionPath, order,
@@ -762,8 +763,8 @@ async function main(): Promise<void> {
     const output = lookupOutput(progress, hints);
     if (progress.items.length) await cache.put(word, lookupScope, JSON.stringify({
       variables: { wordping_provider_order: orderKey, wordping_subtitle_version: 6,
-        wordping_lookup_version: 1 }, items: progress.items }));
-    console.log(direction ? manualSaveActions(output, lookupScope) : output);
+        wordping_lookup_version: 2 }, items: progress.items }));
+    console.log(await preparePreviews(direction ? manualSaveActions(output, lookupScope) : output, cachePath().replace(/translations\.json$/, '')));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (rawInput.trim() === '~update') {

@@ -1,3 +1,5 @@
+import { dictionaryItems } from '../src/dictionaries';
+import { oneItemPerProvider } from '../src/multi-lookup';
 import { icibaDictionaryResults } from '../src/iciba-dictionary';
 
 function assert(condition: boolean, message: string): void {
@@ -7,6 +9,7 @@ function assert(condition: boolean, message: string): void {
 function page(word: string, meanings: string[]): string {
   const data = { props: { pageProps: { initialReduxState: { word: { wordInfo: { baesInfo: {
     word_name: word, symbols: [{ ph_en: 'rɪˈbjuːk', ph_am: 'rɪˈbjuːk',
+      ph_en_mp3: 'http://res.iciba.com/uk.mp3', ph_am_mp3: 'https://res.iciba.com/us.mp3',
       parts: [{ part: 'vt.', means: meanings }] }],
   } } } } } } };
   return `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(data)}</script>`;
@@ -29,3 +32,13 @@ assert(icibaDictionaryResults(page('ice cream', ['冰淇淋']), 'ice cream', 'en
   'Shift should encode the queried Iciba headword');
 
 console.log('Iciba dictionary tests passed');
+
+const item = oneItemPerProvider(dictionaryItems(results, 'rebuke'), 'iciba')[0];
+assert(item.variables.wordping_source === 'Iciba'
+  && item.variables.wordping_audio_uk === 'https://res.iciba.com/uk.mp3'
+  && item.variables.wordping_audio_us === 'https://res.iciba.com/us.mp3'
+  && item.mods.alt.arg === 'rebuke',
+  'The selected iCIBA row must carry its recordings through grouping to Option+Return');
+const unsafe = icibaDictionaryResults(page('rebuke', ['test']).replace(
+  'http://res.iciba.com/uk.mp3', 'https://res.iciba.com.evil.test/uk.mp3'), 'rebuke', 'en', 'zh-CHS');
+assert(!unsafe[0].audioUK, 'Only iCIBA audio hosts should be accepted');

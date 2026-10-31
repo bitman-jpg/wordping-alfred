@@ -10,6 +10,8 @@ export interface Result {
   source?: string;
   partOfSpeech?: string;
   phonetics?: string;
+  audioUK?: string;
+  audioUS?: string;
 }
 
 class Workflow {
@@ -47,6 +49,9 @@ class Workflow {
       if (r.source || r.partOfSpeech) item.variables = {
         ...(r.source ? { wordping_source: r.source } : {}),
         ...(r.partOfSpeech ? { wordping_pos: r.partOfSpeech } : {}),
+        ...(r.source === 'Iciba' ? {
+          wordping_audio_uk: r.audioUK || '', wordping_audio_us: r.audioUS || '',
+        } : {}),
       };
       return item;
     });

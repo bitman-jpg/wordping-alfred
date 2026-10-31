@@ -48,6 +48,8 @@ https://github.com/user-attachments/assets/0a491372-d726-4364-9c34-8f7b99369a07
 | **⌥ Return** | 播放在线发音；若选择“两者”，会先播放英音，再播放美音。 |
 | 按住 **⌥ Option** | 词典提供音标或拼音时，显示这些信息。 |
 | 按住 **Shift** | 用 Quick Look 预览所选在线来源的页面。 |
+
+爱词霸使用兼容预览，支持在 Quick Look 中切换词典；页面提供的柯林斯释义会保留，AI 内容取决于爱词霸的在线响应，未提供的内容会明确提示。点击页面中的网站链接可查看原网页。选中爱词霸结果时，**⌥ Return** 播放爱词霸提供的对应口音录音；其他来源使用有道发音。若爱词霸没有该口音的录音，则无法播放。
 | **⌃ Return** | 收藏这个词，供日后复习。 |
 
 https://github.com/user-attachments/assets/b208655d-feaa-46a4-8ddd-1e5c57dc83f2

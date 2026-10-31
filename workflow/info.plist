@@ -607,29 +607,7 @@ echo -n "$query" | say $1 -v Samantha</string>
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>cd $TMPDIR
-query="$1"
-play_voice() {
-  voice_type="$1"
-  voice="youdao-${voice_type}-${query}.mp3"
-
-  echo say: "$voice" &gt;&amp;2
-
-  if [[ ! -e ${voice} ]]; then
-    curl -SL#o "$voice" -# -d "audio=${query}" -d "type=${voice_type}" "https://dict.youdao.com/dictvoice"
-  fi
-
-  afplay "$voice"
-}
-
-case "${onlineAccent:-american}" in
-  british|British|BRITISH|uk|UK|1) play_voice 1 ;;
-  both|Both|BOTH)
-    play_voice 1
-    play_voice 2
-    ;;
-  *) play_voice 2 ;;
-esac</string>
+				<string>exec /bin/sh scripts/play-online.sh "$1"</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>

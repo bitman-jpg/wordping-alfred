@@ -48,6 +48,8 @@ The selected provider row has several useful actions:
 | **⌥ Return** | Hear online pronunciation; **Both** plays British, then American. |
 | Hold **⌥ Option** | Show phonetics or pinyin where a dictionary provides them. |
 | Hold **Shift** | Preview the selected web provider's page with Quick Look. |
+
+iCIBA uses a compatibility preview so its dictionary tabs can work in Quick Look. Collins definitions are retained when supplied; AI tabs depend on iCIBA's live responses, and unavailable content is labeled. Use the page's website link for the original page. **⌥ Return** on an iCIBA result plays iCIBA's recording in your configured accent; other providers use Youdao audio. If iCIBA has no recording for that accent, playback is unavailable.
 | **⌃ Return** | Save the word for review. |
 
 https://github.com/user-attachments/assets/b208655d-feaa-46a4-8ddd-1e5c57dc83f2

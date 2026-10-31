@@ -10,6 +10,7 @@ for test_file in tests/*.test.ts; do
 done
 
 python3 tests/security-setup.test.py
+python3 tests/online-audio.test.py
 
 sh scripts/test-review-ui.sh
 sh scripts/test-debounce.sh
