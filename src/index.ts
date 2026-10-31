@@ -431,19 +431,22 @@ function historyOutput(entries: CacheEntry[]): string {
   }
 
   const items: any[] = entries.map((entry) => {
+    const query = entry.language.startsWith('manual:')
+      ? `${entry.language.slice('manual:'.length)} ${entry.query}` : entry.query;
     if (entry.legacy) return {
-      title: entry.query,
+      title: query,
       subtitle: 'Previous lookup · Type this word to refresh its dictionary results',
-      autocomplete: entry.query,
+      autocomplete: query,
       valid: false,
       icon: { path: 'assets/translate.png' },
     };
-    const first = firstItem(entry.output);
+    const first = firstItem(entry.language.startsWith('manual:')
+      ? manualSaveActions(entry.output, entry.language) : entry.output);
     return {
-      title: entry.query,
+      title: query,
       subtitle: first.title ? `Recent translation: ${first.title}` : 'Recent lookup',
       arg: first.arg || first.title || '',
-      autocomplete: entry.query,
+      autocomplete: query,
       valid: Boolean(first.arg || first.title),
       icon: first.icon || { path: 'assets/translate.png' },
       mods: first.mods || {},
@@ -712,7 +715,7 @@ async function main(): Promise<void> {
           subtitle: 'Example: wp es>zh trabajo', valid: false }] }));
         return;
       }
-      console.log(await preparePreviews(historyOutput(await cache.recent(languageScope)), cachePath().replace(/translations\.json$/, '')));
+      console.log(await preparePreviews(historyOutput(await cache.recent(languageScope, true)), cachePath().replace(/translations\.json$/, '')));
       return;
     }
     const sourceLanguage = direction?.from || lookupDirection(word, nativeLanguage, learningLanguage).from;

@@ -26,4 +26,12 @@ let invalid = false;
 try { parseLookupInput('xx>zh trabajo'); } catch { invalid = true; }
 assert(invalid, 'unknown language codes should show an error');
 
+assert(parseLookupInput('en>ko hello').word === 'hello'
+  && parseLookupInput('en>ko hello').direction?.to === 'ko',
+  'Korean manual lookups should preserve the full word');
+let incomplete = false;
+try { parseLookupInput('en>'); } catch { incomplete = true; }
+assert(incomplete, 'an unfinished language prefix must not become a lookup');
+assert(parseLookupInput('=en>').word === 'en>', 'equals should still allow literal lookups');
+
 console.log('Query parsing tests passed');

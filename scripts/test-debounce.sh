@@ -113,3 +113,44 @@ assert 'trabajo' in json.dumps(saved, ensure_ascii=False)
 PY
 
 echo 'Debounced lookup and immediate cache tests passed'
+
+# History must restore explicit pairs rather than showing an unfinished prefix.
+python3 - "$test_dir/translations.json" <<'PY'
+import json, sys
+with open(sys.argv[1]) as handle:
+    data = json.load(handle)
+data['entries'].extend([
+    {'query': 'hello', 'language': 'manual:en>ko',
+     'output': json.dumps({'items': [{'title': '안녕하세요', 'arg': '안녕하세요',
+         'mods': {'ctrl': {'arg': '~save:hello', 'variables': {'wordping_command': '~save:hello'}}}}]}),
+     'updatedAt': 4},
+    {'query': 'en>', 'language': 'zh-CHS', 'output': '{"items":[{"title":"英文"}]}', 'updatedAt': 3},
+])
+with open(sys.argv[1], 'w') as handle:
+    json.dump(data, handle)
+PY
+nativeLanguage=zh-CHS learningLanguage=en \
+  alfred_workflow_cache="$test_dir" alfred_workflow_data="$test_dir" \
+  ./runtime/tjs run "$test_dir/index.js" '' >"$test_dir/history.json"
+nativeLanguage=zh-CHS learningLanguage=en \
+  alfred_workflow_cache="$test_dir" alfred_workflow_data="$test_dir" \
+  ./runtime/tjs run "$test_dir/index.js" 'en>' >"$test_dir/incomplete.json"
+python3 - "$test_dir" <<'PY'
+import json, os, sys
+with open(os.path.join(sys.argv[1], 'history.json')) as handle:
+    items = json.load(handle)['items']
+assert not any(item['title'] == 'en>' for item in items)
+manual = next(item for item in items if item['title'] == 'en>ko hello')
+assert manual['autocomplete'] == 'en>ko hello'
+assert manual['arg'] == '안녕하세요'
+assert manual['mods']['ctrl']['arg'] == '~save:hello|manual%3Aen%3Eko'
+assert manual['mods']['ctrl']['variables']['wordping_command'] == manual['mods']['ctrl']['arg']
+assert any(item['title'] == 'es>zh-CHS trabajo' for item in items)
+assert any(item['title'] == 'beat' for item in items)
+with open(os.path.join(sys.argv[1], 'incomplete.json')) as handle:
+    incomplete = json.load(handle)
+assert incomplete['items'][0]['valid'] is False
+assert 'destination language' in incomplete['items'][0]['subtitle']
+PY
+
+echo 'Manual language history tests passed'

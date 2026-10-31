@@ -62,8 +62,10 @@ export default class TranslationCache {
     await this.write(remaining);
   }
 
-  async recent(language: string): Promise<CacheEntry[]> {
-    return (await this.read()).filter((entry) => entry.language === language);
+  async recent(language: string, includeManual = false): Promise<CacheEntry[]> {
+    return (await this.read()).filter((entry) =>
+      (entry.language === language || includeManual && entry.language.startsWith('manual:'))
+      && !/^[^\s>]+>$/.test(entry.query.trim()));
   }
 
   async clear(): Promise<void> {

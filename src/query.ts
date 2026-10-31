@@ -17,6 +17,7 @@ export function parseLookupInput(raw: string): { word: string; commandMode: bool
   const commandMode = input.startsWith(':');
   const word = input.replace(/^[:=]/, '').trim();
   if (!commandMode && !input.startsWith('=') && !input.startsWith('~')) {
+    if (/^[^\s>]+>$/.test(word)) throw new Error('Type a destination language and text, for example en>ko hello');
     const match = word.match(/^([^\s>]+)>([^\s>]+)(?:\s+(.*))?$/s);
     if (match) {
       const from = languageCode(match[1]);
