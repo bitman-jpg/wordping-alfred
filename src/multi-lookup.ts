@@ -175,6 +175,7 @@ export async function lookupAll(
     query, language, startedAt: Date.now(), completed: 0,
     expected: names.length, items: [], errors: [], order: order.join(','), providerStatus: [],
   };
+  const providerItems = new Map<ProviderName, any[]>();
   let write = Promise.resolve();
   await Promise.all(names.map(async (name) => {
     let items: any[] = [];
@@ -194,7 +195,8 @@ export async function lookupAll(
       progress.errors.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
     }
     items = oneItemPerProvider(items, name);
-    progress.items.push(...items);
+    providerItems.set(name, items);
+    progress.items = names.flatMap((provider) => providerItems.get(provider) || []);
     progress.providerStatus!.push({ name, outcome: items.length ? 'result' : failed ? 'error' : 'empty', count: items.length });
     progress.completed++;
     const snapshot = { ...progress, items: [...progress.items], errors: [...progress.errors],

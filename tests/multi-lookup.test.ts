@@ -136,9 +136,14 @@ const completed = await result;
 assert(calls.join(',') === 'youdao,iciba:en>zh-CHS,wiktionary',
   'all configured providers should start');
 assert(completed.items.map((item) => item.title).join(',')
-  === 'Wiktionary result,Iciba result; Another meaning,Youdao result'
+  === 'Youdao result,Iciba result; Another meaning,Wiktionary result'
   && completed.completed === completed.expected && updates.length === 3,
-  'all provider results should remain in response order');
+  'all provider results should follow the configured order regardless of response order');
+assert(JSON.stringify(updates) === JSON.stringify([
+  ['Wiktionary result'],
+  ['Iciba result; Another meaning', 'Wiktionary result'],
+  ['Youdao result', 'Iciba result; Another meaning', 'Wiktionary result'],
+]), 'each progress update should show available results in configured order');
 assert(completed.providerStatus?.length === 3
   && completed.providerStatus.every((status) => status.outcome === 'result'),
   'progress should count providers with results separately from completed checks');
