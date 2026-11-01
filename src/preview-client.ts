@@ -1,4 +1,5 @@
 declare var tjs: any;
+import md5 from './libs/md5';
 
 async function previewService(directory: string): Promise<string | undefined> {
   const statePath = `${directory}/preview-service.json`;
@@ -9,7 +10,7 @@ async function previewService(directory: string): Promise<string | undefined> {
         || !/^[a-f0-9-]{36}$/.test(state.token)) return;
       const base = `http://127.0.0.1:${state.port}/${state.token}`;
       const response = await fetch(`${base}/health`, { signal: AbortSignal.timeout(300) });
-      if (response.ok && await response.text() === 'wordping-preview-v1') return base;
+      if (response.ok && await response.text() === 'wordping-preview-v2') return base;
     } catch {}
   }
   const running = await address();
@@ -28,15 +29,25 @@ async function previewService(directory: string): Promise<string | undefined> {
 
 export async function preparePreviews(output: string, directory: string): Promise<string> {
   const data = JSON.parse(output);
-  const rows = (data.items || []).filter((item: any) => {
+  const remoteRows = (data.items || []).filter((item: any) => {
     try { return new URL(item.quicklookurl).hostname === 'www.iciba.com'; } catch { return false; }
   });
-  if (!rows.length) return output;
+  const localRows = (data.items || []).filter((item: any) =>
+    typeof item.variables?.wordping_preview_html === 'string');
+  if (!remoteRows.length && !localRows.length) return output;
   const base = await previewService(directory);
   if (!base) return output;
-  for (const item of rows) {
+  for (const item of remoteRows) {
     const query = new URL(item.quicklookurl).searchParams.get('w');
     if (query) item.quicklookurl = `${base}/word?w=${encodeURIComponent(query)}`;
+  }
+  if (localRows.length) await tjs.makeDir(`${directory}/preview-pages`, { recursive: true });
+  for (const item of localRows) {
+    const html = item.variables.wordping_preview_html;
+    const id = md5(html);
+    await tjs.writeFile(`${directory}/preview-pages/${id}.html`, html);
+    item.quicklookurl = `${base}/page/${id}`;
+    delete item.variables.wordping_preview_html;
   }
   return JSON.stringify(data);
 }

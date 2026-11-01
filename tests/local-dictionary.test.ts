@@ -1,5 +1,5 @@
 import { lookupLocalDictionary } from '../src/local-dictionary';
-import { lookupOxford, oxfordDictionaryNames, oxfordResults } from '../src/oxford-dictionary';
+import { lookupOxford, oxfordDictionaryNames, oxfordPreviewHTML, oxfordResults } from '../src/oxford-dictionary';
 import { providerOrder, providersFor } from '../src/provider-order';
 import { lookupAll } from '../src/multi-lookup';
 import { dictionaryItems } from '../src/dictionaries';
@@ -36,6 +36,11 @@ const oxfordMonolingual = oxfordResults('hello | həˈləʊ | (also hallo) excla
 assert(oxfordMonolingual.map((item) => item.title).join('|')
   === 'used as a greeting|used to attract attention|an utterance of hello|say hello',
   'monolingual Oxford fallback should expose short definitions without examples or etymology');
+const preview = oxfordPreviewHTML('beat | biːt | A. verb ① <strike> 击打▸ beat a drum 敲鼓 PHRASAL VERBS beat up ① assault 痛打',
+  'beat', '牛津英汉汉英词典', 'en', 'zh-CHS');
+assert(preview.includes('PHRASAL VERBS') && preview.includes('beat a drum') && preview.includes('beat up')
+  && preview.includes('&lt;strike&gt;') && !preview.includes('<strike>'),
+  'Oxford Shift preview should retain the complete entry and escape dictionary text as HTML');
 
 assert(!(await lookupLocalDictionary('oxford', 'two words', 'en', 'zh-CHS')).length,
   'phrases are not sent to local dictionaries');
@@ -53,6 +58,8 @@ const actual = await lookupOxford('hello', 'en', 'zh-CHS');
 assert(Array.isArray(actual) && actual.every((item) => Boolean(item.title)
   && (item.source?.includes('牛津') || item.source?.includes('Oxford'))),
   'system Oxford returns local definitions or an empty result');
+assert(!actual.length || actual[0].previewHTML?.includes('<article>'),
+  'an installed Oxford result should carry its complete local Shift preview');
 console.log(actual.length ? `System Oxford FFI lookup passed (${actual[0].source})`
   : 'No installed system Oxford definition; FFI smoke test skipped');
 const english = await lookupOxford('hello', 'en', 'en');

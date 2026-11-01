@@ -12,6 +12,7 @@ export interface Result {
   phonetics?: string;
   audioUK?: string;
   audioUS?: string;
+  previewHTML?: string;
 }
 
 class Workflow {
@@ -46,9 +47,10 @@ class Workflow {
       .setCopy(r.title)
       .setQuicklookurl(r.quicklookurl)
       .result();
-      if (r.source || r.partOfSpeech) item.variables = {
+      if (r.source || r.partOfSpeech || r.previewHTML) item.variables = {
         ...(r.source ? { wordping_source: r.source } : {}),
         ...(r.partOfSpeech ? { wordping_pos: r.partOfSpeech } : {}),
+        ...(r.previewHTML ? { wordping_preview_html: r.previewHTML } : {}),
         ...(r.source === 'Iciba' ? {
           wordping_audio_uk: r.audioUK || '', wordping_audio_us: r.audioUS || '',
         } : {}),

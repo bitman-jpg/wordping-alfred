@@ -87,7 +87,7 @@ function reviewSessionPath(language: string): string {
 }
 
 function lookupStatePath(query: string, language: string): string {
-  return `${cachePath().replace(/translations\.json$/, '')}lookup-v4-${md5(`${language}\0${query.toLocaleLowerCase()}`)}.json`;
+  return `${cachePath().replace(/translations\.json$/, '')}lookup-v5-${md5(`${language}\0${query.toLocaleLowerCase()}`)}.json`;
 }
 
 function manualSaveActions(output: string, scope: string): string {
@@ -764,7 +764,7 @@ async function main(): Promise<void> {
     const cached = await cache.get(word, lookupScope);
     if (cached && JSON.parse(cached).variables?.wordping_provider_order === orderKey
       && JSON.parse(cached).variables?.wordping_subtitle_version === 7
-      && JSON.parse(cached).variables?.wordping_lookup_version === 4
+      && JSON.parse(cached).variables?.wordping_lookup_version === 5
       && !isEchoedTranslation(word, nativeLanguage, cached)) {
       try { await tjs.remove(lookupStatePath(word, lookupScope)); } catch {}
       const output = clearPendingLookup(cached);
@@ -805,7 +805,7 @@ async function main(): Promise<void> {
     const output = lookupOutput(progress, hints);
     if (progress.items.length) await cache.put(word, lookupScope, JSON.stringify({
       variables: { wordping_provider_order: orderKey, wordping_subtitle_version: 7,
-        wordping_lookup_version: 4 }, items: progress.items }));
+        wordping_lookup_version: 5 }, items: progress.items }));
     console.log(await preparePreviews(direction ? manualSaveActions(output, lookupScope) : output, cachePath().replace(/translations\.json$/, '')));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

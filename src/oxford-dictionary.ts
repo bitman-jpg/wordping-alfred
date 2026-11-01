@@ -107,6 +107,37 @@ export function oxfordResults(
   return monolingualEnglish(meaning, word, source, from, to);
 }
 
+function escapeHTML(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+export function oxfordPreviewHTML(
+  meaning: string, word: string, source: string, from: string, to: string,
+): string {
+  const parsed = header(meaning);
+  const article = parsed.body
+    .replace(/\s+(PHRASAL VERBS)\s+/g, '\n\nPHRASAL VERBS\n')
+    .replace(/\s+([A-Z]\.\s+(?:transitive verb|intransitive verb|verb|noun|adjective|adverb))\b/g,
+      '\n\n$1\n')
+    .replace(/\s*([①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳])\s*/g, '\n\n$1 ')
+    .replace(/\s*▸\s*/g, '\n  • ')
+    .replace(/\s*→\s*/g, '\n\nSee also: ')
+    .replace(/\n{3,}/g, '\n\n').trim();
+  return `<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
+<style>
+:root{color-scheme:light dark}body{font:17px/1.65 -apple-system,BlinkMacSystemFont,sans-serif;margin:0}
+main{box-sizing:border-box;max-width:1050px;margin:auto;padding:42px 54px 80px}
+h1{font-size:34px;line-height:1.15;margin:0 0 12px}.meta{color:#7d8590;margin-bottom:30px}
+article{font-family:-apple-system,BlinkMacSystemFont,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:650px){main{padding:28px 24px 60px}h1{font-size:28px}}
+</style></head><body><main><h1>${escapeHTML(word)}</h1>
+<div class="meta">${escapeHTML(source)} · ${escapeHTML(from)} → ${escapeHTML(to)}${parsed.phonetics ? ` · ${escapeHTML(parsed.phonetics)}` : ''}</div>
+<article>${escapeHTML(article || meaning)}</article></main></body></html>`;
+}
+
 export async function lookupOxford(word: string, from: string, to: string): Promise<Result[]> {
   const names = oxfordDictionaryNames(from, to);
   if (!word || /[\s\0]/.test(word) || !names.length
@@ -183,7 +214,10 @@ export async function lookupOxford(word: string, from: string, to: string): Prom
         if (meaning) {
           const actualTo = name.startsWith('牛津') ? to : 'en';
           const formatted = oxfordResults(meaning, word, name, from, actualTo);
-          if (formatted.length) return formatted;
+          if (formatted.length) {
+            formatted[0].previewHTML = oxfordPreviewHTML(meaning, word, name, from, actualTo);
+            return formatted;
+          }
         }
       } finally { release(value); }
     }

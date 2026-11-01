@@ -1,12 +1,21 @@
 import { icibaPreviewHTML } from './iciba-preview';
 
-export function previewHandler(token: string, upstream: typeof fetch = fetch): (request: Request) => Promise<Response> {
+export function previewHandler(
+  token: string, upstream: typeof fetch = fetch,
+  localPage?: (id: string) => Promise<string | undefined>,
+): (request: Request) => Promise<Response> {
   return async (request) => {
   const url = new URL(request.url);
   if (request.method !== 'GET' || !url.pathname.startsWith(`/${token}/`)) return new Response('Not found', { status: 404 });
   const headers = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
-  if (url.pathname === `/${token}/health`) return new Response('wordping-preview-v1', { headers });
+  if (url.pathname === `/${token}/health`) return new Response('wordping-preview-v2', { headers });
   try {
+    const pageMatch = url.pathname.match(new RegExp(`^/${token}/page/([a-f0-9]{32})$`));
+    if (pageMatch && localPage) {
+      const html = await localPage(pageMatch[1]);
+      return html === undefined ? new Response('Not found', { status: 404, headers })
+        : new Response(html, { headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8' } });
+    }
     let target: URL;
     const page = url.pathname === `/${token}/word`;
     if (page) {
