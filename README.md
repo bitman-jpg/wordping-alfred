@@ -132,9 +132,9 @@ https://github.com/user-attachments/assets/0113bbbb-82af-4a66-a4ce-e50864644901
 
 | 命令 | 作用 |
 | --- | --- |
-| `wp :backup` | 在“下载”文件夹创建可恢复的 JSON 备份，包含所有语言组合和复习进度。同名的旧备份会被覆盖。 |
-| `wp :restore` | 从“下载”文件夹的 `WordPing Vocabulary Backup.json` 合并单词，保留已有单词和进度。也可以在 `:restore` 后输入备份文件的完整路径。 |
-| `wp :export` | 在“下载”文件夹创建当前语言组合的 CSV 文件，不包含复习进度。 |
+| `wp :backup` | 在“下载”文件夹保存完整备份，包含所有收藏单词和复习进度。 |
+| `wp :restore` | 从“下载”文件夹恢复备份，不会删除已有单词。 |
+| `wp :export` | 在“下载”文件夹保存当前单词列表，可用表格软件打开；不包含复习进度。 |
 
 https://github.com/user-attachments/assets/83b68931-c1c7-4955-8cb7-286e9a068cb3
 
@@ -154,21 +154,21 @@ https://github.com/user-attachments/assets/da6b321b-c97d-4db4-8254-377ce1943fbc
 
 ### 可选的 Apple 翻译
 
-若想使用设备端的 Apple 翻译结果，需要 macOS 26 或更新版本，并在**系统设置 → 通用 → 语言与地区 → 翻译语言**中下载这两个语言。WordPing 只使用已安装的语言，不会弹出下载提示。如果尚未安装，对应的 Apple 结果不会显示，其他来源仍可返回结果。安装已发布的工作流不需要 Xcode 或命令行工具。
+若想使用设备端的 Apple 翻译结果，需要 macOS 26 或更新版本，并在**系统设置 → 通用 → 语言与地区 → 翻译语言**中下载这两个语言。WordPing 只使用已安装的语言，不会弹出下载提示。如果尚未安装，对应的 Apple 结果不会显示，其他来源仍可返回结果。
 
 ### 本地及可下载词典
 
-默认来源顺序为 **Youdao → iCiba → Baidu → Wiktionary → MyMemory → Oxford → ECDICT → CC-CEDICT → Apple**。可在 Alfred 的 WordPing 设置中通过 **Providers** 调整顺序或移除来源。本地词典功能由工作流自带的 `tjs` 运行 TypeScript 实现，无需安装 Python、`lxml`、Swift 或 Xcode。
+默认来源顺序为 **Oxford → ECDICT → CC-CEDICT → Apple → Youdao → iCiba → Baidu → Wiktionary → MyMemory**。可在 Alfred 的 WordPing 设置中通过 **Providers** 调整顺序或移除来源。
 
-- **系统牛津（`oxford`）**：在 macOS **词典 App → 设置**中勾选并下载“牛津英汉汉英词典”。英汉／汉英查询优先使用该词典；英文查询若无双语释义，会尝试已安装的 Oxford Dictionary of English 或 New Oxford American Dictionary，并将方向标为 `en→en`。TypeScript 通过 `tjs:ffi` 调用 macOS Dictionary Services，直接读取系统返回的释义；不会解析或导出牛津的词库文件，也不会发送在线查询。可按 ⌘L 查看完整释义。
-- **ECDICT（`ecdict`）**：首次使用时，WordPing 会在后台自动下载并索引英汉数据。输入 `wp :dictionaries`，在 ECDICT 项目上按 Return 可检查更新。SQLite 索引保存在 Alfred 的持久工作流数据目录中。
-- **CC-CEDICT（`cedict`）**：与 ECDICT 一同自动安装，提供持续维护的汉英数据，支持繁体、简体词头和拼音；可在同一菜单中更新。
+- **系统牛津（`oxford`）**：如果 Mac 已有牛津词典，通常无需设置即可使用。若没有牛津结果，请打开 macOS **词典 App → 设置**，启用“牛津英汉汉英词典”。在牛津结果上按住 **Shift**，可在大型、可滚动的预览中查看完整词条。
+- **ECDICT（`ecdict`）**：首次使用时，WordPing 会自动下载这本英汉词典。以后可打开 `wp :dictionaries` 检查更新。
+- **CC-CEDICT（`cedict`）**：WordPing 会与 ECDICT 一同自动安装这本汉英词典，支持繁体、简体和拼音；可通过 `wp :dictionaries` 更新。
 
-两个可下载词库不包含在发布包中。首次设置会下载约 63 MB 的 ECDICT 和约 4 MB 的 CC-CEDICT 压缩包；若要退出自动安装，请在首次使用前从 **Providers** 移除它们。更新时会检查上游版本，完整导入成功后才替换本地索引。系统牛津尚未安装或某本词典查不到单词时，对应来源不显示结果。安装或更换词库后，可运行 `wp :clear` 清除旧查询缓存，再查询。安装完成后，可在 **Providers** 中组合使用 `oxford,ecdict,cedict` 实现全离线查词。
+首次设置会下载约 63 MB 的 ECDICT 和约 4 MB 的 CC-CEDICT。若不想下载其中一本，请在首次查询前从 **Providers** 移除它。安装完成后，两本词典都可离线使用，升级 WordPing 也不会丢失。若新安装的词典没有出现在旧结果中，请运行 `wp :clear` 后重新查询。若只想离线查词，可在 **Providers** 中仅保留 `oxford,ecdict,cedict`。
 
 ## 隐私与数据
 
-WordPing 会把查询文字发送给已启用的在线来源。维基词典结果通过 FreeDictionaryAPI.com 获取；Apple 翻译和已安装的本地词典在设备上运行。安装或更新 ECDICT、CC-CEDICT 时会连接文档中列出的上游下载站点。最近查询、下载的索引、已收藏单词和复习进度保存在 Alfred 的本地工作流数据中。JSON 备份包含单词和复习进度，不包含账号凭据。词典数据的署名和许可见 [THIRD_PARTY_DICTIONARIES.md](THIRD_PARTY_DICTIONARIES.md)。
+WordPing 会把查询文字发送给已启用的在线来源。牛津、Apple 翻译、ECDICT 和 CC-CEDICT 准备好后会在 Mac 上运行。安装或更新 ECDICT、CC-CEDICT 时需要联网。最近查询、下载的词典、已收藏单词和复习进度都保存在 Mac 上。词汇备份包含收藏单词和复习进度，不包含密码或账号信息。词典署名和许可见 [THIRD_PARTY_DICTIONARIES.md](THIRD_PARTY_DICTIONARIES.md)。
 
 ## 支持 WordPing
 
