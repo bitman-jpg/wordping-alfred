@@ -55,7 +55,7 @@ with open(os.path.join(root, 'translations.json'), 'w') as handle:
     json.dump({'version': 21, 'entries': [{
         'query': 'beat', 'language': 'zh-CHS',
         'output': json.dumps({'variables': {'wordping_provider_order':
-            'youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple',
+            'oxford,ecdict,cedict,apple,youdao,iciba,baidu,wiktionary,mymemory',
             'wordping_subtitle_version': 7,
             'wordping_lookup_version': 4},
             'items': [{'title': '击败', 'arg': '击败'}]}),
@@ -63,7 +63,7 @@ with open(os.path.join(root, 'translations.json'), 'w') as handle:
     }, {
         'query': 'trabajo', 'language': 'manual:es>zh-CHS',
         'output': json.dumps({'variables': {'wordping_provider_order':
-            'youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple',
+            'oxford,ecdict,cedict,apple,youdao,iciba,baidu,wiktionary,mymemory',
             'wordping_subtitle_version': 7, 'wordping_lookup_version': 4},
             'items': [{'title': '工作', 'arg': '工作', 'mods': {'ctrl': {
                 'arg': '~save:trabajo', 'variables': {'wordping_command': '~save:trabajo'}}}}]}),

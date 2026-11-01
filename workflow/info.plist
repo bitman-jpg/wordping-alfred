@@ -851,9 +851,9 @@ Online providers require an internet connection. System Oxford works offline whe
 			<key>config</key>
 			<dict>
 				<key>default</key>
-				<string>youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple</string>
+				<string>oxford,ecdict,cedict,apple,youdao,iciba,baidu,wiktionary,mymemory</string>
 				<key>placeholder</key>
-				<string>youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple</string>
+				<string>oxford,ecdict,cedict,apple,youdao,iciba,baidu,wiktionary,mymemory</string>
 				<key>required</key><false/>
 				<key>trim</key><true/>
 			</dict>

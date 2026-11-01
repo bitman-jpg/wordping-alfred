@@ -15,8 +15,8 @@ assert(lookupDirection('こんにちは', 'en', 'ja').from === 'ja',
   'Japanese input should route to English');
 assert(providerOrder('Iciba, BAIDU, iciba, Youdao, Alibaba, Apple').join(',') === 'iciba,baidu,youdao,apple',
   'unsupported translation-only providers should be ignored');
-assert(providerOrder().join(',') === 'youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple',
-  'the default order should place all dictionary providers before Apple');
+assert(providerOrder().join(',') === 'oxford,ecdict,cedict,apple,youdao,iciba,baidu,wiktionary,mymemory',
+  'the default order should put local providers and Apple before web dictionaries');
 assert(providerOrder('youdao,iciba,baidu,wiktionary,apple').join(',') === providerOrder().join(','),
   'the older default should gain all new providers after upgrading');
 assert(providerOrder('Youdao, iciba, Baidu, Wiktionary, Apple, MyMemory').join(',') === providerOrder().join(','),

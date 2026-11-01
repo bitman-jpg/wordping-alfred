@@ -27,7 +27,7 @@ assert(parseCedictLine('# comment') === undefined && parseCedictLine('broken') =
 assert(providerOrder('ecdict,cc-cedict,cedict,youdao').join(',') === 'ecdict,cedict,youdao',
   'downloadable providers can be enabled by their documented names');
 assert(providerOrder('youdao,iciba,baidu,wiktionary,mymemory,langdao,oxford,apple').join(',')
-  === 'youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple',
+  === 'oxford,ecdict,cedict,apple,youdao,iciba,baidu,wiktionary,mymemory',
   'upgrades must add the new downloadable providers to the previous default');
 assert(providersFor('two words', providerOrder('ecdict,cedict,youdao')).join(',') === 'youdao',
   'downloadable dictionaries only receive single words');

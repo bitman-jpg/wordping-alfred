@@ -1,5 +1,5 @@
 export const DEFAULT_PROVIDER_ORDER =
-  'youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple';
+  'oxford,ecdict,cedict,apple,youdao,iciba,baidu,wiktionary,mymemory';
 
 export type ProviderName = 'youdao' | 'iciba' | 'baidu' | 'wiktionary' | 'apple' | 'mymemory'
   | 'oxford' | 'ecdict' | 'cedict';
@@ -16,7 +16,8 @@ export function providerOrder(value = DEFAULT_PROVIDER_ORDER): ProviderName[] {
   if (previousDefault === 'youdao,iciba,baidu,wiktionary,apple'
     || previousDefault === 'youdao,iciba,baidu,wiktionary,apple,mymemory'
     || previousDefault === 'youdao,iciba,baidu,wiktionary,mymemory,langdao,oxford,apple'
-    || previousDefault === 'youdao,iciba,baidu,wiktionary,mymemory,langdao,oxford,ecdict,cedict,apple') {
+    || previousDefault === 'youdao,iciba,baidu,wiktionary,mymemory,langdao,oxford,ecdict,cedict,apple'
+    || previousDefault === 'youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple') {
     value = DEFAULT_PROVIDER_ORDER;
   }
   const parsed = value.split(/[\s,;>]+/).map((part) => names[part.toLowerCase()])
