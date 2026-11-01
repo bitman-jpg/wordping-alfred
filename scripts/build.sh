@@ -23,6 +23,7 @@ rm -f dist/assets/provider-*.png
 cp assets/icon.png dist/icon.png
 cp assets/*.png dist/assets/
 rm -rf dist/assets/dictionaries
+rm -rf dist/licenses
 cp workflow/info.plist dist/info.plist
 python3 scripts/embed-release-notes.py "docs/releases/v${release_version}.md" dist/info.plist
 mkdir -p dist/scripts
@@ -31,6 +32,7 @@ cp scripts/start-lookup.sh dist/scripts/start-lookup.sh
 cp scripts/lookup.sh dist/scripts/lookup.sh
 cp scripts/play-online.sh dist/scripts/play-online.sh
 cp scripts/start-preview.sh dist/scripts/start-preview.sh
+rm -f dist/scripts/local-dictionary.py
 rm -f dist/scripts/provider-bridge.py
 cp LICENSE dist/LICENSE
 cp THIRD_PARTY_DICTIONARIES.md dist/THIRD_PARTY_DICTIONARIES.md

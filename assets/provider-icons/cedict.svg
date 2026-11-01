@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <g fill="none" stroke="#8f959d" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M39 31h50v66H39c-7 0-11-4-11-10V41c0-6 4-10 11-10zM39 87h50M39 31v56"/>
+  </g>
+  <text x="64" y="73" fill="#8f959d" font-family="PingFang SC, Hiragino Sans GB, sans-serif"
+    font-size="31" font-weight="600" text-anchor="middle">中英</text>
+</svg>

@@ -2,7 +2,7 @@
 
 # WordPing — Alfred translation and dictionary for Mac
 
-Look up a word, hear it, save it, and review it later, all from Alfred. Get results from Youdao, iCiba, Baidu, MyMemory, Apple Translation, and Wiktionary, **without obtaining API keys**. This guide starts with the shortest route to a useful daily habit. **Press play on a video to watch its demo.**
+Look up a word, hear it, save it, and review it later, all from Alfred. Compare results from Youdao, iCiba, Baidu, Wiktionary, MyMemory, ECDICT, CC-CEDICT, system Oxford, and Apple Translation, **without obtaining API keys**. This guide starts with the shortest route to a useful daily habit. **Press play on a video to watch its demo.**
 
 ## Start in two minutes
 
@@ -156,9 +156,19 @@ https://github.com/user-attachments/assets/da6b321b-c97d-4db4-8254-377ce1943fbc
 
 If you want an on-device Apple Translation result, use macOS 26 or newer and download both languages for the pair: **System Settings → General → Language & Region → Translation Languages**. WordPing uses installed languages only; it does not prompt to download them. If they are missing, that result is simply absent and the other providers can still respond. Installing a released workflow does not require Xcode or its Command Line Tools.
 
+### Local and downloadable dictionaries
+
+The default provider order is **Youdao → iCiba → Baidu → Wiktionary → MyMemory → Oxford → ECDICT → CC-CEDICT → Apple**. You can reorder or remove sources in **Providers** in the Alfred workflow settings. Local dictionary support is implemented in TypeScript and run by the bundled `tjs`. No Python, `lxml`, Swift, or Xcode installation is needed.
+
+- **System Oxford (`oxford`)**: enable and download 牛津英汉汉英词典 in macOS **Dictionary → Settings** for English–Chinese and Chinese–English results. English queries can fall back to an installed Oxford Dictionary of English or New Oxford American Dictionary, labeled `en→en`. TypeScript calls macOS Dictionary Services through `tjs:ffi` and reads the definition returned by the system. It does not parse or export Oxford dictionary files or send web queries. Use ⌘L to read the full definition.
+- **ECDICT (`ecdict`)**: WordPing downloads and indexes its English–Chinese data in the background on first use. Type `wp :dictionaries` and press Return on ECDICT to check for an update. The SQLite index lives in Alfred's persistent workflow-data directory.
+- **CC-CEDICT (`cedict`)**: installed automatically alongside ECDICT for continuously maintained Chinese–English entries, including traditional and simplified headwords and pinyin. Update it from the same menu.
+
+The downloadable packs are not bundled in the release. The first setup downloads about 63 MB for ECDICT and 4 MB compressed for CC-CEDICT; remove their names from **Providers** before first use to opt out. Updating checks the upstream source and replaces the local index only after a complete import. If system Oxford is unavailable or a word is absent from a dictionary, that source supplies no result. After installing or changing dictionaries, use `wp :clear` to clear old cached results. Set **Providers** to any combination of `oxford,ecdict,cedict` for offline-only lookups after installation.
+
 ## Privacy and data
 
-WordPing sends lookup text to each enabled web provider. Wiktionary results come through FreeDictionaryAPI.com; Apple Translation runs on-device. Recent lookups, saved words, and review progress are stored locally in Alfred's workflow data. JSON vocabulary backups contain saved words and review progress but no credentials. Dictionary attribution and licenses are in [THIRD_PARTY_DICTIONARIES.md](THIRD_PARTY_DICTIONARIES.md).
+WordPing sends lookup text to each enabled web provider. Wiktionary results come through FreeDictionaryAPI.com; Apple Translation and installed local dictionaries run on-device. Installing or updating ECDICT or CC-CEDICT contacts its documented upstream download host. Recent lookups, downloaded indexes, saved words, and review progress are stored locally in Alfred's workflow data. JSON vocabulary backups contain saved words and review progress but no credentials. Dictionary attribution and licenses are in [THIRD_PARTY_DICTIONARIES.md](THIRD_PARTY_DICTIONARIES.md).
 
 ## Support WordPing
 

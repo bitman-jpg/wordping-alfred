@@ -2,7 +2,7 @@
 
 # WordPing — Mac 上的 Alfred 翻译与词典工作流
 
-在 Alfred 中查词、翻译选中文字，一屏对照有道、爱词霸、百度、MyMemory、Apple 翻译和维基词典的结果，无需申请 API 密钥。听发音、收藏生词，再通过间隔复习巩固记忆。两分钟上手；点击下方视频查看演示。
+在 Alfred 中查词、翻译选中文字，一屏对照有道、爱词霸、百度、维基词典、MyMemory、ECDICT、CC-CEDICT、系统牛津和 Apple 翻译的结果，无需申请 API 密钥。听发音、收藏生词，再通过间隔复习巩固记忆。两分钟上手；点击下方视频查看演示。
 
 ## 两分钟上手
 
@@ -156,9 +156,19 @@ https://github.com/user-attachments/assets/da6b321b-c97d-4db4-8254-377ce1943fbc
 
 若想使用设备端的 Apple 翻译结果，需要 macOS 26 或更新版本，并在**系统设置 → 通用 → 语言与地区 → 翻译语言**中下载这两个语言。WordPing 只使用已安装的语言，不会弹出下载提示。如果尚未安装，对应的 Apple 结果不会显示，其他来源仍可返回结果。安装已发布的工作流不需要 Xcode 或命令行工具。
 
+### 本地及可下载词典
+
+默认来源顺序为 **Youdao → iCiba → Baidu → Wiktionary → MyMemory → Oxford → ECDICT → CC-CEDICT → Apple**。可在 Alfred 的 WordPing 设置中通过 **Providers** 调整顺序或移除来源。本地词典功能由工作流自带的 `tjs` 运行 TypeScript 实现，无需安装 Python、`lxml`、Swift 或 Xcode。
+
+- **系统牛津（`oxford`）**：在 macOS **词典 App → 设置**中勾选并下载“牛津英汉汉英词典”。英汉／汉英查询优先使用该词典；英文查询若无双语释义，会尝试已安装的 Oxford Dictionary of English 或 New Oxford American Dictionary，并将方向标为 `en→en`。TypeScript 通过 `tjs:ffi` 调用 macOS Dictionary Services，直接读取系统返回的释义；不会解析或导出牛津的词库文件，也不会发送在线查询。可按 ⌘L 查看完整释义。
+- **ECDICT（`ecdict`）**：首次使用时，WordPing 会在后台自动下载并索引英汉数据。输入 `wp :dictionaries`，在 ECDICT 项目上按 Return 可检查更新。SQLite 索引保存在 Alfred 的持久工作流数据目录中。
+- **CC-CEDICT（`cedict`）**：与 ECDICT 一同自动安装，提供持续维护的汉英数据，支持繁体、简体词头和拼音；可在同一菜单中更新。
+
+两个可下载词库不包含在发布包中。首次设置会下载约 63 MB 的 ECDICT 和约 4 MB 的 CC-CEDICT 压缩包；若要退出自动安装，请在首次使用前从 **Providers** 移除它们。更新时会检查上游版本，完整导入成功后才替换本地索引。系统牛津尚未安装或某本词典查不到单词时，对应来源不显示结果。安装或更换词库后，可运行 `wp :clear` 清除旧查询缓存，再查询。安装完成后，可在 **Providers** 中组合使用 `oxford,ecdict,cedict` 实现全离线查词。
+
 ## 隐私与数据
 
-WordPing 会把查询文字发送给已启用的在线来源。维基词典结果通过 FreeDictionaryAPI.com 获取；Apple 翻译在设备上运行。最近查询、已收藏单词和复习进度保存在 Alfred 的本地工作流数据中。JSON 备份包含单词和复习进度，不包含账号凭据。词典数据的署名和许可见 [THIRD_PARTY_DICTIONARIES.md](THIRD_PARTY_DICTIONARIES.md)。
+WordPing 会把查询文字发送给已启用的在线来源。维基词典结果通过 FreeDictionaryAPI.com 获取；Apple 翻译和已安装的本地词典在设备上运行。安装或更新 ECDICT、CC-CEDICT 时会连接文档中列出的上游下载站点。最近查询、下载的索引、已收藏单词和复习进度保存在 Alfred 的本地工作流数据中。JSON 备份包含单词和复习进度，不包含账号凭据。词典数据的署名和许可见 [THIRD_PARTY_DICTIONARIES.md](THIRD_PARTY_DICTIONARIES.md)。
 
 ## 支持 WordPing
 

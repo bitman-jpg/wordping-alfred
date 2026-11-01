@@ -628,11 +628,11 @@ echo -n "$query" | say $1 -v Samantha</string>
 
 1. Choose your native and learning languages from the dropdowns.
 2. Choose your online pronunciation accent.
-3. Use the `wp` keyword followed by a word or phrase.
+3. Use the `wp` keyword followed by a word or phrase. On first use, WordPing downloads and indexes ECDICT and CC-CEDICT in the background. Use `wp :dictionaries` to see their status or update them later.
 
 If macOS says **Apple could not verify “tjs”**, dismiss the warning with **Done**. WordPing opens Privacy &amp; Security automatically after a likely security block, once per bundled runtime. If it does not open, go to **System Settings → Privacy &amp; Security**, or click [Open Privacy &amp; Security](x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension). Scroll down to **Security**, click **Open Anyway** for “tjs”, and confirm when prompted. Then retry `wp hello`. If **Open Anyway** is missing, try `wp hello` again before reopening Settings. Only approve a workflow downloaded from the official WordPing release page.
 
-An internet connection is required for new lookups. Recent lookups are stored locally. WordPing queries Youdao, Iciba, Baidu, and Wiktionary for dictionary results and shows one item per responding provider.</string>
+Online providers require an internet connection. System Oxford works offline when installed in macOS Dictionary. ECDICT and CC-CEDICT need a one-time download, then work offline. Recent lookups and downloaded indexes are stored locally. WordPing shows one item per responding provider.</string>
 	<key>uidata</key>
 	<dict>
 		<key>284F6AAD-8FE7-44A6-AAE4-62A0F8BEE779</key>
@@ -851,14 +851,14 @@ An internet connection is required for new lookups. Recent lookups are stored lo
 			<key>config</key>
 			<dict>
 				<key>default</key>
-				<string>youdao,iciba,baidu,wiktionary,apple,mymemory</string>
+				<string>youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple</string>
 				<key>placeholder</key>
-				<string>youdao,iciba,baidu,wiktionary,apple,mymemory</string>
+				<string>youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple</string>
 				<key>required</key><false/>
 				<key>trim</key><true/>
 			</dict>
 			<key>description</key>
-			<string>Comma-separated providers to query together. Results appear as each responds. Remove a name to disable it.</string>
+			<string>Comma-separated providers to query together. ECDICT and CC-CEDICT install automatically on first use and can be updated with wp :dictionaries. Remove a name to disable it.</string>
 			<key>label</key>
 			<string>Providers</string>
 			<key>type</key><string>textfield</string>
@@ -890,7 +890,7 @@ An internet connection is required for new lookups. Recent lookups are stored lo
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.12.13</string>
+	<string>0.12.14</string>
 	<key>webaddress</key>
 	<string>https://github.com/bitman-jpg/wordping-alfred</string>
 </dict>

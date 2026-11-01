@@ -7,6 +7,7 @@ import { lookupApple } from './apple-translate';
 import { lookupMyMemory } from './mymemory';
 import { youdaoDictionary } from './youdao-dictionary';
 import { LanguageDirection } from './query';
+import { lookupLocalDictionary } from './local-dictionary';
 
 export interface LookupProgress {
   query: string;
@@ -175,6 +176,9 @@ export async function lookupAll(
     if (name === 'iciba') return dictionaryItems(await icibaDictionary(query, from, to), query);
     if (name === 'baidu') return dictionaryItems(await baiduDictionary(query, from, to), query);
     if (name === 'mymemory') return dictionaryItems(await lookupMyMemory(query, from, to), query);
+    if (name === 'oxford' || name === 'ecdict' || name === 'cedict') {
+      return dictionaryItems(await lookupLocalDictionary(name, query, from, to), query);
+    }
     return dictionaryItems(await lookupApple(query, from, to), query);
   };
   const progress: LookupProgress = {
@@ -206,7 +210,11 @@ export async function lookupAll(
       progress.errors.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
     }
     const isDefaultDirection = resultDirection.from === learning && resultDirection.to === native;
-    items = oneItemPerProvider(items, name, isDefaultDirection ? null : resultDirection);
+    // Oxford may fall back to an English definition when its bilingual dictionary is absent.
+    const localDirection = name === 'oxford' && String(items[0]?.subtitle || '').match(/([a-zA-Z-]+)\s*→\s*([a-zA-Z-]+)/);
+    items = oneItemPerProvider(items, name, localDirection
+      ? { from: localDirection[1], to: localDirection[2] }
+      : isDefaultDirection ? null : resultDirection);
     providerItems.set(name, items);
     progress.items = names.flatMap((provider) => providerItems.get(provider) || []);
     progress.providerStatus!.push({ name, outcome: items.length ? 'result' : failed ? 'error' : 'empty', count: items.length });

@@ -15,10 +15,15 @@ assert(lookupDirection('こんにちは', 'en', 'ja').from === 'ja',
   'Japanese input should route to English');
 assert(providerOrder('Iciba, BAIDU, iciba, Youdao, Alibaba, Apple').join(',') === 'iciba,baidu,youdao,apple',
   'unsupported translation-only providers should be ignored');
-assert(providerOrder().join(',') === 'youdao,iciba,baidu,wiktionary,apple,mymemory',
-  'the default order should include dictionary sources, Apple Translation, and MyMemory');
+assert(providerOrder().join(',') === 'youdao,iciba,baidu,wiktionary,mymemory,oxford,ecdict,cedict,apple',
+  'the default order should place all dictionary providers before Apple');
 assert(providerOrder('youdao,iciba,baidu,wiktionary,apple').join(',') === providerOrder().join(','),
-  'the previous default should gain MyMemory after upgrading');
+  'the older default should gain all new providers after upgrading');
+assert(providerOrder('Youdao, iciba, Baidu, Wiktionary, Apple, MyMemory').join(',') === providerOrder().join(','),
+  'the previous six-provider default should adopt the new order and local dictionaries');
+assert(providerOrder('youdao,iciba,baidu,wiktionary,mymemory,apple').join(',')
+  === 'youdao,iciba,baidu,wiktionary,mymemory,apple',
+  'a custom order with both local providers disabled should remain unchanged');
 assert(providerOrder('youdao,iciba,baidu,wiktionary').join(',') === 'youdao,iciba,baidu,wiktionary',
   'removing Apple from a custom provider list should disable it');
 assert(providersFor('two words', providerOrder('wiktionary,iciba,baidu,youdao,apple')).join(',') === 'youdao,apple',

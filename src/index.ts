@@ -10,6 +10,7 @@ import { DEFAULT_PROVIDER_ORDER, providerOrder, providersFor } from './provider-
 import md5 from './libs/md5';
 import { compareVersions, latestRelease, openUpgrade } from './release-update';
 import { preparePreviews } from './preview-client';
+import { managedDictionaryStatus, updateManagedDictionary } from './managed-dictionaries';
 
 interface WorkflowSettings {
   nativeLanguage: string;
@@ -86,7 +87,7 @@ function reviewSessionPath(language: string): string {
 }
 
 function lookupStatePath(query: string, language: string): string {
-  return `${cachePath().replace(/translations\.json$/, '')}lookup-v3-${md5(`${language}\0${query.toLocaleLowerCase()}`)}.json`;
+  return `${cachePath().replace(/translations\.json$/, '')}lookup-v4-${md5(`${language}\0${query.toLocaleLowerCase()}`)}.json`;
 }
 
 function manualSaveActions(output: string, scope: string): string {
@@ -223,8 +224,33 @@ function clearAction(): any {
 function commandMenu(): string {
   return JSON.stringify({ items: [
     { title: 'Saved words…', subtitle: 'Review, browse, reminders, and files', autocomplete: ':words', valid: false, icon: commandIcon('saved') },
+    { title: 'Downloadable dictionaries…', subtitle: 'Install or update ECDICT and CC-CEDICT', autocomplete: ':dictionaries', valid: false, icon: { path: 'assets/provider-muted-ecdict.png' } },
     { title: 'Check for WordPing update', subtitle: 'Install the latest GitHub release', autocomplete: ':update', valid: false, icon: commandIcon('update') },
     clearAction(),
+  ] });
+}
+
+function dictionaryDate(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'installed' : `updated ${date.toLocaleDateString()}`;
+}
+
+async function dictionariesMenu(): Promise<string> {
+  const state = await managedDictionaryStatus();
+  const action = (name: 'ecdict' | 'cedict', title: string, description: string) => {
+    const installed = state[name];
+    return {
+      title: `${installed ? 'Update' : 'Install'} ${title}`,
+      subtitle: installed
+        ? `${installed.entries.toLocaleString()} entries · ${dictionaryDate(installed.installedAt)} · ${description}`
+        : description,
+      arg: `~dictionary-update:${name}`, valid: true,
+      icon: { path: `assets/provider-muted-${name}.png` },
+    };
+  };
+  return JSON.stringify({ items: [
+    action('ecdict', 'ECDICT', 'English → Chinese · about 63 MB download · MIT'),
+    action('cedict', 'CC-CEDICT', 'Chinese → English · about 4 MB download · CC BY-SA 4.0'),
   ] });
 }
 
@@ -492,6 +518,15 @@ async function main(): Promise<void> {
       return;
     }
 
+    if (internalCommand && word.startsWith('~dictionary-update:')) {
+      const name = word.slice('~dictionary-update:'.length);
+      if (name !== 'ecdict' && name !== 'cedict') throw new Error('Unknown downloadable dictionary');
+      const result = await updateManagedDictionary(name);
+      try { await tjs.remove(cachePath()); } catch {}
+      console.log(result);
+      return;
+    }
+
     if (internalCommand && word === '~reminder-check') {
       const count = (await vocabulary.due(languageScope)).length;
       if (count) {
@@ -602,6 +637,10 @@ async function main(): Promise<void> {
       }
       if (command === 'update') {
         console.log(await updateMenu());
+        return;
+      }
+      if (command === 'dictionaries' || command === 'dictionary' || command === 'dicts') {
+        console.log(await dictionariesMenu());
         return;
       }
       if (command === 'saved') {
@@ -725,7 +764,7 @@ async function main(): Promise<void> {
     const cached = await cache.get(word, lookupScope);
     if (cached && JSON.parse(cached).variables?.wordping_provider_order === orderKey
       && JSON.parse(cached).variables?.wordping_subtitle_version === 7
-      && JSON.parse(cached).variables?.wordping_lookup_version === 3
+      && JSON.parse(cached).variables?.wordping_lookup_version === 4
       && !isEchoedTranslation(word, nativeLanguage, cached)) {
       try { await tjs.remove(lookupStatePath(word, lookupScope)); } catch {}
       const output = clearPendingLookup(cached);
@@ -766,12 +805,13 @@ async function main(): Promise<void> {
     const output = lookupOutput(progress, hints);
     if (progress.items.length) await cache.put(word, lookupScope, JSON.stringify({
       variables: { wordping_provider_order: orderKey, wordping_subtitle_version: 7,
-        wordping_lookup_version: 3 }, items: progress.items }));
+        wordping_lookup_version: 4 }, items: progress.items }));
     console.log(await preparePreviews(direction ? manualSaveActions(output, lookupScope) : output, cachePath().replace(/translations\.json$/, '')));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (rawInput.trim() === '~update') {
-      console.log(`WordPing update failed: ${message}`);
+    if (rawInput.trim() === '~update' || rawInput.trim().startsWith('~dictionary-update:')) {
+      console.log(rawInput.trim() === '~update'
+        ? `WordPing update failed: ${message}` : `Dictionary update failed: ${message}`);
       return;
     }
     console.log(JSON.stringify({ variables: { wordping_pending_query: '' }, items: [{
