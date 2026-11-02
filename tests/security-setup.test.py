@@ -50,7 +50,8 @@ class SecuritySetupTests(unittest.TestCase):
         result = self.run_lookup()
         self.assertEqual(result.returncode, 0)
         item = json.loads(result.stdout)["items"][0]
-        self.assertEqual(item["title"], "Trust and enable WordPing")
+        self.assertEqual(item["title"], "Finish setting up WordPing")
+        self.assertEqual(item["subtitle"], "Press Return to continue")
         self.assertEqual(item["arg"], "~trust-wordping")
         self.assertTrue(item["valid"])
         self.assertFalse((self.root / "xattr-cleared").exists())
@@ -58,7 +59,7 @@ class SecuritySetupTests(unittest.TestCase):
     def test_trust_action_clears_only_bundled_executables(self):
         result = self.run_lookup("~trust-wordping")
         self.assertEqual(result.returncode, 0)
-        self.assertIn("enabled", result.stdout)
+        self.assertEqual(result.stdout, "WordPing is ready. Try your lookup again.\n")
         self.assertEqual((self.root / "xattr-cleared").read_text().splitlines(), [
             str(self.root / "runtime/tjs"),
             str(self.root / "runtime/word-suggestions"),
@@ -70,7 +71,8 @@ class SecuritySetupTests(unittest.TestCase):
         self.env["XATTR_FAIL"] = "apple-translate"
         result = self.run_lookup("~trust-wordping")
         self.assertEqual(result.returncode, 1)
-        self.assertIn("could not remove", result.stdout)
+        self.assertEqual(result.stdout,
+                         "WordPing couldn't finish setup. Reinstall the workflow and try again.\n")
 
     def test_unquarantined_executables_run_lookup_directly(self):
         self.env["QUARANTINED"] = "0"

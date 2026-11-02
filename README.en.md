@@ -34,7 +34,7 @@ https://github.com/user-attachments/assets/b208655d-feaa-46a4-8ddd-1e5c57dc83f2
 3. Open Alfred and type `wp hello` (or a word in your learning language). Press **Return** on a result to copy its full translation.
 4. Press **⌃ Return** on a result you want to remember. Type `wp :review` to practice it.
 
-On first use, WordPing may show **Trust and enable WordPing**. Only if you downloaded the workflow from the official WordPing release page, select that result and press **Return**. This removes macOS quarantine from WordPing's three bundled executables and does not change security settings for any other files. Then retry your lookup.
+On first use, WordPing may show **Finish setting up WordPing**. Only if you downloaded the workflow from the official WordPing release page, select that result and press **Return**. This prepares WordPing to run on your Mac without changing any other apps or files. Then retry your lookup.
 
 https://github.com/user-attachments/assets/1d244843-a647-483a-9f07-dd7ef6c483ba
 
@@ -194,12 +194,11 @@ Questions, bug reports, and ideas are welcome in [GitHub Issues](https://github.
 
 If WordPing helps you, consider supporting its continued development.
 
-Choose a payment method below. For WeChat Pay or Alipay, scan the corresponding QR code:
+Choose a payment method below. For Alipay, scan the QR code:
 
 <table>
   <tr>
     <th>PayPal</th>
-    <th>WeChat Pay</th>
     <th>Alipay</th>
   </tr>
   <tr>
@@ -208,7 +207,6 @@ Choose a payment method below. For WeChat Pay or Alipay, scan the corresponding 
         <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate with PayPal">
       </a>
     </td>
-    <td><img src="assets/donate/wechat-pay.png" width="220" alt="Support WordPing with WeChat Pay"></td>
     <td><img src="assets/donate/alipay-small.png" width="220" alt="Support WordPing with Alipay"></td>
   </tr>
 </table>

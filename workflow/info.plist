@@ -631,7 +631,7 @@ echo -n "$query" | say $1 -v Samantha</string>
 2. Choose your online pronunciation accent.
 3. Use the `wp` keyword followed by a word or phrase. On first use, WordPing downloads and indexes ECDICT and CC-CEDICT in the background. Use `wp :dictionaries` to see their status or update them later.
 
-On first use, WordPing may show **Trust and enable WordPing**. Only if you downloaded the workflow from the official WordPing release page, select that result and press Return. This removes macOS quarantine from WordPing's three bundled executables; it does not change security settings for any other files. Then retry your lookup.
+On first use, WordPing may show **Finish setting up WordPing**. Only if you downloaded the workflow from the official WordPing release page, select that result and press Return. This prepares WordPing to run on your Mac without changing any other apps or files. Then retry your lookup.
 
 Online providers require an internet connection. System Oxford works offline when installed in macOS Dictionary. ECDICT and CC-CEDICT need a one-time download, then work offline. Recent lookups and downloaded indexes are stored locally. WordPing shows one item per responding provider.</string>
 	<key>uidata</key>

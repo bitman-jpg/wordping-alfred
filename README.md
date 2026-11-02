@@ -34,7 +34,7 @@ https://github.com/user-attachments/assets/b208655d-feaa-46a4-8ddd-1e5c57dc83f2
 3. 打开 Alfred，输入 `wp hello`（也可以换成正在学习的词）。选中结果后按 **Return**，即可复制完整译文。
 4. 遇到想记住的词，在结果上按 **⌃ Return** 收藏。输入 `wp :review` 开始复习。
 
-首次使用时，WordPing 可能会显示 **Trust and enable WordPing**。请确认工作流来自 WordPing 官方发布页，然后选中该结果并按 **Return**。此操作只会移除 WordPing 自带的三个可执行文件上的 macOS 隔离标记，不会更改其他文件的安全设置。之后请重试查询。
+首次使用时，WordPing 可能会显示 **Finish setting up WordPing**。请确认工作流来自 WordPing 官方发布页，然后选中该结果并按 **Return**。此操作会让 WordPing 可以在 Mac 上正常运行，不会更改其他 App 或文件。之后请重试查询。
 
 https://github.com/user-attachments/assets/1d244843-a647-483a-9f07-dd7ef6c483ba
 
@@ -192,12 +192,11 @@ WordPing 会把查询文字发送给已启用的在线来源。牛津、Apple �
 
 欢迎在 [GitHub Issues](https://github.com/bitman-jpg/wordping-alfred/issues) 提问、报告问题或提出改进建议。
 
-如果 WordPing 对你有帮助，可以考虑支持后续开发。选择以下方式；微信支付或支付宝可扫描二维码：
+如果 WordPing 对你有帮助，可以考虑支持后续开发。支付宝可扫描二维码：
 
 <table>
   <tr>
     <th>PayPal</th>
-    <th>微信支付</th>
     <th>支付宝</th>
   </tr>
   <tr>
@@ -206,7 +205,6 @@ WordPing 会把查询文字发送给已启用的在线来源。牛津、Apple �
         <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="通过 PayPal 支持 WordPing">
       </a>
     </td>
-    <td><img src="assets/donate/wechat-pay.png" width="220" alt="通过微信支付支持 WordPing"></td>
     <td><img src="assets/donate/alipay-small.png" width="220" alt="通过支付宝支持 WordPing"></td>
   </tr>
 </table>

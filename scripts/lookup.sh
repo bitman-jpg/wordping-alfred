@@ -11,10 +11,10 @@ if [ "${1:-}" = "~trust-wordping" ]; then
     fi
   done
   if [ "$failed" -ne 0 ]; then
-    echo "WordPing could not remove macOS quarantine. Check the workflow folder permissions."
+    echo "WordPing couldn't finish setup. Reinstall the workflow and try again."
     exit 1
   fi
-  echo "WordPing is enabled. Retry your lookup."
+  echo "WordPing is ready. Try your lookup again."
   exit 0
 fi
 
@@ -26,7 +26,7 @@ for executable in "$runtime" "$workflow_dir/runtime/word-suggestions" "$workflow
   fi
 done
 if [ "$quarantined" -eq 1 ]; then
-  printf '%s\n' '{"items":[{"uid":"wordping-trust","title":"Trust and enable WordPing","subtitle":"Press Return to remove macOS quarantine from WordPing bundled executables","arg":"~trust-wordping","valid":true,"icon":{"path":"icon.png"}}]}'
+  printf '%s\n' '{"items":[{"uid":"wordping-trust","title":"Finish setting up WordPing","subtitle":"Press Return to continue","arg":"~trust-wordping","valid":true,"icon":{"path":"icon.png"}}]}'
   exit 0
 fi
 
