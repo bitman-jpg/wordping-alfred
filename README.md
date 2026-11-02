@@ -2,7 +2,30 @@
 
 # WordPing — Mac 上的 Alfred 翻译与词典工作流
 
-在 Alfred 中查词、翻译选中文字，一屏对照有道、爱词霸、百度、维基词典、MyMemory、ECDICT、CC-CEDICT、系统牛津和 Apple 翻译的结果，无需申请 API 密钥。听发音、收藏生词，再通过间隔复习巩固记忆。两分钟上手；点击下方视频查看演示。
+**查词、听发音、收藏生词、间隔复习，都在 Alfred 里完成。**
+
+> **⬇ [下载最新版 WordPing](https://github.com/bitman-jpg/wordping-alfred/releases/latest)** · 需要 Alfred 5.5+（Powerpack）与 Apple 芯片 Mac
+
+- **无需申请 API 密钥** — 打开即用，不用注册有道开发者账号。
+- **一屏对照 9 个来源** — 有道、爱词霸、百度、维基词典、MyMemory、ECDICT、CC-CEDICT、系统牛津、Apple 翻译。
+- **不只是查词** — 按 ⌃ Return 收藏生词，用 `wp :review` 按 1 / 3 / 7 / 14 / 30 / 60 天间隔复习，还有反向复习和到期提醒。
+- **离线也能查** — ECDICT、CC-CEDICT 与系统牛津下载后无需联网；可切换美音 / 英音发音。
+
+**41 秒看它怎么工作：**
+
+https://github.com/user-attachments/assets/b208655d-feaa-46a4-8ddd-1e5c57dc83f2
+
+*演示：浏览多个来源的结果和预览页面（41 秒）。*
+
+## 和常见的有道查词工作流比起来
+
+|  | 常见的单来源有道工作流 | WordPing |
+| --- | --- | --- |
+| 需要申请 API 密钥 | 往往需要 | 不需要 |
+| 一屏对照多个来源 | 只有有道 | 9 个来源 |
+| 收藏生词 | 没有 | 有 |
+| 间隔复习 | 没有 | 有（1 / 3 / 7 / 14 / 30 / 60 天） |
+| 离线词典 | 没有 | ECDICT、CC-CEDICT、系统牛津 |
 
 ## 两分钟上手
 

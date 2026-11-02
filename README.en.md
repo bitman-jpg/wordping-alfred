@@ -2,7 +2,30 @@
 
 # WordPing — Alfred translation and dictionary for Mac
 
-Look up a word, hear it, save it, and review it later, all from Alfred. Compare results from Youdao, iCiba, Baidu, Wiktionary, MyMemory, ECDICT, CC-CEDICT, system Oxford, and Apple Translation, **without obtaining API keys**. This guide starts with the shortest route to a useful daily habit. **Press play on a video to watch its demo.**
+**Look up a word, hear it, save it, and review it later, all from Alfred.**
+
+> **⬇ [Download the latest WordPing](https://github.com/bitman-jpg/wordping-alfred/releases/latest)** · Requires Alfred 5.5+ with Powerpack and an Apple silicon Mac
+
+- **No API key needed** — no Youdao developer account to register, it just works.
+- **9 sources on one screen** — Youdao, iCiba, Baidu, Wiktionary, MyMemory, ECDICT, CC-CEDICT, system Oxford, and Apple Translation.
+- **More than lookup** — press ⌃ Return to save a word, then review it with `wp :review` on a 1 / 3 / 7 / 14 / 30 / 60-day spaced schedule, including reverse review and due-word reminders.
+- **Works offline too** — ECDICT, CC-CEDICT, and system Oxford work without a connection once downloaded; American, British, or both pronunciations.
+
+**See it in 41 seconds:**
+
+https://github.com/user-attachments/assets/b208655d-feaa-46a4-8ddd-1e5c57dc83f2
+
+*Watch: explore multiple provider results and preview pages (41 seconds).*
+
+## Compared with a typical Youdao-only workflow
+
+|  | Typical Youdao-only workflow | WordPing |
+| --- | --- | --- |
+| API key required | Often yes | No |
+| Sources compared on one screen | Youdao only | 9 sources |
+| Save words | No | Yes |
+| Spaced review | No | Yes (1 / 3 / 7 / 14 / 30 / 60 days) |
+| Offline dictionaries | No | ECDICT, CC-CEDICT, system Oxford |
 
 ## Start in two minutes
 
