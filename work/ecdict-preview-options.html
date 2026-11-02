@@ -1,0 +1,227 @@
+<style>
+#wordping-preview-options {
+  color-scheme: light dark;
+  padding: 16px;
+}
+#wordping-preview-options .option-stage {
+  min-height: 720px;
+  padding: 18px;
+  border-radius: 22px;
+  overflow: hidden;
+}
+#wordping-preview-options .option-page {
+  width: min(880px, 100%);
+  margin: 0 auto;
+}
+#wordping-preview-options * { box-sizing: border-box; }
+
+#wordping-preview-options .aurora {
+  --aurora-bg: light-dark(#f4f1f7, #151218);
+  --aurora-surface: light-dark(rgba(255,255,255,.86), rgba(38,31,43,.92));
+  --aurora-strong: light-dark(#ffffff, #2a222f);
+  --aurora-text: light-dark(#21182b, #f4edf7);
+  --aurora-muted: light-dark(#756b7f, #b7aaba);
+  --aurora-line: light-dark(rgba(64,35,83,.12), rgba(241,220,249,.11));
+  --aurora-accent: light-dark(#68218a, #d695ee);
+  --aurora-soft: light-dark(#eee1f5, rgba(166,83,196,.18));
+  background: radial-gradient(circle at 88% 0, light-dark(rgba(123,55,153,.16), rgba(124,48,151,.24)), transparent 33rem), var(--aurora-bg);
+  color: var(--aurora-text);
+  font: 400 16px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+}
+.aurora .a-hero { padding: 32px 36px; border: 1px solid var(--aurora-line); border-radius: 25px; background: linear-gradient(135deg,var(--aurora-strong),var(--aurora-surface)); box-shadow: 0 12px 36px light-dark(rgba(48,25,62,.08),rgba(0,0,0,.25)); }
+.aurora .a-source { margin: 0 0 8px; color: var(--aurora-accent); font-size: 13px; font-weight: 500; letter-spacing: .13em; text-transform: uppercase; }
+.aurora h1 { margin: 0; font-size: 58px; line-height: 1; font-weight: 500; letter-spacing: -.045em; }
+.aurora .a-pills { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+.aurora .a-pill { padding: 6px 12px; border-radius: 999px; background: var(--aurora-soft); color: var(--aurora-accent); font-size: 14px; font-weight: 500; }
+.aurora .a-stack { display: grid; gap: 16px; margin-top: 18px; }
+.aurora .a-card { padding: 23px 26px; border: 1px solid var(--aurora-line); border-radius: 19px; background: var(--aurora-surface); }
+.aurora .a-label { margin: 0 0 8px; color: var(--aurora-muted); font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; }
+.aurora .a-translation { margin: 0; font-size: 20px; }
+.aurora .a-definition { margin: 0; white-space: pre-line; }
+.aurora .a-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.aurora .a-fact { padding: 17px 18px; border: 1px solid var(--aurora-line); border-radius: 15px; background: var(--aurora-surface); }
+.aurora .a-fact strong { display: block; margin-top: 4px; font-weight: 500; }
+
+#wordping-preview-options .editorial {
+  --editorial-paper: light-dark(#f8f5ee, #1d1c1a);
+  --editorial-ink: light-dark(#211f1a, #f2eee4);
+  --editorial-muted: light-dark(#716b5f, #aaa394);
+  --editorial-rule: light-dark(#d4cec0, #4b473f);
+  --editorial-accent: light-dark(#9a382d, #ef8f81);
+  background: var(--editorial-paper);
+  color: var(--editorial-ink);
+  font: 400 16px/1.62 Georgia, "Times New Roman", serif;
+}
+.editorial .e-page { padding: 34px 42px 48px; border-top: 7px solid var(--editorial-ink); }
+.editorial .e-mast { display: flex; justify-content: space-between; align-items: center; padding-bottom: 9px; border-bottom: 1px solid var(--editorial-rule); color: var(--editorial-muted); font: 500 12px/1.4 -apple-system, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.editorial .e-heading { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; padding: 28px 0 25px; border-bottom: 3px double var(--editorial-rule); }
+.editorial h1 { margin: 0; font-size: 68px; line-height: .95; font-weight: 400; letter-spacing: -.045em; }
+.editorial .e-phonetic { color: var(--editorial-accent); font: 500 15px/1.4 -apple-system, sans-serif; }
+.editorial .e-body { display: grid; grid-template-columns: 180px 1fr; gap: 36px; padding-top: 28px; }
+.editorial .e-rail { color: var(--editorial-muted); font: 400 13px/1.55 -apple-system, sans-serif; }
+.editorial .e-rail div { padding: 11px 0; border-bottom: 1px solid var(--editorial-rule); }
+.editorial .e-rail span { display: block; margin-bottom: 2px; font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+.editorial .e-kicker { margin: 0 0 6px; color: var(--editorial-accent); font: 500 12px/1.4 -apple-system, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.editorial .e-translation { margin: 0 0 26px; font-size: 27px; line-height: 1.35; }
+.editorial .e-definition { margin: 0; padding-top: 21px; border-top: 1px solid var(--editorial-rule); font-size: 18px; white-space: pre-line; }
+
+#wordping-preview-options .atlas {
+  --atlas-bg: light-dark(#edf0f4, #10141b);
+  --atlas-panel: light-dark(#ffffff, #1a202a);
+  --atlas-sidebar: light-dark(#202637, #d6e0f3);
+  --atlas-sidebar-text: light-dark(#f7f8fc, #111722);
+  --atlas-text: light-dark(#202533, #edf1f8);
+  --atlas-muted: light-dark(#697182, #9aa6b8);
+  --atlas-line: light-dark(#dfe3ea, #303846);
+  --atlas-accent: light-dark(#2f65d9, #8db1ff);
+  background: var(--atlas-bg);
+  color: var(--atlas-text);
+  font: 400 16px/1.58 -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.atlas .t-shell { display: grid; grid-template-columns: 255px 1fr; min-height: 650px; overflow: hidden; border-radius: 24px; background: var(--atlas-panel); box-shadow: 0 20px 48px light-dark(rgba(31,42,63,.13),rgba(0,0,0,.3)); }
+.atlas .t-side { padding: 34px 28px; background: var(--atlas-sidebar); color: var(--atlas-sidebar-text); }
+.atlas .t-source { margin: 0 0 22px; font-size: 12px; font-weight: 500; letter-spacing: .14em; opacity: .66; text-transform: uppercase; }
+.atlas h1 { margin: 0 0 8px; font-size: 38px; line-height: 1.06; font-weight: 500; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.atlas .t-phonetic { margin: 0 0 35px; opacity: .78; }
+.atlas .t-side-fact { padding: 14px 0; border-top: 1px solid light-dark(rgba(255,255,255,.18),rgba(17,23,34,.2)); }
+.atlas .t-side-fact span { display: block; margin-bottom: 3px; font-size: 11px; font-weight: 500; letter-spacing: .09em; opacity: .62; text-transform: uppercase; }
+.atlas .t-main { padding: 42px 42px 50px; }
+.atlas .t-direction { display: inline-block; margin-bottom: 34px; color: var(--atlas-accent); font-size: 13px; font-weight: 500; letter-spacing: .07em; text-transform: uppercase; }
+.atlas .t-section + .t-section { margin-top: 36px; padding-top: 30px; border-top: 1px solid var(--atlas-line); }
+.atlas .t-section h2 { margin: 0 0 12px; color: var(--atlas-muted); font-size: 12px; font-weight: 500; letter-spacing: .11em; text-transform: uppercase; }
+.atlas .t-translation { margin: 0; font-size: 25px; line-height: 1.4; letter-spacing: -.012em; }
+.atlas .t-definition { margin: 0; white-space: pre-line; }
+
+#wordping-preview-options .bento {
+  --bento-bg: light-dark(#f6f7f9, #141517);
+  --bento-panel: light-dark(#ffffff, #222326);
+  --bento-text: light-dark(#1e2025, #f3f3f4);
+  --bento-muted: light-dark(#727780, #a9adb5);
+  --bento-line: light-dark(#e4e6ea, #35373b);
+  --bento-plum: light-dark(#53266f, #dba5f4);
+  --bento-plum-soft: light-dark(#eee5f3, #33233b);
+  --bento-gold-soft: light-dark(#f4ead3, #3a3020);
+  background: var(--bento-bg);
+  color: var(--bento-text);
+  font: 400 16px/1.55 -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.bento .b-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 13px; }
+.bento .b-box { padding: 24px; border: 1px solid var(--bento-line); border-radius: 22px; background: var(--bento-panel); }
+.bento .b-hero { grid-column: span 7; min-height: 220px; display: flex; flex-direction: column; justify-content: space-between; background: var(--bento-plum-soft); }
+.bento .b-hero-top { display: flex; justify-content: space-between; color: var(--bento-plum); font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; }
+.bento h1 { margin: 0; font-size: 58px; line-height: 1; font-weight: 500; letter-spacing: -.05em; }
+.bento .b-sound { grid-column: span 5; min-height: 220px; display: flex; flex-direction: column; justify-content: space-between; background: var(--bento-gold-soft); }
+.bento .b-symbol { color: var(--bento-plum); font-size: 38px; line-height: 1; }
+.bento .b-sound strong { font-size: 21px; font-weight: 500; }
+.bento .b-translation { grid-column: span 12; }
+.bento .b-definition { grid-column: span 8; }
+.bento .b-stats { grid-column: span 4; display: grid; gap: 16px; align-content: start; }
+.bento .b-label { display: block; margin-bottom: 9px; color: var(--bento-muted); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; }
+.bento .b-main-text { margin: 0; font-size: 23px; line-height: 1.4; }
+.bento .b-definition p { margin: 0; white-space: pre-line; }
+.bento .b-stat + .b-stat { padding-top: 14px; border-top: 1px solid var(--bento-line); }
+.bento .b-stat strong { font-weight: 500; }
+
+@media (max-width: 650px) {
+  #wordping-preview-options { padding: 8px; }
+  #wordping-preview-options .option-stage { min-height: 930px; padding: 10px; }
+  .aurora h1, .editorial h1, .bento h1 { font-size: 43px; }
+  .aurora .a-facts { grid-template-columns: 1fr; }
+  .editorial .e-page { padding: 26px 22px 38px; }
+  .editorial .e-heading, .editorial .e-body { grid-template-columns: 1fr; }
+  .editorial .e-body { gap: 20px; }
+  .atlas .t-shell { grid-template-columns: 1fr; }
+  .atlas .t-side { padding: 26px 24px; }
+  .atlas .t-side-fact { display: inline-block; width: 32%; vertical-align: top; }
+  .atlas .t-main { padding: 30px 24px 40px; }
+  .bento .b-box { grid-column: span 12; }
+}
+</style>
+
+<div id="wordping-preview-options" class="viz-dotted-background">
+  <div class="viz-carousel" aria-label="ECDICT preview design options">
+    <section data-variant="Aurora Cards" aria-label="Aurora Cards dictionary preview">
+      <div class="option-stage aurora">
+        <article class="option-page">
+          <header class="a-hero">
+            <p class="a-source">ECDICT</p>
+            <h1>typography</h1>
+            <div class="a-pills"><span class="a-pill">en → zh-CHS</span><span class="a-pill">tai'pɒgrәfi</span></div>
+          </header>
+          <div class="a-stack">
+            <section class="a-card"><p class="a-label">Translation</p><p class="a-translation">n. 凸版印刷术，排印，印刷版面式样</p></section>
+            <section class="a-card"><p class="a-label">English definition</p><p class="a-definition">n. the craft of composing type and printing from it
+n. art and technique of printing with movable type</p></section>
+            <div class="a-facts">
+              <div class="a-fact"><span class="a-label">Word forms</span><strong>s: typographies</strong></div>
+              <div class="a-fact"><span class="a-label">BNC rank</span><strong>24,476</strong></div>
+              <div class="a-fact"><span class="a-label">Frequency rank</span><strong>31,502</strong></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section data-variant="Editorial" aria-label="Editorial dictionary preview" hidden>
+      <div class="option-stage editorial">
+        <article class="option-page e-page">
+          <div class="e-mast"><span>WordPing Dictionary</span><span>English → Chinese</span></div>
+          <header class="e-heading"><h1>typography</h1><span class="e-phonetic">tai'pɒgrәfi</span></header>
+          <div class="e-body">
+            <aside class="e-rail">
+              <div><span>Source</span>ECDICT</div>
+              <div><span>Word forms</span>s: typographies</div>
+              <div><span>BNC rank</span>24,476</div>
+              <div><span>Frequency</span>31,502</div>
+            </aside>
+            <main>
+              <p class="e-kicker">Chinese translation</p>
+              <p class="e-translation">n. 凸版印刷术，排印，印刷版面式样</p>
+              <p class="e-kicker">Definition</p>
+              <p class="e-definition">n. the craft of composing type and printing from it
+n. art and technique of printing with movable type</p>
+            </main>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section data-variant="Atlas Sidebar" aria-label="Atlas Sidebar dictionary preview" hidden>
+      <div class="option-stage atlas">
+        <article class="option-page t-shell">
+          <aside class="t-side">
+            <p class="t-source">ECDICT</p>
+            <h1>typography</h1>
+            <p class="t-phonetic">tai'pɒgrәfi</p>
+            <div class="t-side-fact"><span>Word forms</span>s: typographies</div>
+            <div class="t-side-fact"><span>BNC rank</span>24,476</div>
+            <div class="t-side-fact"><span>Frequency</span>31,502</div>
+          </aside>
+          <main class="t-main">
+            <span class="t-direction">English → Chinese</span>
+            <section class="t-section"><h2>Translation</h2><p class="t-translation">n. 凸版印刷术，排印，印刷版面式样</p></section>
+            <section class="t-section"><h2>English definition</h2><p class="t-definition">n. the craft of composing type and printing from it
+n. art and technique of printing with movable type</p></section>
+          </main>
+        </article>
+      </div>
+    </section>
+
+    <section data-variant="Bento" aria-label="Bento dictionary preview" hidden>
+      <div class="option-stage bento">
+        <article class="option-page b-grid">
+          <header class="b-box b-hero"><div class="b-hero-top"><span>ECDICT</span><span>en → zh-CHS</span></div><h1>typography</h1></header>
+          <section class="b-box b-sound"><span class="b-symbol">Aa</span><div><span class="b-label">Pronunciation</span><strong>tai'pɒgrәfi</strong></div></section>
+          <section class="b-box b-translation"><span class="b-label">Translation</span><p class="b-main-text">n. 凸版印刷术，排印，印刷版面式样</p></section>
+          <section class="b-box b-definition"><span class="b-label">English definition</span><p>n. the craft of composing type and printing from it
+n. art and technique of printing with movable type</p></section>
+          <aside class="b-box b-stats">
+            <div class="b-stat"><span class="b-label">Word forms</span><strong>s: typographies</strong></div>
+            <div class="b-stat"><span class="b-label">BNC rank</span><strong>24,476</strong></div>
+            <div class="b-stat"><span class="b-label">Frequency</span><strong>31,502</strong></div>
+          </aside>
+        </article>
+      </div>
+    </section>
+  </div>
+</div>
