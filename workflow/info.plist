@@ -273,6 +273,7 @@
 				<key>script</key>
 				<string>command="${wordping_command:-$1}"
 case "$command" in
+  ~trust-wordping) result=$(/bin/sh ./scripts/lookup.sh "$command" 2&gt;&amp;1) ;;
   ~remind:*) result=$(/bin/sh ./scripts/reminders.sh "$command" 2&gt;&amp;1) ;;
   *) result=$(./runtime/tjs run ./index.js "$command") ;;
 esac
@@ -630,7 +631,7 @@ echo -n "$query" | say $1 -v Samantha</string>
 2. Choose your online pronunciation accent.
 3. Use the `wp` keyword followed by a word or phrase. On first use, WordPing downloads and indexes ECDICT and CC-CEDICT in the background. Use `wp :dictionaries` to see their status or update them later.
 
-If macOS says **Apple could not verify “tjs”**, dismiss the warning with **Done**. WordPing opens Privacy &amp; Security automatically after a likely security block, once per bundled runtime. If it does not open, go to **System Settings → Privacy &amp; Security**, or click [Open Privacy &amp; Security](x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension). Scroll down to **Security**, click **Open Anyway** for “tjs”, and confirm when prompted. Then retry `wp hello`. If **Open Anyway** is missing, try `wp hello` again before reopening Settings. Only approve a workflow downloaded from the official WordPing release page.
+On first use, WordPing may show **Trust and enable WordPing**. Only if you downloaded the workflow from the official WordPing release page, select that result and press Return. This removes macOS quarantine from WordPing's three bundled executables; it does not change security settings for any other files. Then retry your lookup.
 
 Online providers require an internet connection. System Oxford works offline when installed in macOS Dictionary. ECDICT and CC-CEDICT need a one-time download, then work offline. Recent lookups and downloaded indexes are stored locally. WordPing shows one item per responding provider.</string>
 	<key>uidata</key>
@@ -890,7 +891,7 @@ Online providers require an internet connection. System Oxford works offline whe
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>0.12.14</string>
+	<string>0.12.15</string>
 	<key>webaddress</key>
 	<string>https://github.com/bitman-jpg/wordping-alfred</string>
 </dict>

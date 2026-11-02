@@ -34,6 +34,7 @@ cp scripts/play-online.sh dist/scripts/play-online.sh
 cp scripts/start-preview.sh dist/scripts/start-preview.sh
 rm -f dist/scripts/local-dictionary.py
 rm -f dist/scripts/provider-bridge.py
+rm -f dist/.DS_Store
 cp LICENSE dist/LICENSE
 cp THIRD_PARTY_DICTIONARIES.md dist/THIRD_PARTY_DICTIONARIES.md
 rm -f dist/THIRD_PARTY_SOFTWARE.md

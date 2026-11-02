@@ -1,4 +1,4 @@
-"""Exercise security recovery without triggering Gatekeeper or opening Settings."""
+"""Exercise the explicit quarantine-removal action without launching Gatekeeper."""
 import json
 from pathlib import Path
 import os
@@ -14,13 +14,20 @@ class SecuritySetupTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         (self.root / "runtime").mkdir()
         (self.root / "scripts").mkdir()
-        self.env = {**os.environ, "alfred_workflow_cache": str(self.root / "cache"),
-                    "OPEN_LOG": str(self.root / "opened"), "QUARANTINED": "1",
-                    "PROBE_STATUS": "137", "ASSESSMENT": "rejected"}
+        (self.root / "xattr-state").mkdir()
+        self.env = {**os.environ, "QUARANTINED": "1",
+                    "XATTR_LOG": str(self.root / "xattr-cleared"),
+                    "XATTR_STATE": str(self.root / "xattr-state")}
         stubs = {
-            "/usr/bin/xattr": '[ "$QUARANTINED" = 1 ]',
-            "/usr/sbin/spctl": 'echo "$ASSESSMENT"; exit 1',
-            "/usr/bin/open": 'echo opened >> "$OPEN_LOG"',
+            "/usr/bin/xattr": ('name=${3##*/}\n'
+                               'case "$1" in\n'
+                               '  -p) [ "$QUARANTINED" = 1 ] && [ ! -f "$XATTR_STATE/$name" ] ;;\n'
+                               '  -d)\n'
+                               '    [ "${XATTR_FAIL:-}" != "$name" ] || exit 1\n'
+                               '    /usr/bin/touch "$XATTR_STATE/$name"\n'
+                               '    printf \'%s\\n\' "$3" >> "$XATTR_LOG"\n'
+                               '    ;;\n'
+                               'esac'),
         }
         source = (Path(__file__).resolve().parents[1] / "scripts/lookup.sh").read_text()
         for index, (command, body) in enumerate(stubs.items()):
@@ -30,41 +37,45 @@ class SecuritySetupTests(unittest.TestCase):
             source = source.replace(command, f'"{path}"')
         (self.root / "scripts/lookup.sh").write_text(source)
         runtime = self.root / "runtime/tjs"
-        runtime.write_text('#!/bin/sh\nif [ "$1" = --version ]; then exit "$PROBE_STATUS"; fi\nprintf \'%s\\n\' "$3"\n')
+        runtime.write_text('#!/bin/sh\nprintf \'%s\\n\' "$3"\n')
         runtime.chmod(0o755)
+        (self.root / "runtime/word-suggestions").touch()
+        (self.root / "runtime/apple-translate").touch()
 
     def run_lookup(self, query="hello world"):
         return subprocess.run(["/bin/sh", str(self.root / "scripts/lookup.sh"), query],
                               env=self.env, capture_output=True, text=True)
 
-    def test_block_opens_once_and_returns_alfred_guidance(self):
-        for _ in range(2):
-            result = self.run_lookup()
-            self.assertEqual(result.returncode, 0)
-            self.assertIn("Allow tjs", json.loads(result.stdout)["items"][0]["title"])
-        self.assertEqual((self.root / "opened").read_text(), "opened\n")
-
-    def test_success_preserves_query_without_opening_settings(self):
-        self.env["PROBE_STATUS"] = "0"
+    def test_quarantine_returns_explicit_trust_action(self):
         result = self.run_lookup()
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout, "hello world\n")
-        self.assertFalse((self.root / "opened").exists())
+        item = json.loads(result.stdout)["items"][0]
+        self.assertEqual(item["title"], "Trust and enable WordPing")
+        self.assertEqual(item["arg"], "~trust-wordping")
+        self.assertTrue(item["valid"])
+        self.assertFalse((self.root / "xattr-cleared").exists())
 
-    def test_ordinary_failure_does_not_open_settings(self):
-        self.env["PROBE_STATUS"] = "1"
-        self.assertEqual(self.run_lookup().returncode, 1)
-        self.assertFalse((self.root / "opened").exists())
+    def test_trust_action_clears_only_bundled_executables(self):
+        result = self.run_lookup("~trust-wordping")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("enabled", result.stdout)
+        self.assertEqual((self.root / "xattr-cleared").read_text().splitlines(), [
+            str(self.root / "runtime/tjs"),
+            str(self.root / "runtime/word-suggestions"),
+            str(self.root / "runtime/apple-translate"),
+        ])
+        self.assertEqual(self.run_lookup().stdout, "hello world\n")
 
-    def test_killed_process_without_rejection_does_not_open_settings(self):
-        self.env["ASSESSMENT"] = "accepted"
-        self.assertEqual(self.run_lookup().returncode, 137)
-        self.assertFalse((self.root / "opened").exists())
+    def test_trust_action_reports_removal_failure(self):
+        self.env["XATTR_FAIL"] = "apple-translate"
+        result = self.run_lookup("~trust-wordping")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("could not remove", result.stdout)
 
-    def test_unquarantined_runtime_skips_probe(self):
+    def test_unquarantined_executables_run_lookup_directly(self):
         self.env["QUARANTINED"] = "0"
         self.assertEqual(self.run_lookup().stdout, "hello world\n")
-        self.assertFalse((self.root / "opened").exists())
+        self.assertFalse((self.root / "xattr-cleared").exists())
 
 
 if __name__ == "__main__":

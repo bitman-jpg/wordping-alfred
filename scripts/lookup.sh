@@ -3,33 +3,31 @@
 workflow_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 1
 runtime="$workflow_dir/runtime/tjs"
 
-if /usr/bin/xattr -p com.apple.quarantine "$runtime" >/dev/null 2>&1; then
-  # Probe before starting warmup so only one blocked launch occurs.
-  "$runtime" --version >/dev/null 2>&1
-  status=$?
-  case "$status" in
-    126|137)
-      assessment=$(/usr/sbin/spctl --assess --type execute --verbose "$runtime" 2>&1)
-      case "$assessment" in
-        *rejected*)
-          cache_dir="${alfred_workflow_cache:-$HOME/Library/Caches/com.runningwithcrayons.Alfred/Workflow Data/com.bitman.wordping}"
-          fingerprint=$(/usr/bin/cksum < "$runtime" | /usr/bin/tr ' ' '-')
-          # mkdir is atomic: concurrent Alfred queries must not open many windows.
-          if mkdir -p "$cache_dir" && mkdir "$cache_dir/security-opened-$fingerprint" 2>/dev/null; then
-            if ! /usr/bin/open "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension"; then
-              rmdir "$cache_dir/security-opened-$fingerprint"
-            fi
-          fi
-          printf '%s\n' '{"items":[{"title":"Allow tjs in Privacy & Security","subtitle":"Dismiss the warning, scroll to Security, click Open Anyway, then retry. Reopen System Settings > Privacy & Security if needed.","valid":false}]}'
-          exit 0
-          ;;
-      esac
-      ;;
-  esac
-  # Ordinary failures retain their exit status; they must not open Settings.
-  if [ "$status" -ne 0 ]; then
-    exit "$status"
+if [ "${1:-}" = "~trust-wordping" ]; then
+  failed=0
+  for executable in "$runtime" "$workflow_dir/runtime/word-suggestions" "$workflow_dir/runtime/apple-translate"; do
+    if [ -f "$executable" ] && /usr/bin/xattr -p com.apple.quarantine "$executable" >/dev/null 2>&1; then
+      /usr/bin/xattr -d com.apple.quarantine "$executable" >/dev/null 2>&1 || failed=1
+    fi
+  done
+  if [ "$failed" -ne 0 ]; then
+    echo "WordPing could not remove macOS quarantine. Check the workflow folder permissions."
+    exit 1
   fi
+  echo "WordPing is enabled. Retry your lookup."
+  exit 0
+fi
+
+quarantined=0
+for executable in "$runtime" "$workflow_dir/runtime/word-suggestions" "$workflow_dir/runtime/apple-translate"; do
+  if [ -f "$executable" ] && /usr/bin/xattr -p com.apple.quarantine "$executable" >/dev/null 2>&1; then
+    quarantined=1
+    break
+  fi
+done
+if [ "$quarantined" -eq 1 ]; then
+  printf '%s\n' '{"items":[{"uid":"wordping-trust","title":"Trust and enable WordPing","subtitle":"Press Return to remove macOS quarantine from WordPing bundled executables","arg":"~trust-wordping","valid":true,"icon":{"path":"icon.png"}}]}'
+  exit 0
 fi
 
 data_dir="${alfred_workflow_data:-$HOME/Library/Application Support/Alfred/Workflow Data/com.bitman.wordping}"
