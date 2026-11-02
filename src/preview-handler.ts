@@ -3,18 +3,32 @@ import { icibaPreviewHTML } from './iciba-preview';
 export function previewHandler(
   token: string, upstream: typeof fetch = fetch,
   localPage?: (id: string) => Promise<string | undefined>,
+  dictionaryPage?: (name: 'ecdict' | 'cedict', word: string, from: string, to: string) => Promise<string | undefined>,
 ): (request: Request) => Promise<Response> {
   return async (request) => {
   const url = new URL(request.url);
   if (request.method !== 'GET' || !url.pathname.startsWith(`/${token}/`)) return new Response('Not found', { status: 404 });
   const headers = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
-  if (url.pathname === `/${token}/health`) return new Response('wordping-preview-v2', { headers });
+  if (url.pathname === `/${token}/health`) return new Response('wordping-preview-v5', { headers });
   try {
     const pageMatch = url.pathname.match(new RegExp(`^/${token}/page/([a-f0-9]{32})$`));
     if (pageMatch && localPage) {
-      const html = await localPage(pageMatch[1]);
-      return html === undefined ? new Response('Not found', { status: 404, headers })
-        : new Response(html, { headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8' } });
+      const content = await localPage(pageMatch[1]);
+      return content === undefined ? new Response('Not found', { status: 404, headers })
+        : new Response(content, { headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8' } });
+    }
+    const dictionaryMatch = url.pathname.match(new RegExp(`^/${token}/dictionary/(ecdict|cedict)$`));
+    if (dictionaryMatch && dictionaryPage) {
+      const word = url.searchParams.get('word') || '';
+      const from = url.searchParams.get('from') || '';
+      const to = url.searchParams.get('to') || '';
+      if (!word || word.length > 512 || /[\0]/.test(word)
+        || !/^[a-zA-Z-]{2,20}$/.test(from) || !/^[a-zA-Z-]{2,20}$/.test(to)) {
+        return new Response('Invalid dictionary entry', { status: 400, headers });
+      }
+      const content = await dictionaryPage(dictionaryMatch[1] as 'ecdict' | 'cedict', word, from, to);
+      return content === undefined ? new Response('Not found', { status: 404, headers })
+        : new Response(content, { headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8' } });
     }
     let target: URL;
     const page = url.pathname === `/${token}/word`;
@@ -38,7 +52,7 @@ export function previewHandler(
       status: response.status, headers: { ...headers, 'Content-Type': page ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8' },
     });
   } catch {
-    return new Response('iCIBA is unavailable. Close the preview and try again.', { status: 502, headers });
+    return new Response('Preview unavailable. Close it and try again.', { status: 502, headers });
   }
   };
 }

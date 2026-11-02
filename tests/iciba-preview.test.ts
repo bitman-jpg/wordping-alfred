@@ -37,7 +37,8 @@ let received = '';
 const handle = previewHandler('token', async (input: any) => {
   received = String(input);
   return new Response(received.includes('/word?') ? html : '{"code":0}', { headers: { 'Content-Type': 'application/json' } });
-}, async (id) => id === '0123456789abcdef0123456789abcdef' ? '<html>Oxford entry</html>' : undefined);
+}, async (id) => id === '0123456789abcdef0123456789abcdef' ? '<html>Oxford entry</html>' : undefined,
+async (name, word, from, to) => `<html>${name}:${word}:${from}:${to}</html>`);
 const server = tjs.serve({ listenIp: '127.0.0.1', port: 0, fetch: handle });
 const base = `http://127.0.0.1:${server.port}`;
 try {
@@ -52,6 +53,11 @@ try {
   assert(page.includes('wordping-tabs'), 'actual preview requests must receive the compatibility page');
   const local = await fetch(`${base}/token/page/0123456789abcdef0123456789abcdef`);
   assert(local.ok && (await local.text()).includes('Oxford entry'), 'local Oxford pages should be served by opaque content ID');
+  const dictionary = await fetch(`${base}/token/dictionary/ecdict?word=hello&from=en&to=zh-CHS`);
+  assert(dictionary.ok && (await dictionary.text()).includes('ecdict:hello:en:zh-CHS'),
+    'managed dictionary previews should be rendered dynamically');
+  assert((await fetch(`${base}/token/dictionary/other?word=hello&from=en&to=zh-CHS`)).status === 404,
+    'dynamic previews must reject unknown dictionaries');
   assert((await fetch(`${base}/token/page/../../etc/passwd`)).status === 404,
     'local preview paths must reject traversal and non-content IDs');
 } finally { await server.close(); }

@@ -135,7 +135,8 @@ export function oneItemPerProvider(
   const providerInfo = provider ? pair : String(first.subtitle || '');
   const remaining = [mainPreview.rest, overflow].filter(Boolean).join(separator);
   const needsLargeTypeHint = Boolean(remaining) && displayWidth(combined) > 100;
-  const previewHint = first.variables?.wordping_preview_html ? '⇧ Preview complete entry' : '';
+  const previewHint = first.variables?.wordping_preview_html || first.variables?.wordping_preview_dictionary
+    ? '⇧ Preview complete entry' : '';
   const actionHint = previewHint || (needsLargeTypeHint ? '⌘L to read full translation' : '');
   const subtitlePreview = preview(remaining, actionHint ? 48 : 100);
   first.subtitle = [providerInfo, actionHint,

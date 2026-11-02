@@ -13,6 +13,7 @@ export interface Result {
   audioUK?: string;
   audioUS?: string;
   previewHTML?: string;
+  previewDictionary?: string;
 }
 
 class Workflow {
@@ -47,10 +48,11 @@ class Workflow {
       .setCopy(r.title)
       .setQuicklookurl(r.quicklookurl)
       .result();
-      if (r.source || r.partOfSpeech || r.previewHTML) item.variables = {
+      if (r.source || r.partOfSpeech || r.previewHTML || r.previewDictionary) item.variables = {
         ...(r.source ? { wordping_source: r.source } : {}),
         ...(r.partOfSpeech ? { wordping_pos: r.partOfSpeech } : {}),
         ...(r.previewHTML ? { wordping_preview_html: r.previewHTML } : {}),
+        ...(r.previewDictionary ? { wordping_preview_dictionary: r.previewDictionary } : {}),
         ...(r.source === 'Iciba' ? {
           wordping_audio_uk: r.audioUK || '', wordping_audio_us: r.audioUS || '',
         } : {}),

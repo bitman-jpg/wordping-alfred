@@ -47,7 +47,7 @@ https://github.com/user-attachments/assets/0a491372-d726-4364-9c34-8f7b99369a07
 | **⌘ Return** | 用 Mac 系统语音朗读原词。 |
 | **⌥ Return** | 播放在线发音；若选择“两者”，会先播放英音，再播放美音。 |
 | 按住 **⌥ Option** | 词典提供音标或拼音时，显示这些信息。 |
-| 按住 **Shift** | 用 Quick Look 预览所选在线来源的页面。 |
+| 按住 **Shift** | 在所选来源支持时，预览完整词条。 |
 
 爱词霸使用兼容预览，支持在 Quick Look 中切换词典；页面提供的柯林斯释义会保留，AI 内容取决于爱词霸的在线响应，未提供的内容会明确提示。点击页面中的网站链接可查看原网页。选中爱词霸结果时，**⌥ Return** 播放爱词霸提供的对应口音录音；其他来源使用有道发音。若爱词霸没有该口音的录音，则无法播放。
 | **⌃ Return** | 收藏这个词，供日后复习。 |
@@ -163,8 +163,8 @@ https://github.com/user-attachments/assets/da6b321b-c97d-4db4-8254-377ce1943fbc
 默认来源顺序为 **Oxford → ECDICT → CC-CEDICT → Apple → Youdao → iCiba → Baidu → Wiktionary → MyMemory**。可在 Alfred 的 WordPing 设置中通过 **Providers** 调整顺序或移除来源。
 
 - **系统牛津（`oxford`）**：如果 Mac 已有牛津词典，通常无需设置即可使用。若没有牛津结果，请打开 macOS **词典 App → 设置**，启用“牛津英汉汉英词典”。在牛津结果上按住 **Shift**，可在大型、可滚动的预览中查看完整词条。
-- **ECDICT（`ecdict`）**：首次使用时，WordPing 会自动下载这本英汉词典。以后可打开 `wp :dictionaries` 检查更新。
-- **CC-CEDICT（`cedict`）**：WordPing 会与 ECDICT 一同自动安装这本汉英词典，支持繁体、简体和拼音；可通过 `wp :dictionaries` 更新。
+- **ECDICT（`ecdict`）**：首次使用时，WordPing 会自动下载这本英汉词典。在结果上按住 **Shift**，可在可滚动的预览中查看词典提供的所有字段。以后可打开 `wp :dictionaries` 检查更新。
+- **CC-CEDICT（`cedict`）**：WordPing 会与 ECDICT 一同自动安装这本汉英词典，支持繁体、简体和拼音。按住 **Shift** 可查看所有匹配词条和释义；可通过 `wp :dictionaries` 更新。
 
 首次设置会下载约 63 MB 的 ECDICT 和约 4 MB 的 CC-CEDICT。若不想下载其中一本，请在首次查询前从 **Providers** 移除它。安装完成后，两本词典都可离线使用，升级 WordPing 也不会丢失。若新安装的词典没有出现在旧结果中，请运行 `wp :clear` 后重新查询。若只想离线查词，可在 **Providers** 中仅保留 `oxford,ecdict,cedict`。
 

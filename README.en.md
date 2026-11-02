@@ -47,7 +47,7 @@ The selected provider row has several useful actions:
 | **⌘ Return** | Hear the source word with a Mac voice. |
 | **⌥ Return** | Hear online pronunciation; **Both** plays British, then American. |
 | Hold **⌥ Option** | Show phonetics or pinyin where a dictionary provides them. |
-| Hold **Shift** | Preview the selected web provider's page with Quick Look. |
+| Hold **Shift** | Open a complete-entry preview when the selected source provides one. |
 
 iCIBA uses a compatibility preview so its dictionary tabs can work in Quick Look. Collins definitions are retained when supplied; AI tabs depend on iCIBA's live responses, and unavailable content is labeled. Use the page's website link for the original page. **⌥ Return** on an iCIBA result plays iCIBA's recording in your configured accent; other providers use Youdao audio. If iCIBA has no recording for that accent, playback is unavailable.
 | **⌃ Return** | Save the word for review. |
@@ -163,8 +163,8 @@ If you want an on-device Apple Translation result, use macOS 26 or newer and dow
 The default provider order is **Oxford → ECDICT → CC-CEDICT → Apple → Youdao → iCiba → Baidu → Wiktionary → MyMemory**. You can reorder or remove sources in **Providers** in the Alfred workflow settings.
 
 - **System Oxford (`oxford`)**: this usually works automatically when the Oxford dictionary is already available on your Mac. If no Oxford result appears, open macOS **Dictionary → Settings** and enable 牛津英汉汉英词典. Hold **Shift** on an Oxford result to read the complete entry in a large, scrollable preview.
-- **ECDICT (`ecdict`)**: WordPing downloads this English–Chinese dictionary automatically on first use. Open `wp :dictionaries` whenever you want to check for an update.
-- **CC-CEDICT (`cedict`)**: WordPing installs this Chinese–English dictionary automatically alongside ECDICT. It includes traditional characters, simplified characters, and pinyin. Update it from `wp :dictionaries`.
+- **ECDICT (`ecdict`)**: WordPing downloads this English–Chinese dictionary automatically on first use. Hold **Shift** on its result to read every available field in a scrollable preview. Open `wp :dictionaries` whenever you want to check for an update.
+- **CC-CEDICT (`cedict`)**: WordPing installs this Chinese–English dictionary automatically alongside ECDICT. It includes traditional characters, simplified characters, and pinyin. Hold **Shift** to see every matching entry and definition. Update it from `wp :dictionaries`.
 
 The first setup downloads about 63 MB for ECDICT and 4 MB for CC-CEDICT. To skip either download, remove its name from **Providers** before your first lookup. Once installed, both work offline and remain available after WordPing upgrades. If a newly installed dictionary does not appear in an older result, run `wp :clear` and look up the word again. For offline-only lookups, keep only `oxford,ecdict,cedict` in **Providers**.
 
