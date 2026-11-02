@@ -110,6 +110,8 @@ https://github.com/user-attachments/assets/40a15341-9836-4a47-9531-badf475ea13d
 
 Type `wp :review` to start or resume a session of up to 10 due words. Read the prompt, press **Return** to reveal the translation, then choose **Got it** or **Missed it**. **⌘ Return** speaks the word before you reveal it. A missed word comes back once at the end of that session. Your next reviews are scheduled after 1, 3, 7, 14, 30, and 60 days as you keep remembering a word.
 
+This is a fixed-interval review schedule based on the Ebbinghaus forgetting curve.
+
 https://github.com/user-attachments/assets/0dc6dc62-4e04-4a8f-a981-d7224f7ee651
 
 *Watch: review saved words (21 seconds).*

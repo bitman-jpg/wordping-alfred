@@ -110,6 +110,8 @@ https://github.com/user-attachments/assets/40a15341-9836-4a47-9531-badf475ea13d
 
 输入 `wp :review`，开始或继续复习，每轮最多 10 个到期的词。先回想词义，再按 **Return** 显示译文，然后选择 **Got it**（记住了）或 **Missed it**（没记住）。揭晓前可按 **⌘ Return** 听发音。本轮答错的词会在轮末再出现一次。连续记住时，之后的复习间隔依次为 1、3、7、14、30、60 天。
 
+这是一套基于艾宾浩斯遗忘规律的固定间隔复习计划。
+
 https://github.com/user-attachments/assets/0dc6dc62-4e04-4a8f-a981-d7224f7ee651
 
 *演示：复习单词（21 秒）。*
