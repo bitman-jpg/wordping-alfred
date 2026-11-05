@@ -41,6 +41,9 @@ const preview = oxfordPreviewHTML('beat | biːt | A. verb ① <strike> 击打▸
 assert(preview.includes('PHRASAL VERBS') && preview.includes('beat a drum') && preview.includes('beat up')
   && preview.includes('&lt;strike&gt;') && !preview.includes('<strike>'),
   'Oxford Shift preview should retain the complete entry and escape dictionary text as HTML');
+assert(preview.includes('Oxford Dictionary') && preview.includes('#001a4d')
+  && preview.includes('linear-gradient') && preview.includes('font-family:Georgia'),
+  'Oxford Shift preview should use the rich blue, serif-led Oxford cover design');
 
 assert(!(await lookupLocalDictionary('oxford', 'two words', 'en', 'zh-CHS')).length,
   'phrases are not sent to local dictionaries');

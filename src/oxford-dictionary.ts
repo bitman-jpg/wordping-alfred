@@ -128,13 +128,22 @@ export function oxfordPreviewHTML(
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
 <style>
-:root{color-scheme:light dark}body{font:17px/1.65 -apple-system,BlinkMacSystemFont,sans-serif;margin:0}
-main{box-sizing:border-box;max-width:1050px;margin:auto;padding:42px 54px 80px}
-h1{font-size:34px;line-height:1.15;margin:0 0 12px}.meta{color:#7d8590;margin-bottom:30px}
-article{font-family:-apple-system,BlinkMacSystemFont,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
-@media(max-width:650px){main{padding:28px 24px 60px}h1{font-size:28px}}
-</style></head><body><main><h1>${escapeHTML(word)}</h1>
-<div class="meta">${escapeHTML(source)} · ${escapeHTML(from)} → ${escapeHTML(to)}${parsed.phonetics ? ` · ${escapeHTML(parsed.phonetics)}` : ''}</div>
+:root{color-scheme:dark;--ink:#fff;--muted:#b8dce8;--rule:rgba(127,218,239,.42)}
+*{box-sizing:border-box}
+body{min-height:100vh;margin:0;color:var(--ink);font:17px/1.7 -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+background:#001a4d;
+background-image:radial-gradient(ellipse at 63% 18%,rgba(0,174,213,.78) 0,rgba(0,94,150,.62) 29%,transparent 58%),radial-gradient(ellipse at -8% 48%,#006ea2 0,#003d79 37%,transparent 61%),linear-gradient(155deg,#00113f 0%,#002c67 50%,#007ca7 82%,#6cbf36 82.4%,#3ca83d 86%,#ed3131 86.4%,#b81224 100%)}
+body:before{content:"";position:fixed;inset:-18vh 43% 40vh -26%;border-radius:50%;background:rgba(0,7,57,.8);transform:rotate(25deg);filter:blur(2px);pointer-events:none}
+main{position:relative;z-index:1;width:min(1050px,calc(100% - 48px));margin:0 auto;padding:48px 0 108px}
+.masthead{padding:0 10px 30px;border-bottom:1px solid var(--rule)}
+.brand{margin-bottom:24px;color:#bdeaf2;font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase}
+h1{max-width:900px;margin:0;font-family:Georgia,"Times New Roman",serif;font-size:clamp(48px,8vw,84px);font-weight:400;line-height:.96;letter-spacing:-.035em;text-shadow:0 3px 18px rgba(0,12,55,.3)}
+.meta{margin-top:20px;color:var(--muted);font-size:14px;letter-spacing:.025em}
+article{margin-top:34px;padding:36px 40px 42px;border:1px solid rgba(147,222,239,.32);border-radius:3px;background:linear-gradient(135deg,rgba(0,19,67,.76),rgba(0,62,104,.58));box-shadow:0 22px 60px rgba(0,9,43,.32);font-family:Georgia,"Songti SC","STSong",serif;font-size:18px;white-space:pre-wrap;overflow-wrap:anywhere;backdrop-filter:blur(12px)}
+@media(max-width:650px){main{width:min(100% - 32px,1050px);padding:30px 0 82px}.masthead{padding:0 4px 24px}.brand{margin-bottom:18px}h1{font-size:48px}.meta{line-height:1.5}article{margin-top:24px;padding:25px 22px 30px;font-size:17px}}
+@media(prefers-reduced-transparency:reduce){article{background:#003865;backdrop-filter:none}}
+</style></head><body><main><header class="masthead"><div class="brand">Oxford Dictionary</div><h1>${escapeHTML(word)}</h1>
+<div class="meta">${escapeHTML(source)} · ${escapeHTML(from)} → ${escapeHTML(to)}${parsed.phonetics ? ` · ${escapeHTML(parsed.phonetics)}` : ''}</div></header>
 <article>${escapeHTML(article || meaning)}</article></main></body></html>`;
 }
 
