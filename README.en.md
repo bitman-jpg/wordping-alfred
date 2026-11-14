@@ -11,11 +11,13 @@
 - **More than lookup** — press ⌃ Return to save a word, then review it with `wp :review` on a 1 / 3 / 7 / 14 / 30 / 60-day spaced schedule, including reverse review and due-word reminders.
 - **Works offline too** — ECDICT, CC-CEDICT, and system Oxford work without a connection once downloaded; American, British, or both pronunciations.
 
-**See it in 41 seconds:**
+**See it in 44 seconds:**
 
-https://github.com/user-attachments/assets/b208655d-feaa-46a4-8ddd-1e5c57dc83f2
+🔊 This demo includes sound. After starting it, click the player’s speaker icon to **unmute** it.
 
-*Watch: explore multiple provider results and preview pages (41 seconds).*
+https://github.com/user-attachments/assets/de47a802-fb5c-4cef-bfbf-c2a87bc1d049
+
+*Watch: see WordPing's main lookup and dictionary actions (44 seconds).*
 
 ## Compared with a typical Youdao-only workflow
 
@@ -68,9 +70,11 @@ The selected provider row has several useful actions:
 iCIBA uses a compatibility preview so its dictionary tabs can work in Quick Look. Collins definitions are retained when supplied; AI tabs depend on iCIBA's live responses, and unavailable content is labeled. Use the page's website link for the original page. **⌥ Return** on an iCIBA result plays iCIBA's recording in your configured accent; other providers use Youdao audio. If iCIBA has no recording for that accent, playback is unavailable.
 | **⌃ Return** | Save the word for review. |
 
-https://github.com/user-attachments/assets/b208655d-feaa-46a4-8ddd-1e5c57dc83f2
+🔊 This demo includes sound. After starting it, click the player’s speaker icon to **unmute** it.
 
-*Watch: explore multiple provider results and preview pages (41 seconds).*
+https://github.com/user-attachments/assets/41dd5c2b-e876-45dc-a939-69588d486c57
+
+*Watch: explore multiple provider results, preview pages, and copy a complete translation (45 seconds).*
 
 Long translations are shortened in the result row, with a **⌘L** hint. **⌘L** opens the whole text; **Return** copies the whole text even when the row is shortened.
 
