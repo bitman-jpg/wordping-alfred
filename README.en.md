@@ -38,19 +38,23 @@ https://github.com/user-attachments/assets/de47a802-fb5c-4cef-bfbf-c2a87bc1d049
 
 On first use, WordPing may show **Finish setting up WordPing**. Only if you downloaded the workflow from the official WordPing release page, select that result and press **Return**. This prepares WordPing to run on your Mac without changing any other apps or files. Then retry your lookup.
 
-https://github.com/user-attachments/assets/1d244843-a647-483a-9f07-dd7ef6c483ba
+https://github.com/user-attachments/assets/a5bc7723-0bb6-489f-843d-c3d63b79494b
 
-*Watch: configure WordPing (14 seconds).*
+*Watch: configure WordPing (12 seconds).*
 
 ## Look up a word or selected text
 
 Type `wp ` followed by a word, phrase, or sentence. WordPing shows a row for each responding provider. Translation availability varies by language pair and provider.
 
-https://github.com/user-attachments/assets/0a491372-d726-4364-9c34-8f7b99369a07
+https://github.com/user-attachments/assets/6eb5376e-1626-4e0e-b900-ba9c84101c86
 
 *Watch: find a word (10 seconds).*
 
 To translate text in another Mac app, select it, then use WordPing's Alfred hotkey. To set up the demo's double-tap **⌥ Option** shortcut, open the workflow in Alfred Preferences, double-click **Hotkey Trigger**, set its hotkey to double-tap Option, and set **Argument** to **Selection in macOS**. If Alfred cannot read selected text, allow it in **System Settings → Privacy & Security → Accessibility**.
+
+If double-tap Option does not open WordPing, verify that the Hotkey Trigger matches the settings below—especially **Action: Pass through to workflow** and **Argument: Selection in macOS**—then click **Save**.
+
+![WordPing Hotkey Trigger configured for double-tap Option and Selection in macOS](assets/hotkey-selection.png)
 
 Use `wp` by itself to reopen a recent lookup. To erase recent lookups, type `wp :clear`.
 
@@ -104,7 +108,7 @@ Phonetics appear only on results whose dictionary supplies them. Online audio us
 
 WordPing normally uses your **native language** and **learning language** to choose a direction: text in your learning language goes to your native language, while text in your native language goes to your learning language. For other languages, it aims at your native language. For example, if your native language is Chinese and you are learning English, looking up the Chinese phrase “你说啥” produces English results, marked `zh→en` in this image.
 
-![Chinese input translated into English by default](demo-clips/3%20tranlation%20learning%20language%20to%20native%20language.png)
+![Chinese input translated into English by default](demo-clips/3%20translation%20learning%20language%20to%20native%20language.png)
 
 To use another direction, such as **English directly to Korean**, prefix your query with `source>destination`: `wp en>ko awesome`. You can also type `wp es>zh trabajo` for Spanish to Simplified Chinese. `zh` means Simplified Chinese; `tw` or `zh-TW` means Traditional Chinese. A manual direction stays fixed even if a provider has no result.
 

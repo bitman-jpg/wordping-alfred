@@ -38,19 +38,23 @@ https://github.com/user-attachments/assets/de47a802-fb5c-4cef-bfbf-c2a87bc1d049
 
 首次使用时，WordPing 可能会显示 **Finish setting up WordPing**。请确认工作流来自 WordPing 官方发布页，然后选中该结果并按 **Return**。此操作会让 WordPing 可以在 Mac 上正常运行，不会更改其他 App 或文件。之后请重试查询。
 
-https://github.com/user-attachments/assets/1d244843-a647-483a-9f07-dd7ef6c483ba
+https://github.com/user-attachments/assets/a5bc7723-0bb6-489f-843d-c3d63b79494b
 
-*演示：设置 WordPing（14 秒）。*
+*演示：设置 WordPing（12 秒）。*
 
 ## 查词与翻译选中的文字
 
 输入 `wp `，再输入单词、短语或句子。每个有结果的翻译来源会显示一行。可用结果取决于语言组合及翻译来源。
 
-https://github.com/user-attachments/assets/0a491372-d726-4364-9c34-8f7b99369a07
+https://github.com/user-attachments/assets/6eb5376e-1626-4e0e-b900-ba9c84101c86
 
 *演示：查找单词（10 秒）。*
 
 若要翻译其他 Mac 应用中的文字，先选中文字，再使用 WordPing 的 Alfred 快捷键。要设置演示中的**连按两次 ⌥ Option**：在 Alfred 设置中打开 WordPing，双击 **Hotkey Trigger**，将快捷键设为连按两次 Option，并将 **Argument** 设为 **Selection in macOS**。如果 Alfred 无法读取选中的文字，请在**系统设置 → 隐私与安全性 → 辅助功能**中允许 Alfred。
+
+如果连按两次 Option 没有打开 WordPing，请确认 **Hotkey Trigger** 与下图一致，尤其是 **Action: Pass through to workflow** 和 **Argument: Selection in macOS**，然后点击 **Save**。
+
+![WordPing 连按两次 Option 并读取 macOS 所选文字的快捷键设置](assets/hotkey-selection.png)
 
 只输入 `wp` 可重新打开最近查过的内容。输入 `wp :clear` 可清除查询历史。
 
@@ -104,7 +108,7 @@ https://github.com/user-attachments/assets/6b8fc2d0-d67a-4984-bf68-c6933692bd7e
 
 WordPing 默认根据你设置的**母语**和**学习语言**选择方向：输入学习语言时译成母语，输入母语时译成学习语言；输入其他语言时尽量译成母语。例如，母语设为中文、学习语言设为英语时，查询中文“你说啥”会得到英语结果，图中标为 `zh→en`。
 
-![输入中文时默认译成英语的查询结果](demo-clips/3%20tranlation%20learning%20language%20to%20native%20language.png)
+![输入中文时默认译成英语的查询结果](demo-clips/3%20translation%20learning%20language%20to%20native%20language.png)
 
 如果想使用不同于默认设置的方向，例如**直接把英语译成韩语**，就在查询文字前加 `来源语言>目标语言`：`wp en>ko awesome`。也可以输入 `wp es>zh trabajo`，把西班牙语译成简体中文。`zh` 表示简体中文，`tw` 或 `zh-TW` 表示繁体中文。手动指定后，即使某个来源没有结果，WordPing 也不会自动反转方向。
 
